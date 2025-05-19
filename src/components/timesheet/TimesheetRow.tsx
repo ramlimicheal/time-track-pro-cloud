@@ -28,14 +28,17 @@ export const TimesheetRow = ({
   // Determine if there's overtime for this entry
   const hasOvertime = entry.otStart && entry.otEnd;
 
-  return <tr>
+  // Determine if the entry is editable (draft status and not readOnly)
+  const isEditable = !readOnly && entry.status === "draft";
+
+  return <tr className={entry.status === 'approved' ? 'bg-green-50' : ''}>
       <td className="whitespace-nowrap px-[12px]">{entry.date}</td>
       <td>
         <TimePickerInput 
           value={entry.workStart} 
           onChange={(value) => onUpdate(entry.id, "workStart", value)} 
           error={!isValidTimeFormat(entry.workStart) && entry.workStart ? true : false}
-          readOnly={readOnly || entry.status !== "draft"}
+          readOnly={!isEditable}
         />
       </td>
       <td>
@@ -43,7 +46,7 @@ export const TimesheetRow = ({
           value={entry.breakStart} 
           onChange={(value) => onUpdate(entry.id, "breakStart", value)} 
           error={!isValidTimeFormat(entry.breakStart) && entry.breakStart ? true : false}
-          readOnly={readOnly || entry.status !== "draft"}
+          readOnly={!isEditable}
         />
       </td>
       <td>
@@ -51,7 +54,7 @@ export const TimesheetRow = ({
           value={entry.breakEnd} 
           onChange={(value) => onUpdate(entry.id, "breakEnd", value)} 
           error={!isValidTimeFormat(entry.breakEnd) && entry.breakEnd ? true : false}
-          readOnly={readOnly || entry.status !== "draft"}
+          readOnly={!isEditable}
         />
       </td>
       <td>
@@ -59,7 +62,7 @@ export const TimesheetRow = ({
           value={entry.workEnd} 
           onChange={(value) => onUpdate(entry.id, "workEnd", value)} 
           error={!isValidTimeFormat(entry.workEnd) && entry.workEnd ? true : false}
-          readOnly={readOnly || entry.status !== "draft"}
+          readOnly={!isEditable}
         />
       </td>
       <td>
@@ -69,7 +72,7 @@ export const TimesheetRow = ({
           onChange={e => onUpdate(entry.id, "description", e.target.value)} 
           placeholder="Enter description" 
           className="w-full" 
-          readOnly={readOnly || entry.status !== "draft"} 
+          readOnly={!isEditable} 
         />
       </td>
       <td>
@@ -77,7 +80,7 @@ export const TimesheetRow = ({
           value={entry.otStart} 
           onChange={(value) => onUpdate(entry.id, "otStart", value)} 
           error={!isValidTimeFormat(entry.otStart) && entry.otStart ? true : false}
-          readOnly={readOnly || entry.status !== "draft"}
+          readOnly={!isEditable}
         />
       </td>
       <td>
@@ -85,7 +88,7 @@ export const TimesheetRow = ({
           value={entry.otEnd} 
           onChange={(value) => onUpdate(entry.id, "otEnd", value)} 
           error={!isValidTimeFormat(entry.otEnd) && entry.otEnd ? true : false}
-          readOnly={readOnly || entry.status !== "draft"}
+          readOnly={!isEditable}
         />
       </td>
       <td className="font-medium">
@@ -113,11 +116,16 @@ export const TimesheetRow = ({
           onChange={e => onUpdate(entry.id, "remarks", e.target.value)} 
           placeholder="Add remarks" 
           className="w-full" 
-          readOnly={readOnly || entry.status !== "draft"} 
+          readOnly={!isEditable} 
         />
       </td>
       <td>
-        <span className={`px-2 py-1 text-xs rounded-full ${entry.status === 'approved' ? 'bg-green-100 text-green-800' : entry.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : entry.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+        <span className={`px-2 py-1 text-xs rounded-full ${
+          entry.status === 'approved' ? 'bg-green-100 text-green-800' : 
+          entry.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+          entry.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+          'bg-gray-100 text-gray-800'
+        }`}>
           {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
         </span>
       </td>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ const AdminPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [timesheetStatus, setTimesheetStatus] = useState<"pending" | "approved" | "rejected">("pending");
   const [activeTab, setActiveTab] = useState<string>("pending-timesheets");
+  const [entries, setEntries] = useState<TimesheetEntry[]>([]);
   
   // Mock employee data - expanded with more fields
   const employees = [
@@ -81,15 +82,52 @@ const AdminPage = () => {
     },
   ];
 
+  useEffect(() => {
+    if (selectedEmployee) {
+      setEntries(mockEntries);
+    }
+  }, [selectedEmployee]);
+
   const handleApprove = () => {
+    // Update all entries to approved status
+    const updatedEntries = entries.map(entry => ({
+      ...entry,
+      status: "approved" as const
+    }));
+    
+    setEntries(updatedEntries);
     setTimesheetStatus("approved");
+    
+    // Update the employee's pending timesheet count
+    const updatedEmployees = employees.map(emp => {
+      if (emp.id === selectedEmployee) {
+        return {
+          ...emp,
+          pendingTimesheets: 0
+        };
+      }
+      return emp;
+    });
+    
     toast.success("Timesheet approved successfully");
   };
 
   const handleReject = () => {
+    // Update all entries to rejected status
+    const updatedEntries = entries.map(entry => ({
+      ...entry,
+      status: "rejected" as const
+    }));
+    
+    setEntries(updatedEntries);
     setTimesheetStatus("rejected");
-    toast.success("Timesheet rejected with comments");
+    toast.error("Timesheet rejected with comments");
+  };
+  
+  // Function to go back to dashboard and reset status
+  const handleBack = () => {
     setSelectedEmployee(null);
+    setTimesheetStatus("pending");
   };
   
   // Function to generate a clean PDF version
@@ -143,9 +181,9 @@ const AdminPage = () => {
           <>
             <TimesheetReview 
               employee={currentEmployee}
-              entries={mockEntries}
+              entries={entries}
               timesheetStatus={timesheetStatus}
-              onBack={() => setSelectedEmployee(null)}
+              onBack={handleBack}
               onApprove={handleApprove}
               onReject={handleReject}
               onGeneratePDF={generatePDF}
@@ -153,7 +191,7 @@ const AdminPage = () => {
 
             <PrintableTimesheetReport
               employee={currentEmployee}
-              entries={mockEntries}
+              entries={entries}
               timesheetStatus={timesheetStatus}
               selectedEmployee={selectedEmployee}
             />
