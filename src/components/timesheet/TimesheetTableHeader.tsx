@@ -1,51 +1,24 @@
 
-import { TimeIcon } from "@/components/TimeIcon";
+interface TimesheetTableHeaderProps {
+  showActions?: boolean;
+}
 
-export const TimesheetTableHeader = () => {
+export const TimesheetTableHeader = ({ showActions = false }: TimesheetTableHeaderProps) => {
   return (
-    <thead>
-      <tr className="bg-timetrack-lightBlue text-xs font-medium text-gray-700 uppercase tracking-wider border-b border-gray-200">
-        <th className="px-3 py-3 text-left">Date</th>
-        <th className="px-3 py-3 text-left">
-          <div className="flex items-center gap-1">
-            <span>Work Start</span>
-            <TimeIcon />
-          </div>
-        </th>
-        <th className="px-3 py-3 text-left">
-          <div className="flex items-center gap-1">
-            <span>Break Start</span>
-            <TimeIcon />
-          </div>
-        </th>
-        <th className="px-3 py-3 text-left">
-          <div className="flex items-center gap-1">
-            <span>Break End</span>
-            <TimeIcon />
-          </div>
-        </th>
-        <th className="px-3 py-3 text-left">
-          <div className="flex items-center gap-1">
-            <span>Work End</span>
-            <TimeIcon />
-          </div>
-        </th>
-        <th className="px-3 py-3 text-left">Description</th>
-        <th className="px-3 py-3 text-left">
-          <div className="flex items-center gap-1">
-            <span>OT Start</span>
-            <TimeIcon />
-          </div>
-        </th>
-        <th className="px-3 py-3 text-left">
-          <div className="flex items-center gap-1">
-            <span>OT End</span>
-            <TimeIcon />
-          </div>
-        </th>
-        <th className="px-3 py-3 text-left">Total Hours</th>
-        <th className="px-3 py-3 text-left">Remarks</th>
-        <th className="px-3 py-3 text-left">Status</th>
+    <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b border-gray-200">
+      <tr>
+        <th className="px-[12px] py-3">Date</th>
+        <th className="px-2 py-3">Start</th>
+        <th className="px-2 py-3">Break Start</th>
+        <th className="px-2 py-3">Break End</th>
+        <th className="px-2 py-3">End</th>
+        <th className="px-2 py-3">Description</th>
+        <th className="px-2 py-3">OT Start</th>
+        <th className="px-2 py-3">OT End</th>
+        <th className="px-2 py-3">Hours</th>
+        <th className="px-2 py-3">Remarks</th>
+        <th className="px-2 py-3">Status</th>
+        {showActions && <th className="px-2 py-3">Actions</th>}
       </tr>
     </thead>
   );

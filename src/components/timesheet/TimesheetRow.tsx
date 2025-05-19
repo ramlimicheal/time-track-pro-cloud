@@ -4,18 +4,23 @@ import { TimePickerInput } from "./TimePickerInput";
 import { TimesheetEntry } from "@/types";
 import { isValidTimeFormat } from "@/utils/timeUtils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Check, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface TimesheetRowProps {
   entry: TimesheetEntry;
   readOnly: boolean;
   onUpdate: (id: string, field: keyof TimesheetEntry, value: string | number) => void;
+  onApproveEntry?: (entryId: string) => void;
+  onRejectEntry?: (entryId: string) => void;
 }
 
 export const TimesheetRow = ({
   entry,
   readOnly,
-  onUpdate
+  onUpdate,
+  onApproveEntry,
+  onRejectEntry
 }: TimesheetRowProps) => {
   // Calculate the hours worked for this entry to show in Admin review
   const calculateDisplayHours = () => {
@@ -40,6 +45,9 @@ export const TimesheetRow = ({
       default: return '';
     }
   };
+
+  // Show action buttons for pending entries when in review mode
+  const showActionButtons = onApproveEntry && onRejectEntry && entry.status === 'pending';
 
   return (
     <tr className={`${getRowBackgroundColor()} hover:bg-gray-50 transition-colors`}>
@@ -140,6 +148,35 @@ export const TimesheetRow = ({
           {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
         </span>
       </td>
+      
+      {/* Add action buttons column if we're in review mode */}
+      {(onApproveEntry || onRejectEntry) && (
+        <td className="px-2 py-2">
+          {showActionButtons && (
+            <div className="flex gap-1">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                onClick={() => onApproveEntry && onApproveEntry(entry.id)}
+              >
+                <Check className="h-4 w-4" />
+                <span className="sr-only">Approve</span>
+              </Button>
+              
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => onRejectEntry && onRejectEntry(entry.id)}
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Reject</span>
+              </Button>
+            </div>
+          )}
+        </td>
+      )}
     </tr>
   );
 };

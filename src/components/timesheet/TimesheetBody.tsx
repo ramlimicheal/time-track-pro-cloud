@@ -6,9 +6,17 @@ interface TimesheetBodyProps {
   entries: TimesheetEntry[];
   readOnly: boolean;
   onUpdate: (id: string, field: keyof TimesheetEntry, value: string | number) => void;
+  onApproveEntry?: (entryId: string) => void;
+  onRejectEntry?: (entryId: string) => void;
 }
 
-export const TimesheetBody = ({ entries, readOnly, onUpdate }: TimesheetBodyProps) => {
+export const TimesheetBody = ({ 
+  entries, 
+  readOnly, 
+  onUpdate,
+  onApproveEntry,
+  onRejectEntry 
+}: TimesheetBodyProps) => {
   return (
     <tbody>
       {entries.map((entry) => (
@@ -16,7 +24,9 @@ export const TimesheetBody = ({ entries, readOnly, onUpdate }: TimesheetBodyProp
           key={entry.id} 
           entry={entry} 
           readOnly={readOnly} 
-          onUpdate={onUpdate} 
+          onUpdate={onUpdate}
+          onApproveEntry={onApproveEntry}
+          onRejectEntry={onRejectEntry}
         />
       ))}
     </tbody>

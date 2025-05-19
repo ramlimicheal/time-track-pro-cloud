@@ -34,51 +34,99 @@ export const TimesheetReview = ({
 }: TimesheetReviewProps) => {
   // Local state to manage status for immediate UI updates
   const [localTimesheetStatus, setLocalTimesheetStatus] = useState(initialTimesheetStatus);
+  // State to track which entry is being approved or rejected
+  const [entryBeingReviewed, setEntryBeingReviewed] = useState<string | null>(null);
+  // State for entries with their individual status
+  const [localEntries, setLocalEntries] = useState<TimesheetEntry[]>(entries);
   
   // Function to directly trigger printing
   const handlePrint = () => {
     window.print();
   };
 
-  // Function to generate PDF with minimal inputs
+  // Improved PDF generation without capturing screenshots
   const handleGeneratePDF = () => {
-    // First show the printable report by adding a class to make it visible temporarily
-    const printableElement = document.createElement('div');
-    printableElement.className = 'pdf-container';
-    printableElement.style.position = 'absolute';
-    printableElement.style.left = '-9999px';
-    
-    // Render the printable report component inside this container
-    document.body.appendChild(printableElement);
-    
-    // Call the original onGeneratePDF function
+    // Call the onGeneratePDF function which should handle the actual PDF generation
     onGeneratePDF();
     
     // Show success message to user
     toast.success("PDF generated successfully");
-    
-    // Clean up the temporary element after a delay
-    setTimeout(() => {
-      document.body.removeChild(printableElement);
-    }, 1000);
   };
 
-  // Handle approve with notification feedback
-  const handleApprove = () => {
-    // Immediately update the local status to show approved in the UI
-    setLocalTimesheetStatus("approved");
-    // Then call the parent component's approval handler
-    onApprove();
-    toast.success(`Timesheet approval notification sent to ${employee?.name}`);
+  // Handle approve with notification feedback for specific entry
+  const handleApprove = (entryId?: string) => {
+    if (entryId) {
+      // Approve just this specific entry
+      setEntryBeingReviewed(entryId);
+      
+      // Update the specific entry status
+      const updatedEntries = localEntries.map(entry => 
+        entry.id === entryId ? { ...entry, status: "approved" as const } : entry
+      );
+      
+      setLocalEntries(updatedEntries);
+      
+      // Check if all entries are now approved
+      const allApproved = updatedEntries.every(entry => entry.status === "approved");
+      if (allApproved) {
+        setLocalTimesheetStatus("approved");
+      }
+      
+      toast.success(`Timesheet entry for ${employee?.name} on ${updatedEntries.find(e => e.id === entryId)?.date} approved`);
+    } else {
+      // Original behavior for approving the entire timesheet
+      setLocalTimesheetStatus("approved");
+      
+      // Update all entries to approved
+      const updatedEntries = localEntries.map(entry => ({
+        ...entry,
+        status: "approved" as const
+      }));
+      
+      setLocalEntries(updatedEntries);
+      
+      // Then call the parent component's approval handler
+      onApprove();
+      toast.success(`Timesheet approval notification sent to ${employee?.name}`);
+    }
   };
 
-  // Handle reject with notification feedback
-  const handleReject = () => {
-    // Immediately update the local status to show rejected in the UI
-    setLocalTimesheetStatus("rejected");
-    // Then call the parent component's rejection handler
-    onReject();
-    toast.error(`Timesheet rejection notification sent to ${employee?.name}`);
+  // Handle reject with notification feedback for specific entry
+  const handleReject = (entryId?: string) => {
+    if (entryId) {
+      // Reject just this specific entry
+      setEntryBeingReviewed(entryId);
+      
+      // Update the specific entry status
+      const updatedEntries = localEntries.map(entry => 
+        entry.id === entryId ? { ...entry, status: "rejected" as const } : entry
+      );
+      
+      setLocalEntries(updatedEntries);
+      
+      // Check if all entries are now rejected
+      const allRejected = updatedEntries.every(entry => entry.status === "rejected");
+      if (allRejected) {
+        setLocalTimesheetStatus("rejected");
+      }
+      
+      toast.error(`Timesheet entry for ${employee?.name} on ${updatedEntries.find(e => e.id === entryId)?.date} rejected`);
+    } else {
+      // Original behavior for rejecting the entire timesheet
+      setLocalTimesheetStatus("rejected");
+      
+      // Update all entries to rejected
+      const updatedEntries = localEntries.map(entry => ({
+        ...entry,
+        status: "rejected" as const
+      }));
+      
+      setLocalEntries(updatedEntries);
+      
+      // Then call the parent component's rejection handler
+      onReject();
+      toast.error(`Timesheet rejection notification sent to ${employee?.name}`);
+    }
   };
 
   // Use local status for display to ensure immediate UI updates
@@ -159,32 +207,34 @@ export const TimesheetReview = ({
       <TimesheetTable
         month="May"
         year={2025}
-        entries={entries}
+        entries={localEntries}
         readOnly={true}
         timesheetStatus={displayStatus}
         onGeneratePDF={handleGeneratePDF}
+        onApproveEntry={handleApprove}
+        onRejectEntry={handleReject}
       />
       
       <div className="mt-6 flex gap-4 justify-end print:hidden">
         {displayStatus === "pending" && (
           <>
-            <Button variant="outline" onClick={handleReject} className="flex items-center">
+            <Button variant="outline" onClick={() => handleReject()} className="flex items-center">
               <X className="h-4 w-4 mr-2" />
-              Reject with Comments
+              Reject All
             </Button>
-            <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700 flex items-center">
+            <Button onClick={() => handleApprove()} className="bg-green-600 hover:bg-green-700 flex items-center">
               <Check className="h-4 w-4 mr-2" />
-              Approve Timesheet
+              Approve All
             </Button>
           </>
         )}
       </div>
 
-      {/* Hidden printable report that will be used for PDF generation */}
+      {/* Hidden printable report that will be used for PDF generation - data only, no screenshots */}
       <div className="hidden">
         <PrintableTimesheetReport
           employee={employee}
-          entries={entries}
+          entries={localEntries}
           timesheetStatus={displayStatus}
           selectedEmployee={employee?.id || null}
         />

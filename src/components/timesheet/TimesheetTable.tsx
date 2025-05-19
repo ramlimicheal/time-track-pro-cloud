@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
@@ -16,6 +17,8 @@ interface TimesheetTableProps {
   readOnly?: boolean;
   timesheetStatus?: "draft" | "pending" | "approved" | "rejected";
   onGeneratePDF?: () => void;
+  onApproveEntry?: (entryId: string) => void;
+  onRejectEntry?: (entryId: string) => void;
 }
 
 export const TimesheetTable: React.FC<TimesheetTableProps> = ({
@@ -26,6 +29,8 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   readOnly = false,
   timesheetStatus,
   onGeneratePDF,
+  onApproveEntry,
+  onRejectEntry,
 }) => {
   const [localEntries, setLocalEntries] = useState<TimesheetEntry[]>(entries);
 
@@ -127,11 +132,13 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
 
       <div className="overflow-x-auto">
         <table className="w-full timesheet-table text-sm">
-          <TimesheetTableHeader />
+          <TimesheetTableHeader showActions={Boolean(onApproveEntry || onRejectEntry)} />
           <TimesheetBody 
             entries={localEntries} 
             readOnly={readOnly} 
-            onUpdate={updateEntry} 
+            onUpdate={updateEntry}
+            onApproveEntry={onApproveEntry}
+            onRejectEntry={onRejectEntry}
           />
         </table>
       </div>
