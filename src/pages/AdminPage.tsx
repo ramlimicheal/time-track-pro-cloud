@@ -6,16 +6,47 @@ import { toast } from "sonner";
 import { PendingTimesheetsTable } from "@/components/admin/PendingTimesheetsTable";
 import { TimesheetReview } from "@/components/admin/TimesheetReview";
 import { PrintableTimesheetReport } from "@/components/admin/PrintableTimesheetReport";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmployeeManagement } from "@/components/admin/EmployeeManagement";
+import { TimesheetAnalytics } from "@/components/admin/TimesheetAnalytics";
 
 const AdminPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   const [timesheetStatus, setTimesheetStatus] = useState<"pending" | "approved" | "rejected">("pending");
+  const [activeTab, setActiveTab] = useState<string>("pending-timesheets");
   
-  // Mock employee data
+  // Mock employee data - expanded with more fields
   const employees = [
-    { id: "1", name: "John Employee", department: "Engineering", pendingTimesheets: 1 },
-    { id: "2", name: "Jane Smith", department: "Marketing", pendingTimesheets: 0 },
-    { id: "3", name: "Robert Johnson", department: "Finance", pendingTimesheets: 2 },
+    { 
+      id: "1", 
+      name: "John Employee", 
+      department: "Engineering", 
+      pendingTimesheets: 1,
+      email: "john@example.com",
+      position: "Software Engineer",
+      joinDate: "2023-01-15",
+      status: "active"
+    },
+    { 
+      id: "2", 
+      name: "Jane Smith", 
+      department: "Marketing", 
+      pendingTimesheets: 0,
+      email: "jane@example.com",
+      position: "Marketing Specialist",
+      joinDate: "2022-06-10",
+      status: "active"
+    },
+    { 
+      id: "3", 
+      name: "Robert Johnson", 
+      department: "Finance", 
+      pendingTimesheets: 2,
+      email: "robert@example.com",
+      position: "Financial Analyst",
+      joinDate: "2021-11-22",
+      status: "active"
+    },
   ];
   
   // Mock timesheet data
@@ -86,10 +117,28 @@ const AdminPage = () => {
         </div>
         
         {!selectedEmployee ? (
-          <PendingTimesheetsTable 
-            employees={employees} 
-            onSelectEmployee={setSelectedEmployee} 
-          />
+          <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-3 mb-6">
+              <TabsTrigger value="pending-timesheets">Pending Timesheets</TabsTrigger>
+              <TabsTrigger value="employee-management">Employee Management</TabsTrigger>
+              <TabsTrigger value="timesheet-analytics">Analytics</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="pending-timesheets">
+              <PendingTimesheetsTable 
+                employees={employees} 
+                onSelectEmployee={setSelectedEmployee} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="employee-management">
+              <EmployeeManagement employees={employees} />
+            </TabsContent>
+            
+            <TabsContent value="timesheet-analytics">
+              <TimesheetAnalytics employees={employees} />
+            </TabsContent>
+          </Tabs>
         ) : (
           <>
             <TimesheetReview 
