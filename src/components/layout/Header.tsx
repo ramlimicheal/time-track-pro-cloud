@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { LogOut, Clock, History } from "lucide-react";
+import { LogOut, Clock, History, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { User } from "@/types";
@@ -33,6 +33,20 @@ export const Header: React.FC = () => {
         
         <div className="flex items-center gap-3 md:gap-6">
           <div className="hidden md:flex gap-2">
+            {user.role === "employee" && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                asChild 
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <Link to="/dashboard">
+                  <LayoutDashboard className="mr-1 h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </Button>
+            )}
+            
             <Button 
               variant="ghost" 
               size="sm" 

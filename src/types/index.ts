@@ -50,3 +50,14 @@ export interface Employee {
   username?: string;
   password?: string;
 }
+
+export interface LeaveApplication {
+  id: string;
+  employeeId: string;
+  startDate: string;
+  endDate: string;
+  leaveType: string;
+  reason: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: string;
+}

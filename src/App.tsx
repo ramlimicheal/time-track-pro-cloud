@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import TimesheetPage from "./pages/TimesheetPage";
 import HistoryPage from "./pages/HistoryPage";
 import AdminPage from "./pages/AdminPage";
+import EmployeeDashboard from "./pages/EmployeeDashboard";
 import NotFound from "./pages/NotFound";
 
 // Create the client as a component function
@@ -26,6 +27,7 @@ function App() {
             <Route path="/timesheet" element={<TimesheetPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/dashboard" element={<EmployeeDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
