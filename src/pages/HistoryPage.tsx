@@ -93,19 +93,21 @@ const HistoryPage = () => {
                       onClick={() => setSelectedTimesheet(sheet.id)}
                     >
                       <Calendar className="mr-2 h-4 w-4" />
-                      <span className="flex-1">
-                        {sheet.month} {sheet.year}
-                      </span>
-                      <Badge
-                        className={`ml-auto whitespace-nowrap ${
-                          sheet.status === "Approved"
-                            ? "bg-green-100 text-green-800 hover:bg-green-100"
-                            : "bg-red-100 text-red-800 hover:bg-red-100"
-                        }`}
-                        variant="outline"
-                      >
-                        {sheet.status}
-                      </Badge>
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-medium">
+                          {sheet.month} {sheet.year}
+                        </span>
+                        <Badge
+                          className={`ml-2 whitespace-nowrap ${
+                            sheet.status === "Approved"
+                              ? "bg-green-100 text-green-800 hover:bg-green-100"
+                              : "bg-red-100 text-red-800 hover:bg-red-100"
+                          }`}
+                          variant="outline"
+                        >
+                          {sheet.status}
+                        </Badge>
+                      </div>
                     </Button>
                   ))}
                 </div>
@@ -117,13 +119,13 @@ const HistoryPage = () => {
             <Card className="h-full">
               {selectedTimesheet ? (
                 <div className="h-full">
-                  <CardHeader className="pb-2">
+                  <CardHeader className="pb-2 border-b">
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-xl font-semibold">
                         {timesheetHistory.find((t) => t.id === selectedTimesheet)?.month}{" "}
                         {timesheetHistory.find((t) => t.id === selectedTimesheet)?.year} Timesheet
                       </CardTitle>
-                      <Button className="flex items-center gap-2">
+                      <Button variant="outline" className="flex items-center gap-2 bg-timetrack-lightBlue text-timetrack-blue hover:bg-timetrack-lightBlue/80">
                         <FileText className="h-4 w-4" />
                         Export PDF
                       </Button>
