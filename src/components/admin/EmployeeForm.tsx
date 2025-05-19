@@ -75,15 +75,15 @@ export const EmployeeForm = ({
   };
 
   return (
-    <div className="grid gap-6 py-4">
+    <div className="grid gap-6 py-4 max-w-5xl mx-auto">
       {/* Personal Information Section */}
       <div className="mb-4">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
           <User className="h-4 w-4 mr-1" />
           Personal Information
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FormField
               label="Name"
               name="name"
@@ -105,7 +105,7 @@ export const EmployeeForm = ({
             />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FormField
               label="Blood Group"
               name="bloodGroup"
@@ -135,8 +135,8 @@ export const EmployeeForm = ({
           <Phone className="h-4 w-4 mr-1" />
           Contact Information
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FormField
               label="Phone Number"
               name="phoneNumber"
@@ -177,7 +177,7 @@ export const EmployeeForm = ({
           <Home className="h-4 w-4 mr-1" />
           Address Information
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-4">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5">
           <FormField
             label="Indian Address"
             name="indianAddress"
@@ -208,8 +208,8 @@ export const EmployeeForm = ({
           <Building className="h-4 w-4 mr-1" />
           Employment Details
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FormField
               label="Department"
               name="department"
@@ -230,7 +230,7 @@ export const EmployeeForm = ({
             />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <FormField
               label="Join Date"
               name="joinDate"
@@ -258,12 +258,12 @@ export const EmployeeForm = ({
           <Key className="h-4 w-4 mr-1" />
           Login Credentials
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-            <div className="text-sm font-medium">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-6 items-center gap-4">
+            <div className="md:col-span-1 text-sm font-medium flex items-center">
               <label>Username</label>
             </div>
-            <div className="sm:col-span-2">
+            <div className="md:col-span-5">
               <Input 
                 name="username" 
                 value={mode === "add" ? (formData.username || generatedUsername) : formData.username} 
@@ -275,11 +275,11 @@ export const EmployeeForm = ({
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
-            <div className="text-sm font-medium">
+          <div className="grid grid-cols-1 md:grid-cols-6 items-center gap-4">
+            <div className="md:col-span-1 text-sm font-medium flex items-center">
               <label>Password</label>
             </div>
-            <div className="sm:col-span-2">
+            <div className="md:col-span-5">
               <Input 
                 name="password" 
                 value={mode === "add" ? (formData.password || generatedPassword) : formData.password} 

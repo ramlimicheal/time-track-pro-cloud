@@ -39,10 +39,10 @@ export const FormField = ({
   }
 
   return (
-    <div className="grid grid-cols-4 items-center gap-4">
-      <div className="flex items-center justify-end text-sm">
+    <div className="grid grid-cols-1 md:grid-cols-6 items-center gap-4">
+      <div className="md:col-span-1 flex items-center justify-end text-sm">
         {Icon && <Icon className="h-4 w-4 mr-2" />}
-        <label className="mx-[20px] px-0 my-0">{label}{required && "*"}</label>
+        <label className="whitespace-nowrap">{label}{required && " *"}</label>
       </div>
       
       {type === "textarea" ? (
@@ -50,24 +50,27 @@ export const FormField = ({
           name={name} 
           value={value} 
           onChange={onChange} 
-          className="col-span-3" 
+          className="md:col-span-5" 
           placeholder={placeholder} 
+          rows={3}
         />
       ) : type === "select" && options.length > 0 && onSelectChange ? (
-        <Select value={value} onValueChange={value => onSelectChange(name, value)}>
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="md:col-span-5">
+          <Select value={value} onValueChange={value => onSelectChange(name, value)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {options.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
       ) : (
         <Input 
           name={name} 
           value={value} 
           onChange={onChange} 
-          className="col-span-3" 
+          className="md:col-span-5" 
           placeholder={placeholder} 
           type={type} 
         />
