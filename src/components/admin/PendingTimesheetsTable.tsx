@@ -59,7 +59,7 @@ export const PendingTimesheetsTable = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onSelectEmployee(employee.id)}
-                    disabled={employee.pendingTimesheets === 0}
+                    // Removed the disabled prop so button is always enabled
                   >
                     <Calendar className="mr-1 h-4 w-4" />
                     View Timesheet
