@@ -4,6 +4,7 @@ import { FileText, Printer, Check, X, Clock } from "lucide-react";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface Employee {
   id: string;
@@ -24,12 +25,15 @@ interface TimesheetReviewProps {
 export const TimesheetReview = ({
   employee,
   entries,
-  timesheetStatus,
+  timesheetStatus: initialTimesheetStatus,
   onBack,
   onApprove,
   onReject,
   onGeneratePDF,
 }: TimesheetReviewProps) => {
+  // Local state to manage status for immediate UI updates
+  const [localTimesheetStatus, setLocalTimesheetStatus] = useState(initialTimesheetStatus);
+  
   // Function to directly trigger printing
   const handlePrint = () => {
     window.print();
@@ -37,15 +41,20 @@ export const TimesheetReview = ({
 
   // Handle approve with notification feedback
   const handleApprove = () => {
+    setLocalTimesheetStatus("approved");
     onApprove();
     toast.success(`Timesheet approval notification sent to ${employee?.name}`);
   };
 
   // Handle reject with notification feedback
   const handleReject = () => {
+    setLocalTimesheetStatus("rejected");
     onReject();
     toast.error(`Timesheet rejection notification sent to ${employee?.name}`);
   };
+
+  // Use local status for display to ensure immediate UI updates
+  const displayStatus = localTimesheetStatus;
 
   return (
     <>
@@ -54,7 +63,7 @@ export const TimesheetReview = ({
           Back to Dashboard
         </Button>
         
-        {(timesheetStatus === "approved" || timesheetStatus === "rejected") && (
+        {(displayStatus === "approved" || displayStatus === "rejected") && (
           <div className="flex gap-2">
             <Button 
               onClick={handlePrint} 
@@ -84,25 +93,25 @@ export const TimesheetReview = ({
           Department: {employee?.department}
         </p>
         <div className="mt-2">
-          {timesheetStatus === "approved" && (
+          {displayStatus === "approved" && (
             <div className="inline-flex items-center rounded-md bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
               <Check className="h-4 w-4 mr-1" />
               Approved
             </div>
           )}
-          {timesheetStatus === "rejected" && (
+          {displayStatus === "rejected" && (
             <div className="inline-flex items-center rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
               <X className="h-4 w-4 mr-1" />
               Rejected
             </div>
           )}
-          {timesheetStatus === "pending" && (
+          {displayStatus === "pending" && (
             <div className="inline-flex items-center rounded-md bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
               <Clock className="h-4 w-4 mr-1" />
               Pending Approval
             </div>
           )}
-          {timesheetStatus === "draft" && (
+          {displayStatus === "draft" && (
             <div className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -119,12 +128,12 @@ export const TimesheetReview = ({
         year={2025}
         entries={entries}
         readOnly={true}
-        timesheetStatus={timesheetStatus}
+        timesheetStatus={displayStatus}
         onGeneratePDF={onGeneratePDF}
       />
       
       <div className="mt-6 flex gap-4 justify-end print:hidden">
-        {timesheetStatus === "pending" && (
+        {displayStatus === "pending" && (
           <>
             <Button variant="outline" onClick={handleReject} className="flex items-center">
               <X className="h-4 w-4 mr-2" />
