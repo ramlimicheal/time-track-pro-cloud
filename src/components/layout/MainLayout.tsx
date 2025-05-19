@@ -24,10 +24,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   }, [requireAuth, navigate]);
   
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50 relative">
+      <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none" />
       {requireAuth && <Header />}
-      <main className="flex-1 p-4 max-w-7xl mx-auto w-full">{children}</main>
-      <footer className="p-4 text-center text-sm text-gray-500 border-t border-gray-200 bg-white">
+      <main className="flex-1 p-4 max-w-7xl mx-auto w-full relative">{children}</main>
+      <footer className="p-4 text-center text-sm text-gray-500 border-t border-gray-200 bg-white relative">
         © 2025 TimeTrack Pro. All rights reserved.
       </footer>
     </div>
