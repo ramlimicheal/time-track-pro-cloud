@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,9 @@ const AdminPage = () => {
     setSelectedEmployee(null);
   };
 
+  // Calculate total hours
+  const totalHours = mockEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
+
   return (
     <MainLayout>
       <div className="container mx-auto max-w-7xl print:m-0 print:p-0 print:max-w-none">
@@ -134,7 +138,7 @@ const AdminPage = () => {
               Back to Dashboard
             </Button>
             
-            <div className="mb-4">
+            <div className="mb-4 print:hidden">
               <h2 className="text-xl font-semibold mb-2">
                 {employees.find((e) => e.id === selectedEmployee)?.name} - May 2025 Timesheet
               </h2>
@@ -159,23 +163,61 @@ const AdminPage = () => {
                 Approve Timesheet
               </Button>
             </div>
+
+            {/* Enhanced print layout - only visible when printing */}
+            <div className="hidden print:block">
+              <div className="print-header">
+                <h1 className="text-2xl font-bold">TimeTrack Pro</h1>
+                <p>123 Business Ave., Corporate Plaza, Suite 200</p>
+                <p>contact@timetrackpro.com | (555) 123-4567</p>
+              </div>
+
+              <div className="timesheet-title">
+                Employee Timesheet Report
+              </div>
+
+              <div className="employee-info">
+                <div>
+                  <p><span className="info-label">Employee:</span> {employees.find((e) => e.id === selectedEmployee)?.name}</p>
+                  <p><span className="info-label">Department:</span> {employees.find((e) => e.id === selectedEmployee)?.department}</p>
+                  <p><span className="info-label">Employee ID:</span> {selectedEmployee}</p>
+                </div>
+                <div>
+                  <p><span className="info-label">Period:</span> May 2025</p>
+                  <p><span className="info-label">Status:</span> {timesheetStatus.charAt(0).toUpperCase() + timesheetStatus.slice(1)}</p>
+                  <p><span className="info-label">Total Hours:</span> {totalHours.toFixed(2)}</p>
+                </div>
+              </div>
+
+              {/* TimesheetTable is automatically displayed between these sections */}
+
+              <div className="signature-section">
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div>
+                    <div className="signature-box">
+                      Employee Signature
+                    </div>
+                    <div className="signature-box">
+                      Date
+                    </div>
+                  </div>
+                  <div>
+                    <div className="signature-box">
+                      Manager Approval
+                    </div>
+                    <div className="signature-box">
+                      Date
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="print-footer">
+                <p>Printed on {new Date().toLocaleDateString()} | TimeTrack Pro System | Page <span className="page-number"></span></p>
+              </div>
+            </div>
           </>
         )}
-
-        {/* Print-only header that appears only when printing */}
-        <div className="hidden print:block print:mb-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold">Timesheet Report</h1>
-            {selectedEmployee && (
-              <div className="mt-2">
-                <p className="font-medium">Employee: {employees.find((e) => e.id === selectedEmployee)?.name}</p>
-                <p>Department: {employees.find((e) => e.id === selectedEmployee)?.department}</p>
-                <p>Period: May 2025</p>
-                <p>Status: {timesheetStatus.charAt(0).toUpperCase() + timesheetStatus.slice(1)}</p>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </MainLayout>
   );

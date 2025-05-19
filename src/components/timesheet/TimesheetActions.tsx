@@ -27,7 +27,7 @@ export const TimesheetActions = ({
         <Button 
           onClick={handlePrint} 
           variant="outline" 
-          className="print:hidden flex items-center gap-2"
+          className="print:hidden flex items-center gap-2 hover:bg-slate-100"
         >
           <Printer className="h-4 w-4" />
           Print Timesheet
