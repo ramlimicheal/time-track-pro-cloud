@@ -13,6 +13,7 @@ interface TimesheetTableProps {
   entries: TimesheetEntry[];
   onSave?: (entries: TimesheetEntry[]) => void;
   readOnly?: boolean;
+  timesheetStatus?: "draft" | "pending" | "approved" | "rejected";
 }
 
 export const TimesheetTable: React.FC<TimesheetTableProps> = ({
@@ -21,6 +22,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   entries,
   onSave,
   readOnly = false,
+  timesheetStatus,
 }) => {
   const [localEntries, setLocalEntries] = useState<TimesheetEntry[]>(entries);
 
@@ -93,8 +95,8 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-md shadow-sm overflow-hidden">
-      <div className="p-4 bg-timetrack-lightBlue border-b border-gray-200">
+    <div className="bg-white rounded-md shadow-sm overflow-hidden print:shadow-none print:border">
+      <div className="p-4 bg-timetrack-lightBlue border-b border-gray-200 print:bg-white">
         <h2 className="text-xl font-semibold text-center">
           Timesheet for {month} {year}
         </h2>
@@ -114,6 +116,8 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
       <TimesheetActions 
         readOnly={readOnly} 
         onSave={handleSave} 
+        entries={localEntries}
+        timesheetStatus={timesheetStatus}
       />
     </div>
   );

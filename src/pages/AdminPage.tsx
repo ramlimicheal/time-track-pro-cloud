@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import { toast } from "sonner";
 
 const AdminPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
+  const [timesheetStatus, setTimesheetStatus] = useState<"pending" | "approved" | "rejected">("pending");
   
   // Mock employee data
   const employees = [
@@ -58,19 +58,20 @@ const AdminPage = () => {
   ];
 
   const handleApprove = () => {
+    setTimesheetStatus("approved");
     toast.success("Timesheet approved successfully");
-    setSelectedEmployee(null);
   };
 
   const handleReject = () => {
+    setTimesheetStatus("rejected");
     toast.success("Timesheet rejected with comments");
     setSelectedEmployee(null);
   };
 
   return (
     <MainLayout>
-      <div className="container mx-auto max-w-7xl">
-        <div className="flex justify-between items-center mb-6">
+      <div className="container mx-auto max-w-7xl print:m-0 print:p-0 print:max-w-none">
+        <div className="flex justify-between items-center mb-6 print:hidden">
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
         </div>
         
@@ -127,7 +128,7 @@ const AdminPage = () => {
           <>
             <Button
               variant="outline"
-              className="mb-4"
+              className="mb-4 print:hidden"
               onClick={() => setSelectedEmployee(null)}
             >
               Back to Dashboard
@@ -147,9 +148,10 @@ const AdminPage = () => {
               year={2025}
               entries={mockEntries}
               readOnly={true}
+              timesheetStatus={timesheetStatus}
             />
             
-            <div className="mt-6 flex gap-4 justify-end">
+            <div className="mt-6 flex gap-4 justify-end print:hidden">
               <Button variant="outline" onClick={handleReject}>
                 Reject with Comments
               </Button>
@@ -159,6 +161,21 @@ const AdminPage = () => {
             </div>
           </>
         )}
+
+        {/* Print-only header that appears only when printing */}
+        <div className="hidden print:block print:mb-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Timesheet Report</h1>
+            {selectedEmployee && (
+              <div className="mt-2">
+                <p className="font-medium">Employee: {employees.find((e) => e.id === selectedEmployee)?.name}</p>
+                <p>Department: {employees.find((e) => e.id === selectedEmployee)?.department}</p>
+                <p>Period: May 2025</p>
+                <p>Status: {timesheetStatus.charAt(0).toUpperCase() + timesheetStatus.slice(1)}</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </MainLayout>
   );
