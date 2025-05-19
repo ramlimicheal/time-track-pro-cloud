@@ -14,6 +14,7 @@ interface TimesheetTableProps {
   onSave?: (entries: TimesheetEntry[]) => void;
   readOnly?: boolean;
   timesheetStatus?: "draft" | "pending" | "approved" | "rejected";
+  onGeneratePDF?: () => void;
 }
 
 export const TimesheetTable: React.FC<TimesheetTableProps> = ({
@@ -23,6 +24,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   onSave,
   readOnly = false,
   timesheetStatus,
+  onGeneratePDF,
 }) => {
   const [localEntries, setLocalEntries] = useState<TimesheetEntry[]>(entries);
 
@@ -118,6 +120,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
         onSave={handleSave} 
         entries={localEntries}
         timesheetStatus={timesheetStatus}
+        onGeneratePDF={onGeneratePDF}
       />
     </div>
   );

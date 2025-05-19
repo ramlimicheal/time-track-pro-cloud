@@ -230,3 +230,54 @@
   }
 }
 
+/* Special clean PDF generation mode */
+body.generating-pdf {
+  background-color: white !important;
+}
+
+body.generating-pdf .print\:hidden {
+  display: none !important;
+}
+
+body.generating-pdf .hidden.print\:block {
+  display: block !important;
+}
+
+body.generating-pdf .timesheet-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 10pt !important;
+}
+
+body.generating-pdf .timesheet-table th {
+  background-color: #f0f0f0 !important;
+  color: #333 !important;
+  font-weight: bold !important;
+  padding: 8px !important;
+  text-align: left !important;
+  border: 1px solid #ccc !important;
+}
+
+body.generating-pdf .timesheet-table td {
+  padding: 6px 8px !important;
+  border: 1px solid #ccc !important;
+}
+
+body.generating-pdf .print-header {
+  margin-bottom: 1cm !important;
+}
+
+body.generating-pdf .timesheet-title {
+  font-size: 18pt !important;
+  margin: 1cm 0 !important;
+}
+
+body.generating-pdf .signature-section {
+  margin-top: 1.5cm !important;
+}
+
+/* Ensure counter works for page numbers in PDF mode too */
+@page {
+  counter-increment: page;
+}
+

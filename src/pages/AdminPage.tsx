@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar, Printer } from "lucide-react";
+import { Calendar, Printer, FileText } from "lucide-react";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
@@ -76,6 +76,23 @@ const AdminPage = () => {
   const handlePrint = () => {
     window.print();
   };
+  
+  // Function to generate a clean PDF version
+  const generatePDF = () => {
+    // Add a class to the body for the PDF-specific styles
+    document.body.classList.add('generating-pdf');
+    
+    // Small delay to ensure styles are applied
+    setTimeout(() => {
+      window.print();
+      // Remove the class after printing
+      document.body.classList.remove('generating-pdf');
+    }, 100);
+    
+    toast.success("PDF generated successfully");
+  };
+
+  const currentEmployee = employees.find((e) => e.id === selectedEmployee);
 
   return (
     <MainLayout>
@@ -144,23 +161,33 @@ const AdminPage = () => {
               </Button>
               
               {timesheetStatus === "approved" && (
-                <Button 
-                  onClick={handlePrint} 
-                  variant="outline" 
-                  className="flex items-center gap-2"
-                >
-                  <Printer className="h-4 w-4" />
-                  Print Timesheet
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={handlePrint} 
+                    variant="outline" 
+                    className="flex items-center gap-2"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print Timesheet
+                  </Button>
+                  <Button
+                    onClick={generatePDF}
+                    variant="outline"
+                    className="flex items-center gap-2 bg-timetrack-lightBlue text-timetrack-blue hover:bg-blue-100"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Generate PDF
+                  </Button>
+                </div>
               )}
             </div>
             
             <div className="mb-4 print:hidden">
               <h2 className="text-xl font-semibold mb-2">
-                {employees.find((e) => e.id === selectedEmployee)?.name} - May 2025 Timesheet
+                {currentEmployee?.name} - May 2025 Timesheet
               </h2>
               <p className="text-gray-600">
-                Department: {employees.find((e) => e.id === selectedEmployee)?.department}
+                Department: {currentEmployee?.department}
               </p>
             </div>
             
@@ -170,6 +197,7 @@ const AdminPage = () => {
               entries={mockEntries}
               readOnly={true}
               timesheetStatus={timesheetStatus}
+              onGeneratePDF={generatePDF}
             />
             
             <div className="mt-6 flex gap-4 justify-end print:hidden">
@@ -197,8 +225,8 @@ const AdminPage = () => {
 
               <div className="employee-info">
                 <div className="employee-info-section">
-                  <p><span className="info-label">Employee:</span> {employees.find((e) => e.id === selectedEmployee)?.name}</p>
-                  <p><span className="info-label">Department:</span> {employees.find((e) => e.id === selectedEmployee)?.department}</p>
+                  <p><span className="info-label">Employee:</span> {currentEmployee?.name}</p>
+                  <p><span className="info-label">Department:</span> {currentEmployee?.department}</p>
                   <p><span className="info-label">Employee ID:</span> {selectedEmployee}</p>
                 </div>
                 <div className="employee-info-section">
