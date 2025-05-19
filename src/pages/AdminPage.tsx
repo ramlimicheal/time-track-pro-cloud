@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { EmployeeManagement } from "@/components/admin/EmployeeManagement";
@@ -6,6 +5,7 @@ import { TimesheetReview } from "@/components/admin/TimesheetReview";
 import { TimesheetAnalytics } from "@/components/admin/TimesheetAnalytics";
 import { PendingTimesheetsTable } from "@/components/admin/PendingTimesheetsTable";
 import { LeaveApplicationsReview } from "@/components/admin/LeaveApplicationsReview";
+import { ReportsSection } from "@/components/admin/ReportsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Employee, TimesheetEntry, Timesheet } from "@/types";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -207,7 +207,7 @@ const AdminPage = () => {
   // Mock function for PDF generation
   const handleGeneratePDF = () => {
     console.log("Generating PDF...");
-    // Implementation would go here in a real app
+    window.print();
   };
 
   // Filter employees based on search query
@@ -322,9 +322,7 @@ const AdminPage = () => {
           
           <TabsContent value="reports">
             <h1 className="text-3xl font-bold mb-6">Reports</h1>
-            <div className="bg-white p-6 rounded-lg shadow">
-              <p className="text-gray-500 py-4">Reports functionality coming soon.</p>
-            </div>
+            <ReportsSection employees={employees} />
           </TabsContent>
           
           <TabsContent value="leaves">
