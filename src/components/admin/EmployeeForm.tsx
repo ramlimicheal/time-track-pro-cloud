@@ -1,17 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
 import { User, Calendar, Droplet, Phone, Home, Building, PhoneCall, Mail, Key } from "lucide-react";
 import { Employee } from "@/types";
 import { departments, bloodGroups, generateUsername, generatePassword } from "@/utils/employeeUtils";
+import { FormField } from "./FormField";
+import { Input } from "@/components/ui/input";
 
 interface EmployeeFormProps {
   initialData?: Employee | null;
@@ -83,226 +76,196 @@ export const EmployeeForm = ({
 
   return (
     <div className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <User className="h-4 w-4 mr-2" />
-          <label>Name*</label>
-        </div>
-        <Input 
-          name="name" 
-          value={formData.name} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="John Doe" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <Calendar className="h-4 w-4 mr-2" />
-          <label>DOB*</label>
-        </div>
-        <Input 
-          name="dob" 
-          value={formData.dob} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          type="date" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <Droplet className="h-4 w-4 mr-2" />
-          <label>Blood Group</label>
-        </div>
-        <Select 
-          value={formData.bloodGroup} 
-          onValueChange={(value) => handleSelectChange("bloodGroup", value)}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select blood group" />
-          </SelectTrigger>
-          <SelectContent>
-            {bloodGroups.map(bg => (
-              <SelectItem key={bg} value={bg}>{bg}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <User className="h-4 w-4 mr-2" />
-          <label>Passport No.*</label>
-        </div>
-        <Input 
-          name="passportNumber" 
-          value={formData.passportNumber} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="AB1234567" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <Phone className="h-4 w-4 mr-2" />
-          <label>Phone Number*</label>
-        </div>
-        <Input 
-          name="phoneNumber" 
-          value={formData.phoneNumber} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="+91 1234567890" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-start gap-4">
-        <div className="flex items-center justify-end text-sm pt-2">
-          <Home className="h-4 w-4 mr-2" />
-          <label>Indian Address*</label>
-        </div>
-        <Textarea 
-          name="indianAddress" 
-          value={formData.indianAddress} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="Full address in India" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-start gap-4">
-        <div className="flex items-center justify-end text-sm pt-2">
-          <Building className="h-4 w-4 mr-2" />
-          <label>Oman Address*</label>
-        </div>
-        <Textarea 
-          name="omanAddress" 
-          value={formData.omanAddress} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="Full address in Oman" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <PhoneCall className="h-4 w-4 mr-2" />
-          <label>Emergency No.*</label>
-        </div>
-        <Input 
-          name="emergencyPhoneNumber" 
-          value={formData.emergencyPhoneNumber} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="+91 1234567890" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <Mail className="h-4 w-4 mr-2" />
-          <label>Email*</label>
-        </div>
-        <Input 
-          name="email" 
-          value={formData.email} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="john@example.com" 
-          type="email"
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <label className="text-right text-sm">Department*</label>
-        <Select 
-          value={formData.department} 
-          onValueChange={(value) => handleSelectChange("department", value)}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select department" />
-          </SelectTrigger>
-          <SelectContent>
-            {departments.map(dept => (
-              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <label className="text-right text-sm">Position*</label>
-        <Input 
-          name="position" 
-          value={formData.position} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          placeholder="Software Engineer" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <label className="text-right text-sm">Join Date</label>
-        <Input 
-          name="joinDate" 
-          value={formData.joinDate} 
-          onChange={handleInputChange} 
-          className="col-span-3" 
-          type="date" 
-        />
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <label className="text-right text-sm">Status</label>
-        <Select 
-          value={formData.status} 
-          onValueChange={(value) => handleSelectChange("status", value)}
-        >
-          <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="onleave">On Leave</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <Key className="h-4 w-4 mr-2" />
-          <label>Username</label>
-        </div>
-        <div className="col-span-3">
-          <Input 
-            name="username" 
-            value={mode === "add" ? (formData.username || generatedUsername) : formData.username} 
-            onChange={handleInputChange} 
-            className="w-full bg-gray-50" 
-            readOnly
+      {/* Personal Information Section */}
+      <div className="border-b pb-3 mb-3">
+        <h3 className="text-sm font-medium mb-3 text-gray-700">Personal Information</h3>
+        <div className="space-y-3">
+          <FormField
+            label="Name"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="John Doe"
+            required
+            icon={User}
           />
-          {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated username</p>}
+          
+          <FormField
+            label="DOB"
+            name="dob"
+            value={formData.dob}
+            onChange={handleInputChange}
+            type="date"
+            required
+            icon={Calendar}
+          />
+          
+          <FormField
+            label="Blood Group"
+            name="bloodGroup"
+            value={formData.bloodGroup}
+            type="select"
+            options={bloodGroups}
+            onSelectChange={handleSelectChange}
+            icon={Droplet}
+          />
+          
+          <FormField
+            label="Passport No."
+            name="passportNumber"
+            value={formData.passportNumber}
+            onChange={handleInputChange}
+            placeholder="AB1234567"
+            required
+            icon={User}
+          />
         </div>
       </div>
       
-      <div className="grid grid-cols-4 items-center gap-4">
-        <div className="flex items-center justify-end text-sm">
-          <Key className="h-4 w-4 mr-2" />
-          <label>Password</label>
-        </div>
-        <div className="col-span-3">
-          <Input 
-            name="password" 
-            value={mode === "add" ? (formData.password || generatedPassword) : formData.password} 
-            onChange={handleInputChange} 
-            className="w-full bg-gray-50" 
-            readOnly
+      {/* Contact Information Section */}
+      <div className="border-b pb-3 mb-3">
+        <h3 className="text-sm font-medium mb-3 text-gray-700">Contact Information</h3>
+        <div className="space-y-3">
+          <FormField
+            label="Phone Number"
+            name="phoneNumber"
+            value={formData.phoneNumber}
+            onChange={handleInputChange}
+            placeholder="+91 1234567890"
+            required
+            icon={Phone}
           />
-          {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated password</p>}
+          
+          <FormField
+            label="Emergency No."
+            name="emergencyPhoneNumber"
+            value={formData.emergencyPhoneNumber}
+            onChange={handleInputChange}
+            placeholder="+91 1234567890"
+            required
+            icon={PhoneCall}
+          />
+          
+          <FormField
+            label="Email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="john@example.com"
+            type="email"
+            required
+            icon={Mail}
+          />
+        </div>
+      </div>
+      
+      {/* Address Section */}
+      <div className="border-b pb-3 mb-3">
+        <h3 className="text-sm font-medium mb-3 text-gray-700">Address Information</h3>
+        <div className="space-y-3">
+          <FormField
+            label="Indian Address"
+            name="indianAddress"
+            value={formData.indianAddress}
+            onChange={handleInputChange}
+            placeholder="Full address in India"
+            type="textarea"
+            required
+            icon={Home}
+          />
+          
+          <FormField
+            label="Oman Address"
+            name="omanAddress"
+            value={formData.omanAddress}
+            onChange={handleInputChange}
+            placeholder="Full address in Oman"
+            type="textarea"
+            required
+            icon={Building}
+          />
+        </div>
+      </div>
+      
+      {/* Employment Details Section */}
+      <div className="border-b pb-3 mb-3">
+        <h3 className="text-sm font-medium mb-3 text-gray-700">Employment Details</h3>
+        <div className="space-y-3">
+          <FormField
+            label="Department"
+            name="department"
+            value={formData.department}
+            type="select"
+            options={departments}
+            onSelectChange={handleSelectChange}
+            required
+          />
+          
+          <FormField
+            label="Position"
+            name="position"
+            value={formData.position}
+            onChange={handleInputChange}
+            placeholder="Software Engineer"
+            required
+          />
+          
+          <FormField
+            label="Join Date"
+            name="joinDate"
+            value={formData.joinDate}
+            onChange={handleInputChange}
+            type="date"
+          />
+          
+          <FormField
+            label="Status"
+            name="status"
+            value={formData.status}
+            type="select"
+            options={["active", "inactive", "onleave"]}
+            onSelectChange={handleSelectChange}
+          />
+        </div>
+      </div>
+      
+      {/* Login Credentials Section */}
+      <div>
+        <h3 className="text-sm font-medium mb-3 text-gray-700">Login Credentials</h3>
+        <div className="space-y-3">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <div className="flex items-center justify-end text-sm">
+              <Key className="h-4 w-4 mr-2" />
+              <label>Username</label>
+            </div>
+            <div className="col-span-3">
+              <Input 
+                name="username" 
+                value={mode === "add" ? (formData.username || generatedUsername) : formData.username} 
+                onChange={handleInputChange} 
+                className="w-full bg-gray-50" 
+                readOnly
+              />
+              {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated username</p>}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <div className="flex items-center justify-end text-sm">
+              <Key className="h-4 w-4 mr-2" />
+              <label>Password</label>
+            </div>
+            <div className="col-span-3">
+              <Input 
+                name="password" 
+                value={mode === "add" ? (formData.password || generatedPassword) : formData.password} 
+                onChange={handleInputChange} 
+                className="w-full bg-gray-50" 
+                readOnly
+              />
+              {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated password</p>}
+            </div>
+          </div>
         </div>
       </div>
     </div>
