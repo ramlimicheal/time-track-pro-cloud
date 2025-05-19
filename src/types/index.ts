@@ -49,6 +49,7 @@ export interface Employee {
   emergencyPhoneNumber?: string;
   username?: string;
   password?: string;
+  avatar?: string;
 }
 
 export interface LeaveApplication {

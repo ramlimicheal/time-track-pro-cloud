@@ -55,7 +55,7 @@ export const Header: React.FC = () => {
             >
               <Link to={user.role === "employee" ? "/timesheet" : "/admin"}>
                 <Clock className="mr-1 h-4 w-4" />
-                <span>Current</span>
+                <span>Timesheet</span>
               </Link>
             </Button>
             
@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
             >
               <Link to="/history">
                 <History className="mr-1 h-4 w-4" />
-                <span>History</span>
+                <span>Status</span>
               </Link>
             </Button>
           </div>

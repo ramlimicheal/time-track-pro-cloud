@@ -21,18 +21,41 @@ const EmployeeDashboard = () => {
         id: user.id,
         name: user.name,
         email: user.email,
-        department: "Engineering",
-        position: "Software Developer",
-        joinDate: "2023-01-15",
-        status: "active",
-        pendingTimesheets: 1,
-        phoneNumber: "+968 9123 4567",
-        bloodGroup: "O+",
-        emergencyPhoneNumber: "+91 9876 5432",
-        passportNumber: "J1234567",
-        dob: "1990-05-15"
+        department: user.department || "Engineering",
+        position: user.position || "Software Developer",
+        joinDate: user.joinDate || "2023-01-15",
+        status: user.status || "active",
+        pendingTimesheets: user.pendingTimesheets || 1,
+        phoneNumber: user.phoneNumber || "+968 9123 4567",
+        bloodGroup: user.bloodGroup || "O+",
+        emergencyPhoneNumber: user.emergencyPhoneNumber || "+91 9876 5432",
+        passportNumber: user.passportNumber || "J1234567",
+        dob: user.dob || "1990-05-15",
+        avatar: user.avatar
       });
     }
+  }, []);
+
+  // Listen for changes in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        setEmployee(prevEmployee => {
+          if (!prevEmployee) return null;
+          return {
+            ...prevEmployee,
+            ...user
+          };
+        });
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   if (!employee) {
