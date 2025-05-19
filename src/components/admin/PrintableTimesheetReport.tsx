@@ -10,7 +10,7 @@ interface Employee {
 interface PrintableTimesheetReportProps {
   employee: Employee | undefined;
   entries: TimesheetEntry[];
-  timesheetStatus: "pending" | "approved" | "rejected";
+  timesheetStatus: "draft" | "pending" | "approved" | "rejected";
   selectedEmployee: string | null;
 }
 
@@ -22,6 +22,11 @@ export const PrintableTimesheetReport = ({
 }: PrintableTimesheetReportProps) => {
   // Calculate total hours
   const totalHours = entries.reduce((sum, entry) => sum + entry.totalHours, 0);
+  
+  // Format status with capitalized first letter
+  const formatStatus = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
   
   return (
     <div className="hidden print:block">
@@ -45,7 +50,7 @@ export const PrintableTimesheetReport = ({
         </div>
         <div className="employee-info-section">
           <p><span className="info-label">Period:</span> May 2025</p>
-          <p><span className="info-label">Status:</span> {timesheetStatus.charAt(0).toUpperCase() + timesheetStatus.slice(1)}</p>
+          <p><span className="info-label">Status:</span> {formatStatus(timesheetStatus)}</p>
           <p><span className="info-label">Total Hours:</span> {totalHours.toFixed(2)}</p>
         </div>
       </div>

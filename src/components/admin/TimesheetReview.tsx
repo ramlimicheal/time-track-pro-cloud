@@ -5,6 +5,7 @@ import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
 import { useState } from "react";
+import { PrintableTimesheetReport } from "./PrintableTimesheetReport";
 
 interface Employee {
   id: string;
@@ -39,6 +40,29 @@ export const TimesheetReview = ({
     window.print();
   };
 
+  // Function to generate PDF with minimal inputs
+  const handleGeneratePDF = () => {
+    // First show the printable report by adding a class to make it visible temporarily
+    const printableElement = document.createElement('div');
+    printableElement.className = 'pdf-container';
+    printableElement.style.position = 'absolute';
+    printableElement.style.left = '-9999px';
+    
+    // Render the printable report component inside this container
+    document.body.appendChild(printableElement);
+    
+    // Call the original onGeneratePDF function
+    onGeneratePDF();
+    
+    // Show success message to user
+    toast.success("PDF generated successfully");
+    
+    // Clean up the temporary element after a delay
+    setTimeout(() => {
+      document.body.removeChild(printableElement);
+    }, 1000);
+  };
+
   // Handle approve with notification feedback
   const handleApprove = () => {
     setLocalTimesheetStatus("approved");
@@ -55,6 +79,11 @@ export const TimesheetReview = ({
 
   // Use local status for display to ensure immediate UI updates
   const displayStatus = localTimesheetStatus;
+
+  // Format status with capitalized first letter
+  const formatStatus = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
 
   return (
     <>
@@ -74,7 +103,7 @@ export const TimesheetReview = ({
               Print Timesheet
             </Button>
             <Button
-              onClick={onGeneratePDF}
+              onClick={handleGeneratePDF}
               variant="outline"
               className="flex items-center gap-2 bg-timetrack-lightBlue text-timetrack-blue hover:bg-blue-100"
             >
@@ -108,7 +137,7 @@ export const TimesheetReview = ({
           {displayStatus === "pending" && (
             <div className="inline-flex items-center rounded-md bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
               <Clock className="h-4 w-4 mr-1" />
-              Pending Approval
+              Pending
             </div>
           )}
           {displayStatus === "draft" && (
@@ -129,7 +158,7 @@ export const TimesheetReview = ({
         entries={entries}
         readOnly={true}
         timesheetStatus={displayStatus}
-        onGeneratePDF={onGeneratePDF}
+        onGeneratePDF={handleGeneratePDF}
       />
       
       <div className="mt-6 flex gap-4 justify-end print:hidden">
@@ -145,6 +174,16 @@ export const TimesheetReview = ({
             </Button>
           </>
         )}
+      </div>
+
+      {/* Hidden printable report that will be used for PDF generation */}
+      <div className="hidden">
+        <PrintableTimesheetReport
+          employee={employee}
+          entries={entries}
+          timesheetStatus={displayStatus}
+          selectedEmployee={employee?.id || null}
+        />
       </div>
     </>
   );
