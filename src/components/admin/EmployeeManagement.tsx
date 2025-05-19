@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Users, Edit, User, Calendar, Droplet, Passport, Phone, Home, Building, PhoneCall, Mail, Key } from "lucide-react";
+import { PlusCircle, Trash2, Users, Edit, User, Calendar, Droplet, 
+  Phone, Home, Building, PhoneCall, Mail, Key } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -305,7 +305,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
               
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="flex items-center justify-end text-sm">
-                  <Passport className="h-4 w-4 mr-2" />
+                  <User className="h-4 w-4 mr-2" />
                   <label>Passport No.*</label>
                 </div>
                 <Input 
@@ -605,7 +605,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
             
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="flex items-center justify-end text-sm">
-                <Passport className="h-4 w-4 mr-2" />
+                <User className="h-4 w-4 mr-2" />
                 <label>Passport No.*</label>
               </div>
               <Input 
