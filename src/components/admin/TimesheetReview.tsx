@@ -65,14 +65,18 @@ export const TimesheetReview = ({
 
   // Handle approve with notification feedback
   const handleApprove = () => {
+    // Immediately update the local status to show approved in the UI
     setLocalTimesheetStatus("approved");
+    // Then call the parent component's approval handler
     onApprove();
     toast.success(`Timesheet approval notification sent to ${employee?.name}`);
   };
 
   // Handle reject with notification feedback
   const handleReject = () => {
+    // Immediately update the local status to show rejected in the UI
     setLocalTimesheetStatus("rejected");
+    // Then call the parent component's rejection handler
     onReject();
     toast.error(`Timesheet rejection notification sent to ${employee?.name}`);
   };
