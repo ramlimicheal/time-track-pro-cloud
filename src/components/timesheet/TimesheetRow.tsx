@@ -1,11 +1,15 @@
+
 import { Input } from "@/components/ui/input";
+import { TimePickerInput } from "./TimePickerInput";
 import { TimesheetEntry } from "@/types";
 import { isValidTimeFormat } from "@/utils/timeUtils";
+
 interface TimesheetRowProps {
   entry: TimesheetEntry;
   readOnly: boolean;
   onUpdate: (id: string, field: keyof TimesheetEntry, value: string | number) => void;
 }
+
 export const TimesheetRow = ({
   entry,
   readOnly,
@@ -14,25 +18,55 @@ export const TimesheetRow = ({
   return <tr>
       <td className="whitespace-nowrap px-[12px]">{entry.date}</td>
       <td>
-        <Input type="text" value={entry.workStart} onChange={e => onUpdate(entry.id, "workStart", e.target.value)} className={`time-input ${!isValidTimeFormat(entry.workStart) && entry.workStart ? "border-red-500" : ""}`} placeholder="HH:MM" readOnly={readOnly || entry.status !== "draft"} />
+        <TimePickerInput 
+          value={entry.workStart} 
+          onChange={(value) => onUpdate(entry.id, "workStart", value)} 
+          error={!isValidTimeFormat(entry.workStart) && entry.workStart ? true : false}
+          readOnly={readOnly || entry.status !== "draft"}
+        />
       </td>
       <td>
-        <Input type="text" value={entry.breakStart} onChange={e => onUpdate(entry.id, "breakStart", e.target.value)} className={`time-input ${!isValidTimeFormat(entry.breakStart) && entry.breakStart ? "border-red-500" : ""}`} placeholder="HH:MM" readOnly={readOnly || entry.status !== "draft"} />
+        <TimePickerInput 
+          value={entry.breakStart} 
+          onChange={(value) => onUpdate(entry.id, "breakStart", value)} 
+          error={!isValidTimeFormat(entry.breakStart) && entry.breakStart ? true : false}
+          readOnly={readOnly || entry.status !== "draft"}
+        />
       </td>
       <td>
-        <Input type="text" value={entry.breakEnd} onChange={e => onUpdate(entry.id, "breakEnd", e.target.value)} className={`time-input ${!isValidTimeFormat(entry.breakEnd) && entry.breakEnd ? "border-red-500" : ""}`} placeholder="HH:MM" readOnly={readOnly || entry.status !== "draft"} />
+        <TimePickerInput 
+          value={entry.breakEnd} 
+          onChange={(value) => onUpdate(entry.id, "breakEnd", value)} 
+          error={!isValidTimeFormat(entry.breakEnd) && entry.breakEnd ? true : false}
+          readOnly={readOnly || entry.status !== "draft"}
+        />
       </td>
       <td>
-        <Input type="text" value={entry.workEnd} onChange={e => onUpdate(entry.id, "workEnd", e.target.value)} className={`time-input ${!isValidTimeFormat(entry.workEnd) && entry.workEnd ? "border-red-500" : ""}`} placeholder="HH:MM" readOnly={readOnly || entry.status !== "draft"} />
+        <TimePickerInput 
+          value={entry.workEnd} 
+          onChange={(value) => onUpdate(entry.id, "workEnd", value)} 
+          error={!isValidTimeFormat(entry.workEnd) && entry.workEnd ? true : false}
+          readOnly={readOnly || entry.status !== "draft"}
+        />
       </td>
       <td>
         <Input type="text" value={entry.description} onChange={e => onUpdate(entry.id, "description", e.target.value)} placeholder="Enter description" className="w-full" readOnly={readOnly || entry.status !== "draft"} />
       </td>
       <td>
-        <Input type="text" value={entry.otStart} onChange={e => onUpdate(entry.id, "otStart", e.target.value)} className={`time-input ${!isValidTimeFormat(entry.otStart) && entry.otStart ? "border-red-500" : ""}`} placeholder="HH:MM" readOnly={readOnly || entry.status !== "draft"} />
+        <TimePickerInput 
+          value={entry.otStart} 
+          onChange={(value) => onUpdate(entry.id, "otStart", value)} 
+          error={!isValidTimeFormat(entry.otStart) && entry.otStart ? true : false}
+          readOnly={readOnly || entry.status !== "draft"}
+        />
       </td>
       <td>
-        <Input type="text" value={entry.otEnd} onChange={e => onUpdate(entry.id, "otEnd", e.target.value)} className={`time-input ${!isValidTimeFormat(entry.otEnd) && entry.otEnd ? "border-red-500" : ""}`} placeholder="HH:MM" readOnly={readOnly || entry.status !== "draft"} />
+        <TimePickerInput 
+          value={entry.otEnd} 
+          onChange={(value) => onUpdate(entry.id, "otEnd", value)} 
+          error={!isValidTimeFormat(entry.otEnd) && entry.otEnd ? true : false}
+          readOnly={readOnly || entry.status !== "draft"}
+        />
       </td>
       <td className="font-medium">{entry.totalHours.toFixed(2)}</td>
       <td>
