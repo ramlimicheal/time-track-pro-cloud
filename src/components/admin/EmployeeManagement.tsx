@@ -1,7 +1,7 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Users, Edit, User, Calendar, Droplet, 
-  Phone, Home, Building, PhoneCall, Mail, Key } from "lucide-react";
+import { PlusCircle, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,57 +11,16 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
 import { Employee } from "@/types";
-import { useForm, SubmitHandler } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { toast } from "sonner";
+import { EmployeeTable } from "./EmployeeTable";
+import { EmployeeForm } from "./EmployeeForm";
+import { DeleteEmployeeDialog } from "./DeleteEmployeeDialog";
+import { generateUsername, generatePassword } from "@/utils/employeeUtils";
 
 interface EmployeeManagementProps {
   employees: Employee[];
 }
-
-// Generate a random username based on name
-const generateUsername = (name: string): string => {
-  const nameParts = name.toLowerCase().split(' ');
-  const firstName = nameParts[0];
-  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  return `${firstName}.${lastName.substring(0, 3)}${randomNum}`;
-};
-
-// Generate a random password
-const generatePassword = (): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-  let password = '';
-  for (let i = 0; i < 10; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-};
 
 export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeManagementProps) => {
   const [employees, setEmployees] = useState(initialEmployees);
@@ -90,33 +49,6 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
     username: "",
     password: ""
   });
-
-  const departments = ["Engineering", "Marketing", "Finance", "HR", "Operations", "Sales"];
-  const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    
-    // If name is being changed, generate a new username
-    if (name === "name" && value) {
-      const newUsername = generateUsername(value);
-      const newPassword = generatePassword();
-      setGeneratedUsername(newUsername);
-      setGeneratedPassword(newPassword);
-      setFormData(prev => ({ 
-        ...prev, 
-        [name]: value,
-        username: newUsername,
-        password: newPassword
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
 
   const handleAddEmployee = () => {
     // Validate form
@@ -177,23 +109,6 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
 
   const handleEditClick = (employee: Employee) => {
     setSelectedEmployee(employee);
-    setFormData({
-      name: employee.name,
-      email: employee.email,
-      department: employee.department,
-      position: employee.position,
-      joinDate: employee.joinDate,
-      status: employee.status,
-      dob: employee.dob || "",
-      bloodGroup: employee.bloodGroup || "",
-      passportNumber: employee.passportNumber || "",
-      phoneNumber: employee.phoneNumber || "",
-      indianAddress: employee.indianAddress || "",
-      omanAddress: employee.omanAddress || "",
-      emergencyPhoneNumber: employee.emergencyPhoneNumber || "",
-      username: employee.username || "",
-      password: employee.password || ""
-    });
     setIsEditDialogOpen(true);
   };
 
@@ -254,230 +169,17 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                 Enter the details for the new employee.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <User className="h-4 w-4 mr-2" />
-                  <label>Name*</label>
-                </div>
-                <Input 
-                  name="name" 
-                  value={formData.name} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="John Doe" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <label>DOB*</label>
-                </div>
-                <Input 
-                  name="dob" 
-                  value={formData.dob} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  type="date" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <Droplet className="h-4 w-4 mr-2" />
-                  <label>Blood Group</label>
-                </div>
-                <Select 
-                  value={formData.bloodGroup} 
-                  onValueChange={(value) => handleSelectChange("bloodGroup", value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select blood group" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {bloodGroups.map(bg => (
-                      <SelectItem key={bg} value={bg}>{bg}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <User className="h-4 w-4 mr-2" />
-                  <label>Passport No.*</label>
-                </div>
-                <Input 
-                  name="passportNumber" 
-                  value={formData.passportNumber} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="AB1234567" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <Phone className="h-4 w-4 mr-2" />
-                  <label>Phone Number*</label>
-                </div>
-                <Input 
-                  name="phoneNumber" 
-                  value={formData.phoneNumber} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="+91 1234567890" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-start gap-4">
-                <div className="flex items-center justify-end text-sm pt-2">
-                  <Home className="h-4 w-4 mr-2" />
-                  <label>Indian Address*</label>
-                </div>
-                <Textarea 
-                  name="indianAddress" 
-                  value={formData.indianAddress} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="Full address in India" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-start gap-4">
-                <div className="flex items-center justify-end text-sm pt-2">
-                  <Building className="h-4 w-4 mr-2" />
-                  <label>Oman Address*</label>
-                </div>
-                <Textarea 
-                  name="omanAddress" 
-                  value={formData.omanAddress} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="Full address in Oman" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <PhoneCall className="h-4 w-4 mr-2" />
-                  <label>Emergency No.*</label>
-                </div>
-                <Input 
-                  name="emergencyPhoneNumber" 
-                  value={formData.emergencyPhoneNumber} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="+91 1234567890" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <Mail className="h-4 w-4 mr-2" />
-                  <label>Email*</label>
-                </div>
-                <Input 
-                  name="email" 
-                  value={formData.email} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="john@example.com" 
-                  type="email"
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right text-sm">Department*</label>
-                <Select 
-                  value={formData.department} 
-                  onValueChange={(value) => handleSelectChange("department", value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map(dept => (
-                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right text-sm">Position*</label>
-                <Input 
-                  name="position" 
-                  value={formData.position} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  placeholder="Software Engineer" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right text-sm">Join Date</label>
-                <Input 
-                  name="joinDate" 
-                  value={formData.joinDate} 
-                  onChange={handleInputChange} 
-                  className="col-span-3" 
-                  type="date" 
-                />
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right text-sm">Status</label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => handleSelectChange("status", value)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="onleave">On Leave</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <Key className="h-4 w-4 mr-2" />
-                  <label>Username</label>
-                </div>
-                <div className="col-span-3">
-                  <Input 
-                    name="username" 
-                    value={formData.username || generatedUsername} 
-                    onChange={handleInputChange} 
-                    className="w-full bg-gray-50" 
-                    readOnly
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Auto-generated username</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <div className="flex items-center justify-end text-sm">
-                  <Key className="h-4 w-4 mr-2" />
-                  <label>Password</label>
-                </div>
-                <div className="col-span-3">
-                  <Input 
-                    name="password" 
-                    value={formData.password || generatedPassword} 
-                    onChange={handleInputChange} 
-                    className="w-full bg-gray-50" 
-                    readOnly
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Auto-generated password</p>
-                </div>
-              </div>
-            </div>
+            
+            <EmployeeForm 
+              formData={formData}
+              setFormData={setFormData}
+              generatedUsername={generatedUsername}
+              setGeneratedUsername={setGeneratedUsername}
+              generatedPassword={generatedPassword}
+              setGeneratedPassword={setGeneratedPassword}
+              mode="add"
+            />
+            
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
@@ -490,61 +192,11 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
         </Dialog>
       </div>
 
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Employee Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Passport No.</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {employees.map((employee) => (
-              <TableRow key={employee.id}>
-                <TableCell className="font-medium">{employee.name}</TableCell>
-                <TableCell>{employee.email}</TableCell>
-                <TableCell>{employee.department}</TableCell>
-                <TableCell>{employee.phoneNumber || "N/A"}</TableCell>
-                <TableCell>{employee.passportNumber || "N/A"}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    employee.status === 'active' ? 'bg-green-100 text-green-800' : 
-                    employee.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {employee.status.charAt(0).toUpperCase() + employee.status.slice(1)}
-                  </span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleEditClick(employee)}
-                    className="h-8 w-8 p-0 mr-1"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => handleDeleteClick(employee)}
-                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <EmployeeTable 
+        employees={employees} 
+        onEdit={handleEditClick} 
+        onDelete={handleDeleteClick} 
+      />
 
       {/* Edit Employee Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -555,214 +207,18 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
               Update employee information.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <User className="h-4 w-4 mr-2" />
-                <label>Name*</label>
-              </div>
-              <Input 
-                name="name" 
-                value={formData.name} 
-                onChange={handleInputChange} 
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <Calendar className="h-4 w-4 mr-2" />
-                <label>DOB*</label>
-              </div>
-              <Input 
-                name="dob" 
-                value={formData.dob} 
-                onChange={handleInputChange} 
-                className="col-span-3" 
-                type="date" 
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <Droplet className="h-4 w-4 mr-2" />
-                <label>Blood Group</label>
-              </div>
-              <Select 
-                value={formData.bloodGroup} 
-                onValueChange={(value) => handleSelectChange("bloodGroup", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select blood group" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bloodGroups.map(bg => (
-                    <SelectItem key={bg} value={bg}>{bg}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <User className="h-4 w-4 mr-2" />
-                <label>Passport No.*</label>
-              </div>
-              <Input 
-                name="passportNumber" 
-                value={formData.passportNumber} 
-                onChange={handleInputChange} 
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <Phone className="h-4 w-4 mr-2" />
-                <label>Phone Number*</label>
-              </div>
-              <Input 
-                name="phoneNumber" 
-                value={formData.phoneNumber} 
-                onChange={handleInputChange} 
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-start gap-4">
-              <div className="flex items-center justify-end text-sm pt-2">
-                <Home className="h-4 w-4 mr-2" />
-                <label>Indian Address*</label>
-              </div>
-              <Textarea 
-                name="indianAddress" 
-                value={formData.indianAddress} 
-                onChange={handleInputChange} 
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-start gap-4">
-              <div className="flex items-center justify-end text-sm pt-2">
-                <Building className="h-4 w-4 mr-2" />
-                <label>Oman Address*</label>
-              </div>
-              <Textarea 
-                name="omanAddress" 
-                value={formData.omanAddress} 
-                onChange={handleInputChange} 
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <PhoneCall className="h-4 w-4 mr-2" />
-                <label>Emergency No.*</label>
-              </div>
-              <Input 
-                name="emergencyPhoneNumber" 
-                value={formData.emergencyPhoneNumber} 
-                onChange={handleInputChange} 
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <Mail className="h-4 w-4 mr-2" />
-                <label>Email*</label>
-              </div>
-              <Input 
-                name="email" 
-                value={formData.email} 
-                onChange={handleInputChange} 
-                className="col-span-3" 
-                type="email"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm">Department*</label>
-              <Select 
-                value={formData.department} 
-                onValueChange={(value) => handleSelectChange("department", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  {departments.map(dept => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm">Position*</label>
-              <Input 
-                name="position" 
-                value={formData.position} 
-                onChange={handleInputChange} 
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm">Join Date</label>
-              <Input 
-                name="joinDate" 
-                value={formData.joinDate} 
-                onChange={handleInputChange} 
-                className="col-span-3" 
-                type="date" 
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm">Status</label>
-              <Select 
-                value={formData.status} 
-                onValueChange={(value) => handleSelectChange("status", value)}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="onleave">On Leave</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <Key className="h-4 w-4 mr-2" />
-                <label>Username</label>
-              </div>
-              <Input 
-                name="username" 
-                value={formData.username} 
-                className="col-span-3 bg-gray-50" 
-                readOnly
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <div className="flex items-center justify-end text-sm">
-                <Key className="h-4 w-4 mr-2" />
-                <label>Password</label>
-              </div>
-              <Input 
-                name="password" 
-                value={formData.password} 
-                className="col-span-3 bg-gray-50" 
-                readOnly
-              />
-            </div>
-          </div>
+          
+          <EmployeeForm 
+            initialData={selectedEmployee}
+            formData={formData}
+            setFormData={setFormData}
+            generatedUsername={generatedUsername}
+            setGeneratedUsername={setGeneratedUsername}
+            generatedPassword={generatedPassword}
+            setGeneratedPassword={setGeneratedPassword}
+            mode="edit"
+          />
+          
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
@@ -775,24 +231,12 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Confirm Delete</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to remove {selectedEmployee?.name} from the system? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="button" variant="destructive" onClick={handleDeleteEmployee}>
-              Delete Employee
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteEmployeeDialog 
+        isOpen={isDeleteDialogOpen} 
+        onOpenChange={setIsDeleteDialogOpen}
+        employee={selectedEmployee}
+        onDelete={handleDeleteEmployee}
+      />
     </div>
   );
 };
