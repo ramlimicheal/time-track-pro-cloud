@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { FileText, Printer, FileText2 } from "lucide-react";
+import { FileText, Printer } from "lucide-react";
 import { TimesheetEntry } from "@/types";
 
 interface TimesheetActionsProps {
