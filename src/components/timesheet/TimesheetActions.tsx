@@ -7,7 +7,7 @@ interface TimesheetActionsProps {
   readOnly: boolean;
   onSave: () => void;
   entries?: TimesheetEntry[];
-  timesheetStatus?: "draft" | "pending" | "approved" | "rejected";
+  timesheetStatus?: "draft" | "pending" | "approved" | "rejected"; // Updated to include draft
   onGeneratePDF?: () => void;
 }
 
