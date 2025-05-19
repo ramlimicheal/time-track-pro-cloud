@@ -67,22 +67,24 @@ const HistoryPage = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto max-w-7xl p-4">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Timesheet History</h1>
-          <span className="text-sm text-gray-500">View and export your past timesheets</span>
-        </div>
-        
-        <Separator className="mb-6" />
+      <div className="container mx-auto py-6 px-4 max-w-7xl">
+        <header className="mb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-800">Timesheet History</h1>
+            <span className="text-sm text-gray-500">View and export your past timesheets</span>
+          </div>
+          <Separator className="mt-4" />
+        </header>
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="md:col-span-1">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium text-gray-800">Past Timesheets</CardTitle>
+          {/* Sidebar */}
+          <aside className="md:col-span-1">
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3 border-b">
+                <CardTitle className="text-base font-medium">Past Timesheets</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-3">
+                <nav className="space-y-2">
                   {timesheetHistory.map((sheet) => (
                     <Button
                       key={sheet.id}
@@ -92,7 +94,7 @@ const HistoryPage = () => {
                       }`}
                       onClick={() => setSelectedTimesheet(sheet.id)}
                     >
-                      <Calendar className="mr-2 h-4 w-4" />
+                      <Calendar className="mr-2 h-4 w-4 shrink-0" />
                       <div className="flex items-center justify-between w-full">
                         <span className="font-medium">
                           {sheet.month} {sheet.year}
@@ -110,22 +112,27 @@ const HistoryPage = () => {
                       </div>
                     </Button>
                   ))}
-                </div>
+                </nav>
               </CardContent>
             </Card>
-          </div>
+          </aside>
           
-          <div className="md:col-span-3">
-            <Card className="h-full">
+          {/* Main Content */}
+          <main className="md:col-span-3">
+            <Card className="h-full shadow-sm">
               {selectedTimesheet ? (
-                <div className="h-full">
-                  <CardHeader className="pb-2 border-b">
+                <>
+                  <CardHeader className="pb-3 border-b">
                     <div className="flex justify-between items-center">
-                      <CardTitle className="text-xl font-semibold">
+                      <CardTitle className="text-lg font-semibold">
                         {timesheetHistory.find((t) => t.id === selectedTimesheet)?.month}{" "}
                         {timesheetHistory.find((t) => t.id === selectedTimesheet)?.year} Timesheet
                       </CardTitle>
-                      <Button variant="outline" className="flex items-center gap-2 bg-timetrack-lightBlue text-timetrack-blue hover:bg-timetrack-lightBlue/80">
+                      <Button 
+                        variant="outline" 
+                        className="flex items-center gap-2 bg-timetrack-lightBlue text-timetrack-blue hover:bg-timetrack-lightBlue/80"
+                        size="sm"
+                      >
                         <FileText className="h-4 w-4" />
                         Export PDF
                       </Button>
@@ -139,18 +146,18 @@ const HistoryPage = () => {
                       readOnly={true}
                     />
                   </CardContent>
-                </div>
+                </>
               ) : (
-                <div className="flex flex-col items-center justify-center p-12 text-center h-full">
-                  <Calendar className="h-16 w-16 text-gray-400 mb-4" />
+                <div className="flex flex-col items-center justify-center p-10 text-center h-full">
+                  <Calendar className="h-12 w-12 text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-700 mb-2">No Timesheet Selected</h3>
-                  <p className="text-gray-500 max-w-md">
+                  <p className="text-gray-500 max-w-sm">
                     Please select a timesheet from the history panel to view its details.
                   </p>
                 </div>
               )}
             </Card>
-          </div>
+          </main>
         </div>
       </div>
     </MainLayout>
