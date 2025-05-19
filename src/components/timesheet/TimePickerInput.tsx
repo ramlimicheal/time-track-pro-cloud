@@ -81,7 +81,11 @@ export const TimePickerInput = ({ value, onChange, error, readOnly, ...props }: 
                     <Button 
                       key={`${hour}-${minute}-${period}`}
                       variant="outline" 
-                      className="w-full text-sm hover:bg-timetrack-lightBlue hover:border-timetrack-blue"
+                      className={`w-full text-sm hover:bg-timetrack-lightBlue hover:border-timetrack-blue ${
+                        period === "AM" 
+                          ? "bg-[#D3E4FD] hover:bg-[#C3D4ED]" 
+                          : "bg-[#E5DEFF] hover:bg-[#D5CEEF]"
+                      }`}
                       onClick={() => handleTimeSelection(hour, minute, period)}
                     >
                       {hour}:{minute} {period}
