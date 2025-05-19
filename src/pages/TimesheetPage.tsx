@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TimesheetHeader } from "@/components/timesheet/TimesheetHeader";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry, Timesheet } from "@/types";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 const TimesheetPage = () => {
   const [employeeName, setEmployeeName] = useState("John Employee");
@@ -11,6 +13,7 @@ const TimesheetPage = () => {
   const [year, setYear] = useState(2025);
   const [entries, setEntries] = useState<TimesheetEntry[]>([]);
   const [timesheet, setTimesheet] = useState<Timesheet | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date(2025, 4, 1)); // May 1st, 2025 as default
 
   useEffect(() => {
     // In a real app, we would fetch the timesheet data from the server
@@ -44,9 +47,12 @@ const TimesheetPage = () => {
     const newEntries: TimesheetEntry[] = [];
 
     for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, getMonthNumber(month) - 1, day);
+      const dateString = format(currentDate, "dd-MMM-yyyy");
+      
       newEntries.push({
         id: `${day}-${month}-${year}`,
-        date: `${day.toString().padStart(2, "0")}-${month.substring(0, 3)}-${year}`,
+        date: dateString,
         workStart: "",
         workEnd: "",
         breakStart: "",
@@ -69,6 +75,17 @@ const TimesheetPage = () => {
       "July", "August", "September", "October", "November", "December",
     ];
     return months.findIndex((m) => m === monthName) + 1;
+  };
+
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
+    setMonth(
+      [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+      ][date.getMonth()]
+    );
+    setYear(date.getFullYear());
   };
 
   const handleSaveTimesheet = (updatedEntries: TimesheetEntry[]) => {
@@ -123,13 +140,14 @@ const TimesheetPage = () => {
       ][currentDate.getMonth()]
     );
     setYear(currentDate.getFullYear());
+    setSelectedDate(currentDate);
     generateMockEntries();
     toast.success("New timesheet created");
   };
 
   return (
     <MainLayout>
-      <div className="container mx-auto max-w-7xl py-6 px-4 sm:px-6 space-y-6">
+      <div className="container mx-auto max-w-7xl py-5 px-4 sm:px-6 space-y-5">
         <TimesheetHeader
           employeeName={employeeName}
           month={month}
@@ -138,6 +156,7 @@ const TimesheetPage = () => {
           onYearChange={setYear}
           onNewTimesheet={handleNewTimesheet}
           timesheetStatus={timesheet?.status || "draft"}
+          onDateChange={handleDateChange}
         />
         
         <TimesheetTable
