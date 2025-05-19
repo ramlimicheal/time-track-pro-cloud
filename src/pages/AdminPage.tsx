@@ -7,7 +7,7 @@ import { TimesheetAnalytics } from "@/components/admin/TimesheetAnalytics";
 import { PendingTimesheetsTable } from "@/components/admin/PendingTimesheetsTable";
 import { LeaveApplicationsReview } from "@/components/admin/LeaveApplicationsReview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Employee, TimesheetEntry } from "@/types";
+import { Employee, TimesheetEntry, Timesheet } from "@/types";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -18,9 +18,13 @@ const AdminPage = () => {
   
   // Load employee data from localStorage
   useEffect(() => {
+    loadEmployeeData();
+  }, []);
+  
+  const loadEmployeeData = () => {
     const storedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
     setEmployees(storedEmployees);
-  }, []);
+  };
   
   // Handler for selecting an employee to review timesheet
   const handleSelectEmployee = (employeeId: string) => {
@@ -28,40 +32,135 @@ const AdminPage = () => {
     setSelectedEmployee(employee);
     setActiveTab("timesheets");
     
-    // In a real app, fetch the employee's timesheet entries
-    // For now, using mock data
-    setTimesheetEntries([
-      {
-        id: "entry1",
-        date: "2025-05-01",
-        workStart: "09:00",
-        workEnd: "17:00",
-        breakStart: "12:00",
-        breakEnd: "13:00",
-        otStart: "",
-        otEnd: "",
-        description: "Regular work day",
-        remarks: "",
-        totalHours: 7,
-        status: "pending"
+    // Look for actual timesheet data in localStorage
+    const timesheets = findTimesheetsForEmployee(employeeId);
+    if (timesheets.length > 0) {
+      const latestTimesheet = timesheets[0]; // Assuming the first one is the most recent
+      setTimesheetEntries(latestTimesheet.entries);
+      setTimesheetStatus(latestTimesheet.status);
+    } else {
+      // Fallback to mock data if no actual timesheet exists
+      setTimesheetEntries([
+        {
+          id: "entry1",
+          date: "01-May-2025",
+          workStart: "09:00",
+          workEnd: "17:00",
+          breakStart: "12:00",
+          breakEnd: "13:00",
+          otStart: "",
+          otEnd: "",
+          description: "Regular work day",
+          remarks: "",
+          totalHours: 7,
+          status: "pending"
+        }
+      ]);
+      setTimesheetStatus("pending");
+    }
+  };
+  
+  // Find all timesheets for a specific employee
+  const findTimesheetsForEmployee = (employeeId: string): Timesheet[] => {
+    const keys = Object.keys(localStorage);
+    const timesheetKeys = keys.filter(key => key.startsWith('timesheet-'));
+    
+    const timesheets: Timesheet[] = [];
+    
+    timesheetKeys.forEach(key => {
+      try {
+        const timesheet = JSON.parse(localStorage.getItem(key) || '{}') as Timesheet;
+        if (timesheet.employeeId === employeeId) {
+          timesheets.push(timesheet);
+        }
+      } catch (e) {
+        console.error("Error parsing timesheet:", e);
       }
-    ]);
-    setTimesheetStatus("pending");
+    });
+    
+    // Sort by most recent (assuming higher month/year is more recent)
+    return timesheets.sort((a, b) => {
+      if (a.year !== b.year) {
+        return b.year - a.year;
+      }
+      return b.month - a.month;
+    });
   };
   
   // Handlers for timesheet approval/rejection
   const handleApproveTimesheet = () => {
-    setTimesheetStatus("approved");
+    if (!selectedEmployee) return;
+    
+    updateTimesheetStatus("approved");
+    
+    // Update employee's pending timesheet count
+    const updatedEmployees = employees.map(emp => {
+      if (emp.id === selectedEmployee.id) {
+        return { ...emp, pendingTimesheets: 0 };
+      }
+      return emp;
+    });
+    
+    setEmployees(updatedEmployees);
+    localStorage.setItem("employees", JSON.stringify(updatedEmployees));
   };
   
   const handleRejectTimesheet = () => {
-    setTimesheetStatus("rejected");
+    if (!selectedEmployee) return;
+    
+    updateTimesheetStatus("rejected");
+    
+    // Update employee's pending timesheet count
+    const updatedEmployees = employees.map(emp => {
+      if (emp.id === selectedEmployee.id) {
+        return { ...emp, pendingTimesheets: 0 };
+      }
+      return emp;
+    });
+    
+    setEmployees(updatedEmployees);
+    localStorage.setItem("employees", JSON.stringify(updatedEmployees));
+  };
+  
+  // Update timesheet status in localStorage
+  const updateTimesheetStatus = (status: "approved" | "rejected") => {
+    if (!selectedEmployee) return;
+    
+    const timesheets = findTimesheetsForEmployee(selectedEmployee.id);
+    if (timesheets.length === 0) return;
+    
+    const latestTimesheet = timesheets[0];
+    
+    // Update status
+    latestTimesheet.status = status;
+    latestTimesheet.entries = latestTimesheet.entries.map(entry => ({
+      ...entry,
+      status: status
+    }));
+    
+    // Save back to localStorage
+    const key = `timesheet-${getMonthName(latestTimesheet.month)}-${latestTimesheet.year}`;
+    localStorage.setItem(key, JSON.stringify(latestTimesheet));
+    
+    // Update local state
+    setTimesheetStatus(status);
+    setTimesheetEntries(latestTimesheet.entries);
+  };
+  
+  const getMonthName = (monthNumber: number): string => {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ];
+    return months[monthNumber - 1] || "Unknown";
   };
   
   // Handler for going back to dashboard
   const handleBack = () => {
     setSelectedEmployee(undefined);
     setActiveTab("dashboard");
+    // Reload data to see any changes
+    loadEmployeeData();
   };
   
   // Mock function for PDF generation

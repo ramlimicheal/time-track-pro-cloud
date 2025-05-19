@@ -19,6 +19,10 @@ export const LeaveApplicationsReview = () => {
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
 
   useEffect(() => {
+    loadLeaveApplications();
+  }, []);
+  
+  const loadLeaveApplications = () => {
     // In a real app, this would be fetched from an API
     const storedApplications = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
     
@@ -36,7 +40,7 @@ export const LeaveApplicationsReview = () => {
     });
     
     setApplications(enrichedApplications);
-  }, []);
+  };
 
   const handleApproval = (id: string, approved: boolean) => {
     const updatedApplications = applications.map(app => {
@@ -75,6 +79,18 @@ export const LeaveApplicationsReview = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Leave Applications</h2>
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            // Clear all leave applications
+            localStorage.setItem("leaveApplications", "[]");
+            setApplications([]);
+            toast.success("All leave application records cleared");
+          }}
+          className="text-red-600 border-red-200 hover:bg-red-50"
+        >
+          Clear All Records
+        </Button>
       </div>
       
       {pendingApplications.length === 0 ? (

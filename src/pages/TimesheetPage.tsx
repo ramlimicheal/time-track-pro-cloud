@@ -109,7 +109,23 @@ const TimesheetPage = () => {
     // Save to localStorage for persistence
     const timesheetKey = `timesheet-${month}-${year}`;
     localStorage.setItem(timesheetKey, JSON.stringify(updatedTimesheet));
+    
+    // Update employees table to show pending timesheet for admin
+    updateEmployeePendingTimesheets(user.id);
+    
     setTimesheet(updatedTimesheet);
+  };
+
+  // Update employee record to show pending timesheet
+  const updateEmployeePendingTimesheets = (employeeId: string) => {
+    const employees = JSON.parse(localStorage.getItem("employees") || "[]");
+    const updatedEmployees = employees.map((emp: any) => {
+      if (emp.id === employeeId) {
+        return { ...emp, pendingTimesheets: 1 };
+      }
+      return emp;
+    });
+    localStorage.setItem("employees", JSON.stringify(updatedEmployees));
   };
 
   const getTimesheetStatus = (entries: TimesheetEntry[]): Timesheet["status"] => {
@@ -132,6 +148,9 @@ const TimesheetPage = () => {
   };
 
   const handleNewTimesheet = () => {
+    // Clear all previous data to start fresh
+    clearAllTimesheetData();
+    
     const currentDate = new Date();
     setMonth(
       [
@@ -143,6 +162,27 @@ const TimesheetPage = () => {
     setSelectedDate(currentDate);
     generateMockEntries();
     toast.success("New timesheet created");
+  };
+  
+  // Clear all timesheet data from localStorage
+  const clearAllTimesheetData = () => {
+    // Get list of all keys in localStorage
+    const keys = Object.keys(localStorage);
+    
+    // Find and remove all timesheet related entries
+    keys.forEach(key => {
+      if (key.startsWith('timesheet-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Reset pending timesheets count for all employees
+    const employees = JSON.parse(localStorage.getItem("employees") || "[]");
+    const updatedEmployees = employees.map((emp: any) => ({
+      ...emp,
+      pendingTimesheets: 0
+    }));
+    localStorage.setItem("employees", JSON.stringify(updatedEmployees));
   };
 
   return (
