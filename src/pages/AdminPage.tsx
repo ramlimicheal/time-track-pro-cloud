@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { EmployeeManagement } from "@/components/admin/EmployeeManagement";
@@ -14,7 +13,8 @@ const AdminPage = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | undefined>(undefined);
   const [timesheetEntries, setTimesheetEntries] = useState<TimesheetEntry[]>([]);
-  const [timesheetStatus, setTimesheetStatus] = useState<"pending" | "approved" | "rejected">("pending");
+  // Updated type to include 'draft' option
+  const [timesheetStatus, setTimesheetStatus] = useState<"draft" | "pending" | "approved" | "rejected">("pending");
   
   // Load employee data from localStorage
   useEffect(() => {
