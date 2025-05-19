@@ -23,18 +23,23 @@ export const EmployeeHeader = ({ employee }: EmployeeHeaderProps) => {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-        <Avatar className="h-24 w-24 border-4 border-blue-100">
-          <AvatarFallback className="bg-blue-500 text-white text-2xl">
-            {employee.name.split(' ').map(n => n[0]).join('')}
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="space-y-1 flex-1">
-          <h1 className="text-2xl font-bold">{employee.name}</h1>
-          <div className="text-gray-600">
-            {employee.position} • {employee.department}
+        <div className="flex items-center gap-4">
+          <Avatar className="h-24 w-24 border-4 border-blue-100">
+            <AvatarFallback className="bg-blue-500 text-white text-2xl">
+              {employee.name.split(' ').map(n => n[0]).join('')}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">{employee.name}</h1>
+            <div className="text-gray-600">
+              {employee.position} • {employee.department}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3 text-sm mt-2">
+        </div>
+        
+        <div className="flex-1">
+          <div className="flex flex-wrap gap-3 text-sm mt-2 md:mt-0">
             <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
               ID: {employee.id.substring(0, 8)}
             </span>
