@@ -17,6 +17,7 @@ interface TimesheetHeaderProps {
   onNewTimesheet: () => void;
   timesheetStatus?: Timesheet["status"];
   onDateChange?: (date: Date) => void;
+  selectedDate?: Date;
 }
 
 export const TimesheetHeader: React.FC<TimesheetHeaderProps> = ({
@@ -27,7 +28,8 @@ export const TimesheetHeader: React.FC<TimesheetHeaderProps> = ({
   onYearChange,
   onNewTimesheet,
   timesheetStatus = "draft",
-  onDateChange
+  onDateChange,
+  selectedDate
 }) => {
   const months = [
     "January", "February", "March", "April", "May", "June",
@@ -48,6 +50,9 @@ export const TimesheetHeader: React.FC<TimesheetHeaderProps> = ({
     const monthIndex = months.indexOf(month);
     return new Date(year, monthIndex, 1);
   });
+
+  // Use selectedDate if provided, otherwise use the date state
+  const displayDate = selectedDate || date;
 
   const handleDateChange = (newDate: Date | undefined) => {
     if (newDate) {
@@ -85,16 +90,16 @@ export const TimesheetHeader: React.FC<TimesheetHeaderProps> = ({
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4 text-gray-500" />
-                {format(date, "MMMM yyyy")}
+                {format(displayDate, "MMMM yyyy")}
                 <span className="ml-2 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                  {format(date, "EEE")}
+                  {format(displayDate, "EEE")}
                 </span>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
-                selected={date}
+                selected={displayDate}
                 onSelect={handleDateChange}
                 initialFocus
                 className="pointer-events-auto"
