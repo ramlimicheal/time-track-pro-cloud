@@ -39,10 +39,10 @@ export const FormField = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-6 items-center gap-4">
-      <div className="md:col-span-1 flex items-center justify-end text-sm">
+    <div className="grid grid-cols-1 md:grid-cols-12 items-center gap-4 mb-4">
+      <div className="md:col-span-3 flex items-center text-sm">
         {Icon && <Icon className="h-4 w-4 mr-2" />}
-        <label className="whitespace-nowrap">{label}{required && " *"}</label>
+        <label className="whitespace-nowrap font-medium text-gray-700">{label}{required && " *"}</label>
       </div>
       
       {type === "textarea" ? (
@@ -50,12 +50,12 @@ export const FormField = ({
           name={name} 
           value={value} 
           onChange={onChange} 
-          className="md:col-span-5" 
+          className="md:col-span-9" 
           placeholder={placeholder} 
           rows={3}
         />
       ) : type === "select" && options.length > 0 && onSelectChange ? (
-        <div className="md:col-span-5">
+        <div className="md:col-span-9">
           <Select value={value} onValueChange={value => onSelectChange(name, value)}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
@@ -70,7 +70,7 @@ export const FormField = ({
           name={name} 
           value={value} 
           onChange={onChange} 
-          className="md:col-span-5" 
+          className="md:col-span-9" 
           placeholder={placeholder} 
           type={type} 
         />

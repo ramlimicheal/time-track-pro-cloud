@@ -13,7 +13,7 @@ interface Employee {
 interface TimesheetReviewProps {
   employee: Employee | undefined;
   entries: TimesheetEntry[];
-  timesheetStatus: "draft" | "pending" | "approved" | "rejected"; // Updated to include "draft"
+  timesheetStatus: "draft" | "pending" | "approved" | "rejected";
   onBack: () => void;
   onApprove: () => void;
   onReject: () => void;
@@ -41,7 +41,7 @@ export const TimesheetReview = ({
           Back to Dashboard
         </Button>
         
-        {timesheetStatus === "approved" && (
+        {(timesheetStatus === "approved" || timesheetStatus === "rejected") && (
           <div className="flex gap-2">
             <Button 
               onClick={handlePrint} 
@@ -70,6 +70,35 @@ export const TimesheetReview = ({
         <p className="text-gray-600">
           Department: {employee?.department}
         </p>
+        <div className="mt-2">
+          {timesheetStatus === "approved" && (
+            <div className="inline-flex items-center rounded-md bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
+              <Check className="h-4 w-4 mr-1" />
+              Approved
+            </div>
+          )}
+          {timesheetStatus === "rejected" && (
+            <div className="inline-flex items-center rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
+              <X className="h-4 w-4 mr-1" />
+              Rejected
+            </div>
+          )}
+          {timesheetStatus === "pending" && (
+            <div className="inline-flex items-center rounded-md bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700">
+              <Clock className="h-4 w-4 mr-1" />
+              Pending Approval
+            </div>
+          )}
+          {timesheetStatus === "draft" && (
+            <div className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Draft
+            </div>
+          )}
+        </div>
       </div>
       
       <TimesheetTable
@@ -93,27 +122,6 @@ export const TimesheetReview = ({
               Approve Timesheet
             </Button>
           </>
-        )}
-        {timesheetStatus === "approved" && (
-          <div className="px-4 py-2 rounded-md bg-green-100 text-green-700 flex items-center">
-            <Check className="h-5 w-5 mr-2" />
-            Timesheet Approved
-          </div>
-        )}
-        {timesheetStatus === "rejected" && (
-          <div className="px-4 py-2 rounded-md bg-red-100 text-red-700 flex items-center">
-            <X className="h-5 w-5 mr-2" />
-            Timesheet Rejected
-          </div>
-        )}
-        {timesheetStatus === "draft" && (
-          <div className="px-4 py-2 rounded-md bg-gray-100 text-gray-700 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-            Draft Timesheet
-          </div>
         )}
       </div>
     </>

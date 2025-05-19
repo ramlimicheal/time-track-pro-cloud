@@ -1,5 +1,6 @@
 
-import { Employee } from "@/types";
+import { useEffect, useState } from "react";
+import { Employee, Timesheet } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Calendar, FileCheck, FileX } from "lucide-react";
 
@@ -8,6 +9,100 @@ interface DashboardStatsProps {
 }
 
 export const DashboardStats = ({ employee }: DashboardStatsProps) => {
+  const [latestTimesheet, setLatestTimesheet] = useState<Timesheet | null>(null);
+  
+  // Find the latest timesheet for this employee
+  useEffect(() => {
+    const findLatestTimesheet = () => {
+      const keys = Object.keys(localStorage);
+      const timesheetKeys = keys.filter(key => key.startsWith('timesheet-'));
+      
+      let latest: Timesheet | null = null;
+      let latestDate = new Date(0);
+      
+      timesheetKeys.forEach(key => {
+        try {
+          const timesheet = JSON.parse(localStorage.getItem(key) || '{}') as Timesheet;
+          if (timesheet.employeeId === employee.id) {
+            const timesheetDate = new Date(timesheet.year, timesheet.month - 1);
+            if (timesheetDate > latestDate) {
+              latestDate = timesheetDate;
+              latest = timesheet;
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing timesheet:", e);
+        }
+      });
+      
+      setLatestTimesheet(latest);
+    };
+    
+    findLatestTimesheet();
+    
+    // Add event listener for storage changes
+    const handleStorageChange = () => {
+      findLatestTimesheet();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [employee.id]);
+  
+  // Get stats based on timesheet status
+  const getTimesheetStatusInfo = () => {
+    if (!latestTimesheet) {
+      return {
+        value: "0",
+        change: "No timesheets",
+        color: "text-gray-500",
+        bgColor: "bg-gray-100"
+      };
+    }
+    
+    switch(latestTimesheet.status) {
+      case "approved":
+        return {
+          value: "0",
+          change: "Timesheet approved",
+          color: "text-green-500",
+          bgColor: "bg-green-100"
+        };
+      case "rejected":
+        return {
+          value: "1",
+          change: "Timesheet rejected",
+          color: "text-red-500",
+          bgColor: "bg-red-100"
+        };
+      case "pending":
+        return {
+          value: "1",
+          change: "Awaiting approval",
+          color: "text-yellow-500",
+          bgColor: "bg-yellow-100"
+        };
+      case "draft":
+        return {
+          value: "1",
+          change: "Draft - needs submission",
+          color: "text-blue-500",
+          bgColor: "bg-blue-100"
+        };
+      default:
+        return {
+          value: "0",
+          change: "No timesheets",
+          color: "text-gray-500",
+          bgColor: "bg-gray-100"
+        };
+    }
+  };
+  
+  const timesheetStatus = getTimesheetStatusInfo();
+  
   // In a real app, these values would come from the API
   const stats = [
     {
@@ -19,12 +114,12 @@ export const DashboardStats = ({ employee }: DashboardStatsProps) => {
       bgColor: "bg-blue-100"
     },
     {
-      title: "Pending Timesheets",
-      value: employee.pendingTimesheets.toString(),
-      change: employee.pendingTimesheets > 0 ? "Action needed" : "All complete",
+      title: "Timesheet Status",
+      value: timesheetStatus.value,
+      change: timesheetStatus.change,
       icon: FileCheck,
-      color: "text-green-500",
-      bgColor: "bg-green-100"
+      color: timesheetStatus.color,
+      bgColor: timesheetStatus.bgColor
     },
     {
       title: "Leave Balance",
