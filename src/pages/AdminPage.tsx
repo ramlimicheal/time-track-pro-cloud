@@ -7,6 +7,9 @@ import { PendingTimesheetsTable } from "@/components/admin/PendingTimesheetsTabl
 import { LeaveApplicationsReview } from "@/components/admin/LeaveApplicationsReview";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Employee, TimesheetEntry, Timesheet } from "@/types";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -15,6 +18,7 @@ const AdminPage = () => {
   const [timesheetEntries, setTimesheetEntries] = useState<TimesheetEntry[]>([]);
   // Updated type to include 'draft' option
   const [timesheetStatus, setTimesheetStatus] = useState<"draft" | "pending" | "approved" | "rejected">("pending");
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Load employee data from localStorage
   useEffect(() => {
@@ -168,6 +172,12 @@ const AdminPage = () => {
     console.log("Generating PDF...");
     // Implementation would go here in a real app
   };
+
+  // Filter employees based on search query
+  const filteredEmployees = employees.filter(emp => 
+    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.department.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   
   return (
     <MainLayout>
@@ -211,7 +221,63 @@ const AdminPage = () => {
               />
             ) : (
               <div className="bg-white p-6 rounded-lg shadow">
-                <p className="text-gray-500 py-4">Select an employee from the dashboard to review their timesheet.</p>
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-4">Select an employee to review their timesheet</h2>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Search employees by name or department"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                    <Select onValueChange={(value) => value && handleSelectEmployee(value)}>
+                      <SelectTrigger className="w-full sm:w-60">
+                        <SelectValue placeholder="Select an employee" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredEmployees.map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.name} - {emp.department}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-medium">Employees with pending timesheets</h3>
+                  </div>
+                  <div className="divide-y divide-gray-200">
+                    {filteredEmployees.filter(emp => emp.pendingTimesheets > 0).length > 0 ? (
+                      filteredEmployees
+                        .filter(emp => emp.pendingTimesheets > 0)
+                        .map(emp => (
+                          <div key={emp.id} className="px-6 py-4 flex justify-between items-center">
+                            <div>
+                              <p className="font-medium">{emp.name}</p>
+                              <p className="text-sm text-gray-500">{emp.department}</p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => handleSelectEmployee(emp.id)}
+                            >
+                              Review Timesheet
+                            </Button>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="px-6 py-8 text-center text-gray-500">
+                        No pending timesheets found
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </TabsContent>
