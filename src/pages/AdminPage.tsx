@@ -1,19 +1,11 @@
 
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Calendar, Printer, FileText } from "lucide-react";
-import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
+import { PendingTimesheetsTable } from "@/components/admin/PendingTimesheetsTable";
+import { TimesheetReview } from "@/components/admin/TimesheetReview";
+import { PrintableTimesheetReport } from "@/components/admin/PrintableTimesheetReport";
 
 const AdminPage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
@@ -68,14 +60,6 @@ const AdminPage = () => {
     toast.success("Timesheet rejected with comments");
     setSelectedEmployee(null);
   };
-
-  // Calculate total hours
-  const totalHours = mockEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
-  
-  // Function to directly trigger printing
-  const handlePrint = () => {
-    window.print();
-  };
   
   // Function to generate a clean PDF version
   const generatePDF = () => {
@@ -102,166 +86,28 @@ const AdminPage = () => {
         </div>
         
         {!selectedEmployee ? (
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold">Pending Timesheets</h2>
-            </div>
-            
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Period</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {employees.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell className="font-medium">{employee.name}</TableCell>
-                    <TableCell>{employee.department}</TableCell>
-                    <TableCell>May 2025</TableCell>
-                    <TableCell>
-                      {employee.pendingTimesheets > 0 ? (
-                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
-                          Pending Review
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                          No Pending
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setSelectedEmployee(employee.id)}
-                        disabled={employee.pendingTimesheets === 0}
-                      >
-                        <Calendar className="mr-1 h-4 w-4" />
-                        View Timesheet
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <PendingTimesheetsTable 
+            employees={employees} 
+            onSelectEmployee={setSelectedEmployee} 
+          />
         ) : (
           <>
-            <div className="flex justify-between items-center mb-4 print:hidden">
-              <Button
-                variant="outline"
-                onClick={() => setSelectedEmployee(null)}
-              >
-                Back to Dashboard
-              </Button>
-              
-              {timesheetStatus === "approved" && (
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handlePrint} 
-                    variant="outline" 
-                    className="flex items-center gap-2"
-                  >
-                    <Printer className="h-4 w-4" />
-                    Print Timesheet
-                  </Button>
-                  <Button
-                    onClick={generatePDF}
-                    variant="outline"
-                    className="flex items-center gap-2 bg-timetrack-lightBlue text-timetrack-blue hover:bg-blue-100"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Generate PDF
-                  </Button>
-                </div>
-              )}
-            </div>
-            
-            <div className="mb-4 print:hidden">
-              <h2 className="text-xl font-semibold mb-2">
-                {currentEmployee?.name} - May 2025 Timesheet
-              </h2>
-              <p className="text-gray-600">
-                Department: {currentEmployee?.department}
-              </p>
-            </div>
-            
-            <TimesheetTable
-              month="May"
-              year={2025}
+            <TimesheetReview 
+              employee={currentEmployee}
               entries={mockEntries}
-              readOnly={true}
               timesheetStatus={timesheetStatus}
+              onBack={() => setSelectedEmployee(null)}
+              onApprove={handleApprove}
+              onReject={handleReject}
               onGeneratePDF={generatePDF}
             />
-            
-            <div className="mt-6 flex gap-4 justify-end print:hidden">
-              <Button variant="outline" onClick={handleReject}>
-                Reject with Comments
-              </Button>
-              <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
-                Approve Timesheet
-              </Button>
-            </div>
 
-            {/* Enhanced print layout - only visible when printing */}
-            <div className="hidden print:block">
-              <div className="print-header">
-                <div className="print-header-logo">TimeTrack Pro</div>
-                <div className="print-header-info">
-                  <p>123 Business Ave., Corporate Plaza, Suite 200</p>
-                  <p>contact@timetrackpro.com | (555) 123-4567</p>
-                </div>
-              </div>
-
-              <div className="timesheet-title">
-                Employee Timesheet Report
-              </div>
-
-              <div className="employee-info">
-                <div className="employee-info-section">
-                  <p><span className="info-label">Employee:</span> {currentEmployee?.name}</p>
-                  <p><span className="info-label">Department:</span> {currentEmployee?.department}</p>
-                  <p><span className="info-label">Employee ID:</span> {selectedEmployee}</p>
-                </div>
-                <div className="employee-info-section">
-                  <p><span className="info-label">Period:</span> May 2025</p>
-                  <p><span className="info-label">Status:</span> {timesheetStatus.charAt(0).toUpperCase() + timesheetStatus.slice(1)}</p>
-                  <p><span className="info-label">Total Hours:</span> {totalHours.toFixed(2)}</p>
-                </div>
-              </div>
-
-              {/* TimesheetTable is automatically displayed between these sections */}
-
-              <div className="signature-section">
-                <div className="signature-column">
-                  <div className="signature-box">
-                    Employee Signature
-                  </div>
-                  <div className="signature-box">
-                    Date
-                  </div>
-                </div>
-                <div className="signature-column">
-                  <div className="signature-box">
-                    Manager Approval
-                  </div>
-                  <div className="signature-box">
-                    Date
-                  </div>
-                </div>
-              </div>
-
-              <div className="print-footer">
-                <div>TimeTrack Pro - Employee Timesheet Management System</div>
-                <div>Printed on {new Date().toLocaleDateString()} | Page <span className="page-number"></span></div>
-              </div>
-            </div>
+            <PrintableTimesheetReport
+              employee={currentEmployee}
+              entries={mockEntries}
+              timesheetStatus={timesheetStatus}
+              selectedEmployee={selectedEmployee}
+            />
           </>
         )}
       </div>
