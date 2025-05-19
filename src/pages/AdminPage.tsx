@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { EmployeeManagement } from "@/components/admin/EmployeeManagement";
@@ -10,6 +11,7 @@ import { Employee, TimesheetEntry, Timesheet } from "@/types";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import { toast } from "sonner";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -107,6 +109,13 @@ const AdminPage = () => {
     
     setEmployees(updatedEmployees);
     localStorage.setItem("employees", JSON.stringify(updatedEmployees));
+    
+    // Send notification to employee
+    sendNotificationToEmployee(selectedEmployee.id, "Timesheet Approved", 
+      `Your timesheet for May 2025 has been approved.`);
+    
+    // Show success notification to admin
+    toast.success(`Timesheet for ${selectedEmployee.name} approved successfully`);
   };
   
   const handleRejectTimesheet = () => {
@@ -124,6 +133,33 @@ const AdminPage = () => {
     
     setEmployees(updatedEmployees);
     localStorage.setItem("employees", JSON.stringify(updatedEmployees));
+    
+    // Send notification to employee
+    sendNotificationToEmployee(selectedEmployee.id, "Timesheet Rejected", 
+      `Your timesheet for May 2025 has been rejected. Please contact your manager.`);
+    
+    // Show notification to admin
+    toast.error(`Timesheet for ${selectedEmployee.name} rejected`);
+  };
+  
+  // Function to send notification to employee
+  const sendNotificationToEmployee = (employeeId: string, title: string, message: string) => {
+    // Get existing notifications or initialize empty array
+    const notifications = JSON.parse(localStorage.getItem(`notifications-${employeeId}`) || "[]");
+    
+    // Add new notification
+    notifications.unshift({
+      id: Date.now().toString(),
+      title,
+      message,
+      timestamp: new Date().toISOString(),
+      read: false
+    });
+    
+    // Save back to localStorage
+    localStorage.setItem(`notifications-${employeeId}`, JSON.stringify(notifications));
+    
+    console.log(`Notification sent to employee ${employeeId}: ${title}`);
   };
   
   // Update timesheet status in localStorage
