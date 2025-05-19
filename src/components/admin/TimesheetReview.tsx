@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Printer, Check, X, Clock } from "lucide-react";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
+import { toast } from "sonner";
 
 interface Employee {
   id: string;
@@ -32,6 +33,18 @@ export const TimesheetReview = ({
   // Function to directly trigger printing
   const handlePrint = () => {
     window.print();
+  };
+
+  // Handle approve with notification feedback
+  const handleApprove = () => {
+    onApprove();
+    toast.success(`Timesheet approval notification sent to ${employee?.name}`);
+  };
+
+  // Handle reject with notification feedback
+  const handleReject = () => {
+    onReject();
+    toast.error(`Timesheet rejection notification sent to ${employee?.name}`);
   };
 
   return (
@@ -113,11 +126,11 @@ export const TimesheetReview = ({
       <div className="mt-6 flex gap-4 justify-end print:hidden">
         {timesheetStatus === "pending" && (
           <>
-            <Button variant="outline" onClick={onReject} className="flex items-center">
+            <Button variant="outline" onClick={handleReject} className="flex items-center">
               <X className="h-4 w-4 mr-2" />
               Reject with Comments
             </Button>
-            <Button onClick={onApprove} className="bg-green-600 hover:bg-green-700 flex items-center">
+            <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700 flex items-center">
               <Check className="h-4 w-4 mr-2" />
               Approve Timesheet
             </Button>

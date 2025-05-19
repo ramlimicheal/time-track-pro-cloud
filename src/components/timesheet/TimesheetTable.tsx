@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
@@ -6,6 +5,8 @@ import { calculateTotalHours, validateEntry } from "@/utils/timeUtils";
 import { TimesheetTableHeader } from "./TimesheetTableHeader";
 import { TimesheetBody } from "./TimesheetBody";
 import { TimesheetActions } from "./TimesheetActions";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Check, AlertTriangle } from "lucide-react";
 
 interface TimesheetTableProps {
   month: string;
@@ -103,6 +104,26 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
           Timesheet for {month} {year}
         </h2>
       </div>
+
+      {timesheetStatus === "approved" && (
+        <Alert className="m-4 bg-green-50 border-green-200">
+          <Check className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-700">Timesheet Approved</AlertTitle>
+          <AlertDescription className="text-green-600">
+            This timesheet has been reviewed and approved by management.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {timesheetStatus === "rejected" && (
+        <Alert className="m-4 bg-red-50 border-red-200">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertTitle className="text-red-700">Timesheet Rejected</AlertTitle>
+          <AlertDescription className="text-red-600">
+            This timesheet has been reviewed and requires changes. Please contact your manager.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full timesheet-table text-sm">
