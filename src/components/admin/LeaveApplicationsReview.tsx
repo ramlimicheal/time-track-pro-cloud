@@ -13,18 +13,7 @@ import {
   TableRow,
   TableCell
 } from "@/components/ui/table";
-
-interface LeaveApplication {
-  id: string;
-  employeeId: string;
-  startDate: string;
-  endDate: string;
-  leaveType: string;
-  reason: string;
-  status: "pending" | "approved" | "rejected";
-  createdAt: string;
-  employeeName?: string;
-}
+import { LeaveApplication } from "@/types";
 
 export const LeaveApplicationsReview = () => {
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
@@ -36,12 +25,14 @@ export const LeaveApplicationsReview = () => {
     // Enrich with employee names from the employees data
     const employees = JSON.parse(localStorage.getItem("employees") || "[]");
     
-    const enrichedApplications = storedApplications.map((app: LeaveApplication) => {
+    const enrichedApplications = storedApplications.map((app: any) => {
       const employee = employees.find((e: any) => e.id === app.employeeId);
       return {
         ...app,
-        employeeName: employee?.name || "Unknown Employee"
-      };
+        employeeName: employee?.name || "Unknown Employee",
+        // Ensure status is one of the allowed types
+        status: ["pending", "approved", "rejected"].includes(app.status) ? app.status : "pending"
+      } as LeaveApplication;
     });
     
     setApplications(enrichedApplications);
@@ -50,7 +41,7 @@ export const LeaveApplicationsReview = () => {
   const handleApproval = (id: string, approved: boolean) => {
     const updatedApplications = applications.map(app => {
       if (app.id === id) {
-        return { ...app, status: approved ? "approved" : "rejected" };
+        return { ...app, status: approved ? "approved" as const : "rejected" as const };
       }
       return app;
     });

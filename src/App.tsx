@@ -11,16 +11,13 @@ import AdminPage from "./pages/AdminPage";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import NotFound from "./pages/NotFound";
 
-// Create the client as a component function
+// Create a client outside the component to avoid re-creation on each render
+const queryClient = new QueryClient();
+
 function App() {
-  // Create a client inside the component function
-  const queryClient = new QueryClient();
-  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -31,6 +28,8 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        <Toaster />
+        <Sonner />
       </TooltipProvider>
     </QueryClientProvider>
   );
