@@ -4,48 +4,48 @@ import { TimeIcon } from "@/components/TimeIcon";
 export const TimesheetTableHeader = () => {
   return (
     <thead>
-      <tr>
-        <th>DATE</th>
-        <th>
+      <tr className="bg-gray-50 text-xs font-medium text-gray-700 uppercase tracking-wider">
+        <th className="px-3 py-2.5 text-left">Date</th>
+        <th className="px-3 py-2.5 text-left">
           <div className="flex items-center gap-1">
-            WORK START
+            Work Start
             <TimeIcon />
           </div>
         </th>
-        <th>
+        <th className="px-3 py-2.5 text-left">
           <div className="flex items-center gap-1">
-            BREAK START
+            Break Start
             <TimeIcon />
           </div>
         </th>
-        <th>
+        <th className="px-3 py-2.5 text-left">
           <div className="flex items-center gap-1">
-            BREAK END
+            Break End
             <TimeIcon />
           </div>
         </th>
-        <th>
+        <th className="px-3 py-2.5 text-left">
           <div className="flex items-center gap-1">
-            WORK END
+            Work End
             <TimeIcon />
           </div>
         </th>
-        <th>DESCRIPTION</th>
-        <th>
+        <th className="px-3 py-2.5 text-left">Description</th>
+        <th className="px-3 py-2.5 text-left">
           <div className="flex items-center gap-1">
-            OT START
+            OT Start
             <TimeIcon />
           </div>
         </th>
-        <th>
+        <th className="px-3 py-2.5 text-left">
           <div className="flex items-center gap-1">
-            OT END
+            OT End
             <TimeIcon />
           </div>
         </th>
-        <th>TOTAL HOURS</th>
-        <th>REMARKS</th>
-        <th>STATUS</th>
+        <th className="px-3 py-2.5 text-left">Total Hours</th>
+        <th className="px-3 py-2.5 text-left">Remarks</th>
+        <th className="px-3 py-2.5 text-left">Status</th>
       </tr>
     </thead>
   );

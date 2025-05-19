@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TimesheetHeader } from "@/components/timesheet/TimesheetHeader";
@@ -130,7 +129,7 @@ const TimesheetPage = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto max-w-7xl">
+      <div className="container mx-auto max-w-7xl py-6 px-4 sm:px-6 space-y-6">
         <TimesheetHeader
           employeeName={employeeName}
           month={month}
