@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Users } from "lucide-react";
@@ -16,14 +15,13 @@ import { toast } from "sonner";
 import { EmployeeTable } from "./EmployeeTable";
 import { EmployeeForm } from "./EmployeeForm";
 import { DeleteEmployeeDialog } from "./DeleteEmployeeDialog";
-import { generateUsername, generatePassword } from "@/utils/employeeUtils";
 
-interface EmployeeManagementProps {
+export interface EmployeeManagementProps {
   employees: Employee[];
 }
 
 export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeManagementProps) => {
-  const [employees, setEmployees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees || []);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -85,6 +83,10 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
     toast.success(`Username: ${newEmployee.username} and Password: ${newEmployee.password} created`);
     setIsAddDialogOpen(false);
     
+    // Save to localStorage
+    const updatedEmployees = [...employees, newEmployee];
+    localStorage.setItem("employees", JSON.stringify(updatedEmployees));
+    
     // Reset form
     setFormData({
       name: "",
@@ -109,6 +111,23 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
 
   const handleEditClick = (employee: Employee) => {
     setSelectedEmployee(employee);
+    setFormData({
+      name: employee.name || "",
+      email: employee.email || "",
+      department: employee.department || "",
+      position: employee.position || "",
+      joinDate: employee.joinDate || "",
+      status: employee.status || "active",
+      dob: employee.dob || "",
+      bloodGroup: employee.bloodGroup || "",
+      passportNumber: employee.passportNumber || "",
+      phoneNumber: employee.phoneNumber || "",
+      indianAddress: employee.indianAddress || "",
+      omanAddress: employee.omanAddress || "",
+      emergencyPhoneNumber: employee.emergencyPhoneNumber || "",
+      username: employee.username || "",
+      password: employee.password || ""
+    });
     setIsEditDialogOpen(true);
   };
 
@@ -129,6 +148,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
     );
     
     setEmployees(updatedEmployees);
+    localStorage.setItem("employees", JSON.stringify(updatedEmployees));
     toast.success("Employee updated successfully");
     setIsEditDialogOpen(false);
   };
@@ -144,6 +164,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
     // Remove employee
     const filteredEmployees = employees.filter(emp => emp.id !== selectedEmployee.id);
     setEmployees(filteredEmployees);
+    localStorage.setItem("employees", JSON.stringify(filteredEmployees));
     toast.success("Employee removed successfully");
     setIsDeleteDialogOpen(false);
   };

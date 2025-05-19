@@ -54,6 +54,7 @@ export interface Employee {
 export interface LeaveApplication {
   id: string;
   employeeId: string;
+  employeeName?: string;
   startDate: string;
   endDate: string;
   leaveType: string;

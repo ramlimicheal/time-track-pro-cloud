@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import {
@@ -15,17 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-interface Employee {
-  id: string;
-  name: string;
-  department: string;
-  pendingTimesheets: number;
-  email: string;
-  position: string;
-  joinDate: string;
-  status: string;
-}
+import { Employee } from "@/types";
 
 interface TimesheetAnalyticsProps {
   employees: Employee[];
