@@ -154,7 +154,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
       // Update status to pending for entries with times
       const updatedEntries = localEntries.map(entry => {
         if ((entry.workStart || entry.otStart) && entry.status === "draft") {
-          return { ...entry, status: "pending" };
+          return { ...entry, status: "pending" as const };
         }
         return entry;
       });
