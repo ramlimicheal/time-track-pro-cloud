@@ -107,28 +107,32 @@ export const EmployeeForm = ({
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              label="Blood Group"
-              name="bloodGroup"
-              value={formData.bloodGroup}
-              type="select"
-              options={bloodGroups}
-              onSelectChange={handleSelectChange}
-              icon={Droplet}
-              className="w-full"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div className="w-full">
+              <FormField
+                label="Blood Group"
+                name="bloodGroup"
+                value={formData.bloodGroup}
+                type="select"
+                options={bloodGroups}
+                onSelectChange={handleSelectChange}
+                icon={Droplet}
+                className="w-full mb-0"
+              />
+            </div>
             
-            <FormField
-              label="Passport No."
-              name="passportNumber"
-              value={formData.passportNumber}
-              onChange={handleInputChange}
-              placeholder="AB1234567"
-              required
-              icon={User}
-              className="w-full"
-            />
+            <div className="w-full">
+              <FormField
+                label="Passport No."
+                name="passportNumber"
+                value={formData.passportNumber}
+                onChange={handleInputChange}
+                placeholder="AB1234567"
+                required
+                icon={User}
+                className="w-full mb-0"
+              />
+            </div>
           </div>
         </div>
       </div>
