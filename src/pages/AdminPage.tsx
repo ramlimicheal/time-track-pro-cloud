@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { EmployeeManagement } from "@/components/admin/EmployeeManagement";
@@ -17,7 +18,6 @@ const AdminPage = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | undefined>(undefined);
   const [timesheetEntries, setTimesheetEntries] = useState<TimesheetEntry[]>([]);
-  // Updated type to include 'draft' option
   const [timesheetStatus, setTimesheetStatus] = useState<"draft" | "pending" | "approved" | "rejected">("pending");
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -35,6 +35,8 @@ const AdminPage = () => {
   const handleSelectEmployee = (employeeId: string) => {
     const employee = employees.find(emp => emp.id === employeeId);
     setSelectedEmployee(employee);
+    
+    // Set the active tab to "timesheets"
     setActiveTab("timesheets");
     
     // Look for actual timesheet data in localStorage
@@ -217,7 +219,7 @@ const AdminPage = () => {
   return (
     <MainLayout>
       <div className="container mx-auto py-8 px-4 sm:px-6">
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid grid-cols-4 sm:grid-cols-5 md:w-auto">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
@@ -264,7 +266,7 @@ const AdminPage = () => {
                       <input
                         type="text"
                         placeholder="Search employees by name or department"
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
@@ -301,6 +303,7 @@ const AdminPage = () => {
                             <Button 
                               variant="outline" 
                               onClick={() => handleSelectEmployee(emp.id)}
+                              className="hover:bg-blue-50 hover:text-blue-600 transition-colors"
                             >
                               Review Timesheet
                             </Button>

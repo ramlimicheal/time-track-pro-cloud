@@ -77,74 +77,86 @@ export const EmployeeForm = ({
   return (
     <div className="grid gap-4 py-4">
       {/* Personal Information Section */}
-      <div className="border-b pb-3 mb-3">
-        <h3 className="text-sm font-medium mb-3 text-gray-700">Personal Information</h3>
-        <div className="space-y-3">
-          <FormField
-            label="Name"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="John Doe"
-            required
-            icon={User}
-          />
+      <div className="mb-4">
+        <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
+          <User className="h-4 w-4 mr-1" />
+          Personal Information
+        </h3>
+        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              label="Name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              placeholder="John Doe"
+              required
+              icon={User}
+            />
+            
+            <FormField
+              label="DOB"
+              name="dob"
+              value={formData.dob}
+              onChange={handleInputChange}
+              type="date"
+              required
+              icon={Calendar}
+            />
+          </div>
           
-          <FormField
-            label="DOB"
-            name="dob"
-            value={formData.dob}
-            onChange={handleInputChange}
-            type="date"
-            required
-            icon={Calendar}
-          />
-          
-          <FormField
-            label="Blood Group"
-            name="bloodGroup"
-            value={formData.bloodGroup}
-            type="select"
-            options={bloodGroups}
-            onSelectChange={handleSelectChange}
-            icon={Droplet}
-          />
-          
-          <FormField
-            label="Passport No."
-            name="passportNumber"
-            value={formData.passportNumber}
-            onChange={handleInputChange}
-            placeholder="AB1234567"
-            required
-            icon={User}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              label="Blood Group"
+              name="bloodGroup"
+              value={formData.bloodGroup}
+              type="select"
+              options={bloodGroups}
+              onSelectChange={handleSelectChange}
+              icon={Droplet}
+            />
+            
+            <FormField
+              label="Passport No."
+              name="passportNumber"
+              value={formData.passportNumber}
+              onChange={handleInputChange}
+              placeholder="AB1234567"
+              required
+              icon={User}
+            />
+          </div>
         </div>
       </div>
       
       {/* Contact Information Section */}
-      <div className="border-b pb-3 mb-3">
-        <h3 className="text-sm font-medium mb-3 text-gray-700">Contact Information</h3>
-        <div className="space-y-3">
-          <FormField
-            label="Phone Number"
-            name="phoneNumber"
-            value={formData.phoneNumber}
-            onChange={handleInputChange}
-            placeholder="+91 1234567890"
-            required
-            icon={Phone}
-          />
-          
-          <FormField
-            label="Emergency No."
-            name="emergencyPhoneNumber"
-            value={formData.emergencyPhoneNumber}
-            onChange={handleInputChange}
-            placeholder="+91 1234567890"
-            required
-            icon={PhoneCall}
-          />
+      <div className="mb-4">
+        <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
+          <Phone className="h-4 w-4 mr-1" />
+          Contact Information
+        </h3>
+        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              label="Phone Number"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              placeholder="+91 1234567890"
+              required
+              icon={Phone}
+            />
+            
+            <FormField
+              label="Emergency No."
+              name="emergencyPhoneNumber"
+              value={formData.emergencyPhoneNumber}
+              onChange={handleInputChange}
+              placeholder="+91 1234567890"
+              required
+              icon={PhoneCall}
+            />
+          </div>
           
           <FormField
             label="Email"
@@ -160,9 +172,12 @@ export const EmployeeForm = ({
       </div>
       
       {/* Address Section */}
-      <div className="border-b pb-3 mb-3">
-        <h3 className="text-sm font-medium mb-3 text-gray-700">Address Information</h3>
-        <div className="space-y-3">
+      <div className="mb-4">
+        <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
+          <Home className="h-4 w-4 mr-1" />
+          Address Information
+        </h3>
+        <div className="bg-gray-50 p-4 rounded-md space-y-3">
           <FormField
             label="Indian Address"
             name="indianAddress"
@@ -188,79 +203,88 @@ export const EmployeeForm = ({
       </div>
       
       {/* Employment Details Section */}
-      <div className="border-b pb-3 mb-3">
-        <h3 className="text-sm font-medium mb-3 text-gray-700">Employment Details</h3>
-        <div className="space-y-3">
-          <FormField
-            label="Department"
-            name="department"
-            value={formData.department}
-            type="select"
-            options={departments}
-            onSelectChange={handleSelectChange}
-            required
-          />
+      <div className="mb-4">
+        <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
+          <Building className="h-4 w-4 mr-1" />
+          Employment Details
+        </h3>
+        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              label="Department"
+              name="department"
+              value={formData.department}
+              type="select"
+              options={departments}
+              onSelectChange={handleSelectChange}
+              required
+            />
+            
+            <FormField
+              label="Position"
+              name="position"
+              value={formData.position}
+              onChange={handleInputChange}
+              placeholder="Software Engineer"
+              required
+            />
+          </div>
           
-          <FormField
-            label="Position"
-            name="position"
-            value={formData.position}
-            onChange={handleInputChange}
-            placeholder="Software Engineer"
-            required
-          />
-          
-          <FormField
-            label="Join Date"
-            name="joinDate"
-            value={formData.joinDate}
-            onChange={handleInputChange}
-            type="date"
-          />
-          
-          <FormField
-            label="Status"
-            name="status"
-            value={formData.status}
-            type="select"
-            options={["active", "inactive", "onleave"]}
-            onSelectChange={handleSelectChange}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              label="Join Date"
+              name="joinDate"
+              value={formData.joinDate}
+              onChange={handleInputChange}
+              type="date"
+              required
+            />
+            
+            <FormField
+              label="Status"
+              name="status"
+              value={formData.status}
+              type="select"
+              options={["active", "inactive", "onleave"]}
+              onSelectChange={handleSelectChange}
+            />
+          </div>
         </div>
       </div>
       
       {/* Login Credentials Section */}
       <div>
-        <h3 className="text-sm font-medium mb-3 text-gray-700">Login Credentials</h3>
-        <div className="space-y-3">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <div className="flex items-center justify-end text-sm">
-              <Key className="h-4 w-4 mr-2" />
+        <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
+          <Key className="h-4 w-4 mr-1" />
+          Login Credentials
+        </h3>
+        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+            <div className="text-sm font-medium">
               <label>Username</label>
             </div>
-            <div className="col-span-3">
+            <div className="sm:col-span-2">
               <Input 
                 name="username" 
                 value={mode === "add" ? (formData.username || generatedUsername) : formData.username} 
                 onChange={handleInputChange} 
-                className="w-full bg-gray-50" 
+                className="w-full bg-gray-100 border-gray-300" 
                 readOnly
               />
               {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated username</p>}
             </div>
           </div>
           
-          <div className="grid grid-cols-4 items-center gap-4">
-            <div className="flex items-center justify-end text-sm">
-              <Key className="h-4 w-4 mr-2" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+            <div className="text-sm font-medium">
               <label>Password</label>
             </div>
-            <div className="col-span-3">
+            <div className="sm:col-span-2">
               <Input 
                 name="password" 
                 value={mode === "add" ? (formData.password || generatedPassword) : formData.password} 
                 onChange={handleInputChange} 
-                className="w-full bg-gray-50" 
+                className="w-full bg-gray-100 border-gray-300" 
                 readOnly
               />
               {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated password</p>}
