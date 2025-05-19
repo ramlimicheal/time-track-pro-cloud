@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Users, Edit } from "lucide-react";
+import { PlusCircle, Trash2, Users, Edit, User, Calendar, Droplet, Passport, Phone, Home, Building, PhoneCall, Mail, Key } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,22 +27,41 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-
-interface Employee {
-  id: string;
-  name: string;
-  department: string;
-  pendingTimesheets: number;
-  email: string;
-  position: string;
-  joinDate: string;
-  status: string;
-}
+import { Employee } from "@/types";
+import { useForm, SubmitHandler } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface EmployeeManagementProps {
   employees: Employee[];
 }
+
+// Generate a random username based on name
+const generateUsername = (name: string): string => {
+  const nameParts = name.toLowerCase().split(' ');
+  const firstName = nameParts[0];
+  const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+  const randomNum = Math.floor(1000 + Math.random() * 9000);
+  return `${firstName}.${lastName.substring(0, 3)}${randomNum}`;
+};
+
+// Generate a random password
+const generatePassword = (): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  let password = '';
+  for (let i = 0; i < 10; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
 
 export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeManagementProps) => {
   const [employees, setEmployees] = useState(initialEmployees);
@@ -50,6 +69,8 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [generatedUsername, setGeneratedUsername] = useState("");
+  const [generatedPassword, setGeneratedPassword] = useState("");
   
   // Form state for adding/editing employees
   const [formData, setFormData] = useState({
@@ -58,14 +79,39 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
     department: "",
     position: "",
     joinDate: "",
-    status: "active"
+    status: "active",
+    dob: "",
+    bloodGroup: "",
+    passportNumber: "",
+    phoneNumber: "",
+    indianAddress: "",
+    omanAddress: "",
+    emergencyPhoneNumber: "",
+    username: "",
+    password: ""
   });
 
   const departments = ["Engineering", "Marketing", "Finance", "HR", "Operations", "Sales"];
+  const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // If name is being changed, generate a new username
+    if (name === "name" && value) {
+      const newUsername = generateUsername(value);
+      const newPassword = generatePassword();
+      setGeneratedUsername(newUsername);
+      setGeneratedPassword(newPassword);
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value,
+        username: newUsername,
+        password: newPassword
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -74,7 +120,9 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
 
   const handleAddEmployee = () => {
     // Validate form
-    if (!formData.name || !formData.email || !formData.department || !formData.position) {
+    if (!formData.name || !formData.email || !formData.department || !formData.position || 
+        !formData.dob || !formData.phoneNumber || !formData.passportNumber || 
+        !formData.indianAddress || !formData.omanAddress || !formData.emergencyPhoneNumber) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -88,11 +136,21 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
       position: formData.position,
       joinDate: formData.joinDate,
       status: formData.status,
-      pendingTimesheets: 0
+      pendingTimesheets: 0,
+      dob: formData.dob,
+      bloodGroup: formData.bloodGroup,
+      passportNumber: formData.passportNumber,
+      phoneNumber: formData.phoneNumber,
+      indianAddress: formData.indianAddress,
+      omanAddress: formData.omanAddress,
+      emergencyPhoneNumber: formData.emergencyPhoneNumber,
+      username: formData.username || generatedUsername,
+      password: formData.password || generatedPassword
     };
     
     setEmployees(prev => [...prev, newEmployee]);
     toast.success("Employee added successfully");
+    toast.success(`Username: ${newEmployee.username} and Password: ${newEmployee.password} created`);
     setIsAddDialogOpen(false);
     
     // Reset form
@@ -102,8 +160,19 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
       department: "",
       position: "",
       joinDate: "",
-      status: "active"
+      status: "active",
+      dob: "",
+      bloodGroup: "",
+      passportNumber: "",
+      phoneNumber: "",
+      indianAddress: "",
+      omanAddress: "",
+      emergencyPhoneNumber: "",
+      username: "",
+      password: ""
     });
+    setGeneratedUsername("");
+    setGeneratedPassword("");
   };
 
   const handleEditClick = (employee: Employee) => {
@@ -114,7 +183,16 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
       department: employee.department,
       position: employee.position,
       joinDate: employee.joinDate,
-      status: employee.status
+      status: employee.status,
+      dob: employee.dob || "",
+      bloodGroup: employee.bloodGroup || "",
+      passportNumber: employee.passportNumber || "",
+      phoneNumber: employee.phoneNumber || "",
+      indianAddress: employee.indianAddress || "",
+      omanAddress: employee.omanAddress || "",
+      emergencyPhoneNumber: employee.emergencyPhoneNumber || "",
+      username: employee.username || "",
+      password: employee.password || ""
     });
     setIsEditDialogOpen(true);
   };
@@ -169,7 +247,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
               <PlusCircle className="mr-1 h-4 w-4" /> Add Employee
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[475px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Employee</DialogTitle>
               <DialogDescription>
@@ -178,7 +256,10 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right text-sm">Name*</label>
+                <div className="flex items-center justify-end text-sm">
+                  <User className="h-4 w-4 mr-2" />
+                  <label>Name*</label>
+                </div>
                 <Input 
                   name="name" 
                   value={formData.name} 
@@ -187,8 +268,116 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                   placeholder="John Doe" 
                 />
               </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="text-right text-sm">Email*</label>
+                <div className="flex items-center justify-end text-sm">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  <label>DOB*</label>
+                </div>
+                <Input 
+                  name="dob" 
+                  value={formData.dob} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                  type="date" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="flex items-center justify-end text-sm">
+                  <Droplet className="h-4 w-4 mr-2" />
+                  <label>Blood Group</label>
+                </div>
+                <Select 
+                  value={formData.bloodGroup} 
+                  onValueChange={(value) => handleSelectChange("bloodGroup", value)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select blood group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bloodGroups.map(bg => (
+                      <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="flex items-center justify-end text-sm">
+                  <Passport className="h-4 w-4 mr-2" />
+                  <label>Passport No.*</label>
+                </div>
+                <Input 
+                  name="passportNumber" 
+                  value={formData.passportNumber} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                  placeholder="AB1234567" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="flex items-center justify-end text-sm">
+                  <Phone className="h-4 w-4 mr-2" />
+                  <label>Phone Number*</label>
+                </div>
+                <Input 
+                  name="phoneNumber" 
+                  value={formData.phoneNumber} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                  placeholder="+91 1234567890" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-start gap-4">
+                <div className="flex items-center justify-end text-sm pt-2">
+                  <Home className="h-4 w-4 mr-2" />
+                  <label>Indian Address*</label>
+                </div>
+                <Textarea 
+                  name="indianAddress" 
+                  value={formData.indianAddress} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                  placeholder="Full address in India" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-start gap-4">
+                <div className="flex items-center justify-end text-sm pt-2">
+                  <Building className="h-4 w-4 mr-2" />
+                  <label>Oman Address*</label>
+                </div>
+                <Textarea 
+                  name="omanAddress" 
+                  value={formData.omanAddress} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                  placeholder="Full address in Oman" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="flex items-center justify-end text-sm">
+                  <PhoneCall className="h-4 w-4 mr-2" />
+                  <label>Emergency No.*</label>
+                </div>
+                <Input 
+                  name="emergencyPhoneNumber" 
+                  value={formData.emergencyPhoneNumber} 
+                  onChange={handleInputChange} 
+                  className="col-span-3" 
+                  placeholder="+91 1234567890" 
+                />
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="flex items-center justify-end text-sm">
+                  <Mail className="h-4 w-4 mr-2" />
+                  <label>Email*</label>
+                </div>
                 <Input 
                   name="email" 
                   value={formData.email} 
@@ -198,6 +387,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                   type="email"
                 />
               </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <label className="text-right text-sm">Department*</label>
                 <Select 
@@ -214,6 +404,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                   </SelectContent>
                 </Select>
               </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <label className="text-right text-sm">Position*</label>
                 <Input 
@@ -224,6 +415,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                   placeholder="Software Engineer" 
                 />
               </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <label className="text-right text-sm">Join Date</label>
                 <Input 
@@ -234,6 +426,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                   type="date" 
                 />
               </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
                 <label className="text-right text-sm">Status</label>
                 <Select 
@@ -249,6 +442,40 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                     <SelectItem value="onleave">On Leave</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="flex items-center justify-end text-sm">
+                  <Key className="h-4 w-4 mr-2" />
+                  <label>Username</label>
+                </div>
+                <div className="col-span-3">
+                  <Input 
+                    name="username" 
+                    value={formData.username || generatedUsername} 
+                    onChange={handleInputChange} 
+                    className="w-full bg-gray-50" 
+                    readOnly
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Auto-generated username</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="flex items-center justify-end text-sm">
+                  <Key className="h-4 w-4 mr-2" />
+                  <label>Password</label>
+                </div>
+                <div className="col-span-3">
+                  <Input 
+                    name="password" 
+                    value={formData.password || generatedPassword} 
+                    onChange={handleInputChange} 
+                    className="w-full bg-gray-50" 
+                    readOnly
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Auto-generated password</p>
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -270,8 +497,8 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
               <TableHead>Employee Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Department</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Join Date</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Passport No.</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -282,8 +509,8 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                 <TableCell className="font-medium">{employee.name}</TableCell>
                 <TableCell>{employee.email}</TableCell>
                 <TableCell>{employee.department}</TableCell>
-                <TableCell>{employee.position}</TableCell>
-                <TableCell>{employee.joinDate}</TableCell>
+                <TableCell>{employee.phoneNumber || "N/A"}</TableCell>
+                <TableCell>{employee.passportNumber || "N/A"}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 text-xs rounded-full ${
                     employee.status === 'active' ? 'bg-green-100 text-green-800' : 
@@ -321,7 +548,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
 
       {/* Edit Employee Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[475px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Employee</DialogTitle>
             <DialogDescription>
@@ -330,16 +557,122 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm">Name*</label>
+              <div className="flex items-center justify-end text-sm">
+                <User className="h-4 w-4 mr-2" />
+                <label>Name*</label>
+              </div>
               <Input 
                 name="name" 
                 value={formData.name} 
                 onChange={handleInputChange} 
-                className="col-span-3" 
+                className="col-span-3"
               />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm">Email*</label>
+              <div className="flex items-center justify-end text-sm">
+                <Calendar className="h-4 w-4 mr-2" />
+                <label>DOB*</label>
+              </div>
+              <Input 
+                name="dob" 
+                value={formData.dob} 
+                onChange={handleInputChange} 
+                className="col-span-3" 
+                type="date" 
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center justify-end text-sm">
+                <Droplet className="h-4 w-4 mr-2" />
+                <label>Blood Group</label>
+              </div>
+              <Select 
+                value={formData.bloodGroup} 
+                onValueChange={(value) => handleSelectChange("bloodGroup", value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select blood group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bloodGroups.map(bg => (
+                    <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center justify-end text-sm">
+                <Passport className="h-4 w-4 mr-2" />
+                <label>Passport No.*</label>
+              </div>
+              <Input 
+                name="passportNumber" 
+                value={formData.passportNumber} 
+                onChange={handleInputChange} 
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center justify-end text-sm">
+                <Phone className="h-4 w-4 mr-2" />
+                <label>Phone Number*</label>
+              </div>
+              <Input 
+                name="phoneNumber" 
+                value={formData.phoneNumber} 
+                onChange={handleInputChange} 
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <div className="flex items-center justify-end text-sm pt-2">
+                <Home className="h-4 w-4 mr-2" />
+                <label>Indian Address*</label>
+              </div>
+              <Textarea 
+                name="indianAddress" 
+                value={formData.indianAddress} 
+                onChange={handleInputChange} 
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-start gap-4">
+              <div className="flex items-center justify-end text-sm pt-2">
+                <Building className="h-4 w-4 mr-2" />
+                <label>Oman Address*</label>
+              </div>
+              <Textarea 
+                name="omanAddress" 
+                value={formData.omanAddress} 
+                onChange={handleInputChange} 
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center justify-end text-sm">
+                <PhoneCall className="h-4 w-4 mr-2" />
+                <label>Emergency No.*</label>
+              </div>
+              <Input 
+                name="emergencyPhoneNumber" 
+                value={formData.emergencyPhoneNumber} 
+                onChange={handleInputChange} 
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center justify-end text-sm">
+                <Mail className="h-4 w-4 mr-2" />
+                <label>Email*</label>
+              </div>
               <Input 
                 name="email" 
                 value={formData.email} 
@@ -348,6 +681,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                 type="email"
               />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <label className="text-right text-sm">Department*</label>
               <Select 
@@ -364,15 +698,17 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                 </SelectContent>
               </Select>
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <label className="text-right text-sm">Position*</label>
               <Input 
                 name="position" 
                 value={formData.position} 
                 onChange={handleInputChange} 
-                className="col-span-3" 
+                className="col-span-3"
               />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <label className="text-right text-sm">Join Date</label>
               <Input 
@@ -383,6 +719,7 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                 type="date" 
               />
             </div>
+            
             <div className="grid grid-cols-4 items-center gap-4">
               <label className="text-right text-sm">Status</label>
               <Select 
@@ -398,6 +735,32 @@ export const EmployeeManagement = ({ employees: initialEmployees }: EmployeeMana
                   <SelectItem value="onleave">On Leave</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center justify-end text-sm">
+                <Key className="h-4 w-4 mr-2" />
+                <label>Username</label>
+              </div>
+              <Input 
+                name="username" 
+                value={formData.username} 
+                className="col-span-3 bg-gray-50" 
+                readOnly
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="flex items-center justify-end text-sm">
+                <Key className="h-4 w-4 mr-2" />
+                <label>Password</label>
+              </div>
+              <Input 
+                name="password" 
+                value={formData.password} 
+                className="col-span-3 bg-gray-50" 
+                readOnly
+              />
             </div>
           </div>
           <DialogFooter>

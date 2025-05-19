@@ -30,3 +30,23 @@ export interface Timesheet {
   entries: TimesheetEntry[];
   status: 'draft' | 'pending' | 'approved' | 'rejected';
 }
+
+export interface Employee {
+  id: string;
+  name: string;
+  department: string;
+  pendingTimesheets: number;
+  email: string;
+  position: string;
+  joinDate: string;
+  status: string;
+  dob?: string;
+  bloodGroup?: string;
+  passportNumber?: string;
+  phoneNumber?: string;
+  indianAddress?: string;
+  omanAddress?: string;
+  emergencyPhoneNumber?: string;
+  username?: string;
+  password?: string;
+}

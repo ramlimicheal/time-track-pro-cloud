@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { TimesheetEntry } from "@/types";
+import { TimesheetEntry, Employee } from "@/types";
 import { toast } from "sonner";
 import { PendingTimesheetsTable } from "@/components/admin/PendingTimesheetsTable";
 import { TimesheetReview } from "@/components/admin/TimesheetReview";
@@ -17,7 +17,7 @@ const AdminPage = () => {
   const [entries, setEntries] = useState<TimesheetEntry[]>([]);
   
   // Mock employee data - expanded with more fields
-  const employees = [
+  const employees: Employee[] = [
     { 
       id: "1", 
       name: "John Employee", 
@@ -26,7 +26,16 @@ const AdminPage = () => {
       email: "john@example.com",
       position: "Software Engineer",
       joinDate: "2023-01-15",
-      status: "active"
+      status: "active",
+      dob: "1990-05-15",
+      bloodGroup: "O+",
+      passportNumber: "A1234567",
+      phoneNumber: "+91 9876543210",
+      indianAddress: "123 Main St, Delhi, India",
+      omanAddress: "456 Oman St, Muscat, Oman",
+      emergencyPhoneNumber: "+91 9876543211",
+      username: "john.emp1234",
+      password: "securePass123"
     },
     { 
       id: "2", 
@@ -36,7 +45,16 @@ const AdminPage = () => {
       email: "jane@example.com",
       position: "Marketing Specialist",
       joinDate: "2022-06-10",
-      status: "active"
+      status: "active",
+      dob: "1992-03-21",
+      bloodGroup: "A+",
+      passportNumber: "B7654321",
+      phoneNumber: "+91 9876543212",
+      indianAddress: "789 Other St, Mumbai, India",
+      omanAddress: "101 Other St, Salalah, Oman",
+      emergencyPhoneNumber: "+91 9876543213",
+      username: "jane.smi5678",
+      password: "securePwd456"
     },
     { 
       id: "3", 
@@ -46,7 +64,16 @@ const AdminPage = () => {
       email: "robert@example.com",
       position: "Financial Analyst",
       joinDate: "2021-11-22",
-      status: "active"
+      status: "active",
+      dob: "1985-08-11",
+      bloodGroup: "B-",
+      passportNumber: "C9876543",
+      phoneNumber: "+91 9876543214",
+      indianAddress: "456 Finance St, Bangalore, India",
+      omanAddress: "789 Finance St, Sohar, Oman",
+      emergencyPhoneNumber: "+91 9876543215",
+      username: "robert.joh9012",
+      password: "secureKey789"
     },
   ];
   
@@ -180,7 +207,7 @@ const AdminPage = () => {
         ) : (
           <>
             <TimesheetReview 
-              employee={currentEmployee}
+              employee={employees.find(e => e.id === selectedEmployee)}
               entries={entries}
               timesheetStatus={timesheetStatus}
               onBack={handleBack}
@@ -190,7 +217,7 @@ const AdminPage = () => {
             />
 
             <PrintableTimesheetReport
-              employee={currentEmployee}
+              employee={employees.find(e => e.id === selectedEmployee)}
               entries={entries}
               timesheetStatus={timesheetStatus}
               selectedEmployee={selectedEmployee}
