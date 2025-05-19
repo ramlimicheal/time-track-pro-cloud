@@ -13,6 +13,7 @@ interface TimesheetRowProps {
   onUpdate: (id: string, field: keyof TimesheetEntry, value: string | number) => void;
   onApproveEntry?: (entryId: string) => void;
   onRejectEntry?: (entryId: string) => void;
+  isDateSpecific?: boolean;
 }
 
 export const TimesheetRow = ({
@@ -20,7 +21,8 @@ export const TimesheetRow = ({
   readOnly,
   onUpdate,
   onApproveEntry,
-  onRejectEntry
+  onRejectEntry,
+  isDateSpecific = false
 }: TimesheetRowProps) => {
   // Calculate the hours worked for this entry to show in Admin review
   const calculateDisplayHours = () => {
@@ -51,7 +53,9 @@ export const TimesheetRow = ({
 
   return (
     <tr className={`${getRowBackgroundColor()} hover:bg-gray-50 transition-colors`}>
-      <td className="whitespace-nowrap px-[12px] py-3 font-medium">{entry.date}</td>
+      {!isDateSpecific && (
+        <td className="whitespace-nowrap px-[12px] py-3 font-medium">{entry.date}</td>
+      )}
       <td className="px-2 py-2">
         <TimePickerInput 
           value={entry.workStart} 

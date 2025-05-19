@@ -8,6 +8,7 @@ import { TimesheetBody } from "./TimesheetBody";
 import { TimesheetActions } from "./TimesheetActions";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Check, AlertTriangle } from "lucide-react";
+import { format } from "date-fns";
 
 interface TimesheetTableProps {
   month: string;
@@ -19,6 +20,8 @@ interface TimesheetTableProps {
   onGeneratePDF?: () => void;
   onApproveEntry?: (entryId: string) => void;
   onRejectEntry?: (entryId: string) => void;
+  selectedDate?: Date;
+  isDateSpecific?: boolean;
 }
 
 export const TimesheetTable: React.FC<TimesheetTableProps> = ({
@@ -31,6 +34,8 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   onGeneratePDF,
   onApproveEntry,
   onRejectEntry,
+  selectedDate,
+  isDateSpecific = false,
 }) => {
   const [localEntries, setLocalEntries] = useState<TimesheetEntry[]>(entries);
 
@@ -98,15 +103,28 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
       });
       
       onSave(updatedEntries);
-      toast.success("Timesheet saved successfully and submitted for approval");
+      
+      if (isDateSpecific) {
+        const dateStr = selectedDate ? format(selectedDate, "dd MMM") : "selected date";
+        toast.success(`Timesheet for ${dateStr} saved and submitted for approval`);
+      } else {
+        toast.success("Timesheet saved successfully and submitted for approval");
+      }
     }
+  };
+
+  const getTableTitle = () => {
+    if (isDateSpecific && selectedDate) {
+      return `Entry for ${format(selectedDate, "dd MMM yyyy")}`;
+    }
+    return `Timesheet for ${month} ${year}`;
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
       <div className="p-5 bg-timetrack-lightBlue border-b border-gray-200 print:bg-white">
         <h2 className="text-lg font-medium text-gray-800 text-center">
-          Timesheet for {month} {year}
+          {getTableTitle()}
         </h2>
       </div>
 
@@ -149,6 +167,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
         entries={localEntries}
         timesheetStatus={timesheetStatus}
         onGeneratePDF={onGeneratePDF}
+        isDateSpecific={isDateSpecific}
       />
     </div>
   );

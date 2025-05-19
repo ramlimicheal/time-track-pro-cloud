@@ -1,13 +1,17 @@
 
 interface TimesheetTableHeaderProps {
   showActions?: boolean;
+  isDateSpecific?: boolean;
 }
 
-export const TimesheetTableHeader = ({ showActions = false }: TimesheetTableHeaderProps) => {
+export const TimesheetTableHeader = ({ 
+  showActions = false, 
+  isDateSpecific = false 
+}: TimesheetTableHeaderProps) => {
   return (
     <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b border-gray-200">
       <tr>
-        <th className="px-[12px] py-3">Date</th>
+        {!isDateSpecific && <th className="px-[12px] py-3">Date</th>}
         <th className="px-2 py-3">Start</th>
         <th className="px-2 py-3">Break Start</th>
         <th className="px-2 py-3">Break End</th>

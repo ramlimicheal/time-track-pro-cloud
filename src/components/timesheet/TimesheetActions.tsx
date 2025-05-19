@@ -9,6 +9,7 @@ interface TimesheetActionsProps {
   entries?: TimesheetEntry[];
   timesheetStatus?: "draft" | "pending" | "approved" | "rejected";
   onGeneratePDF?: () => void;
+  isDateSpecific?: boolean;
 }
 
 export const TimesheetActions = ({ 
@@ -16,7 +17,8 @@ export const TimesheetActions = ({
   onSave, 
   entries = [], 
   timesheetStatus,
-  onGeneratePDF
+  onGeneratePDF,
+  isDateSpecific = false
 }: TimesheetActionsProps) => {
   // Function to handle printing the timesheet
   const handlePrint = () => {
@@ -60,7 +62,9 @@ export const TimesheetActions = ({
           disabled={!hasEntries}
         >
           <Save className="h-4 w-4 mr-2" />
-          Save & Submit Timesheet
+          {isDateSpecific 
+            ? "Submit Entry for Approval" 
+            : "Save & Submit Timesheet"}
         </Button>
       )}
     </div>

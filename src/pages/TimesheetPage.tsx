@@ -5,7 +5,7 @@ import { TimesheetHeader } from "@/components/timesheet/TimesheetHeader";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry, Timesheet } from "@/types";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 
 const TimesheetPage = () => {
   const [employeeName, setEmployeeName] = useState("John Employee");
@@ -14,6 +14,7 @@ const TimesheetPage = () => {
   const [entries, setEntries] = useState<TimesheetEntry[]>([]);
   const [timesheet, setTimesheet] = useState<Timesheet | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date(2025, 4, 1)); // May 1st, 2025 as default
+  const [filteredEntries, setFilteredEntries] = useState<TimesheetEntry[]>([]);
 
   useEffect(() => {
     // In a real app, we would fetch the timesheet data from the server
@@ -27,6 +28,15 @@ const TimesheetPage = () => {
     // Try to load existing timesheet from localStorage
     loadTimesheet();
   }, [month, year]);
+  
+  // Update filtered entries whenever selectedDate or entries change
+  useEffect(() => {
+    if (selectedDate && entries.length > 0) {
+      const dateStr = format(selectedDate, "dd-MMM-yyyy");
+      const filtered = entries.filter(entry => entry.date === dateStr);
+      setFilteredEntries(filtered);
+    }
+  }, [selectedDate, entries]);
 
   const loadTimesheet = () => {
     const timesheetKey = `timesheet-${month}-${year}`;
@@ -36,6 +46,12 @@ const TimesheetPage = () => {
       const parsedTimesheet = JSON.parse(savedTimesheet) as Timesheet;
       setTimesheet(parsedTimesheet);
       setEntries(parsedTimesheet.entries);
+      
+      // Filter entries for selected date
+      const dateStr = format(selectedDate, "dd-MMM-yyyy");
+      const filtered = parsedTimesheet.entries.filter(entry => entry.date === dateStr);
+      setFilteredEntries(filtered);
+      
       toast.info("Loaded existing timesheet");
     } else {
       generateMockEntries();
@@ -67,6 +83,11 @@ const TimesheetPage = () => {
     }
 
     setEntries(newEntries);
+    
+    // Filter entries for selected date
+    const dateStr = format(selectedDate, "dd-MMM-yyyy");
+    const filtered = newEntries.filter(entry => entry.date === dateStr);
+    setFilteredEntries(filtered);
   };
 
   const getMonthNumber = (monthName: string): number => {
@@ -79,18 +100,37 @@ const TimesheetPage = () => {
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
-    setMonth(
-      [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December",
-      ][date.getMonth()]
-    );
-    setYear(date.getFullYear());
+    
+    // If month or year changes, update those states too
+    const newMonth = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ][date.getMonth()];
+    
+    if (newMonth !== month || date.getFullYear() !== year) {
+      setMonth(newMonth);
+      setYear(date.getFullYear());
+    } else {
+      // Just filter entries for the selected date
+      const dateStr = format(date, "dd-MMM-yyyy");
+      const filtered = entries.filter(entry => entry.date === dateStr);
+      setFilteredEntries(filtered);
+    }
   };
 
   const handleSaveTimesheet = (updatedEntries: TimesheetEntry[]) => {
-    // In a real app, we would save the data to the server
-    setEntries(updatedEntries);
+    // Merge updated entries with existing entries
+    const mergedEntries = entries.map(entry => {
+      const updated = updatedEntries.find(e => e.id === entry.id);
+      return updated || entry;
+    });
+    
+    setEntries(mergedEntries);
+    
+    // Update filtered entries for the selected date
+    const dateStr = format(selectedDate, "dd-MMM-yyyy");
+    const filtered = mergedEntries.filter(entry => entry.date === dateStr);
+    setFilteredEntries(filtered);
     
     // Create or update the timesheet object
     const userData = localStorage.getItem("user");
@@ -102,8 +142,8 @@ const TimesheetPage = () => {
       employeeName: user.name,
       month: getMonthNumber(month),
       year: year,
-      entries: updatedEntries,
-      status: getTimesheetStatus(updatedEntries),
+      entries: mergedEntries,
+      status: getTimesheetStatus(mergedEntries),
     };
     
     // Save to localStorage for persistence
@@ -114,6 +154,8 @@ const TimesheetPage = () => {
     updateEmployeePendingTimesheets(user.id);
     
     setTimesheet(updatedTimesheet);
+    
+    toast.success(`Timesheet for ${format(selectedDate, "dd MMM yyyy")} submitted for approval`);
   };
 
   // Update employee record to show pending timesheet
@@ -197,13 +239,21 @@ const TimesheetPage = () => {
           onNewTimesheet={handleNewTimesheet}
           timesheetStatus={timesheet?.status || "draft"}
           onDateChange={handleDateChange}
+          selectedDate={selectedDate}
         />
+        
+        <div className="bg-white p-4 rounded-md shadow mb-4">
+          <h3 className="text-lg font-medium mb-1">Timesheet for {format(selectedDate, "dd MMMM yyyy")}</h3>
+          <p className="text-sm text-gray-500">Enter your hours for the selected day and submit for approval</p>
+        </div>
         
         <TimesheetTable
           month={month}
           year={year}
-          entries={entries}
+          entries={filteredEntries}
           onSave={handleSaveTimesheet}
+          selectedDate={selectedDate}
+          isDateSpecific={true}
         />
       </div>
     </MainLayout>

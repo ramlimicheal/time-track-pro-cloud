@@ -8,6 +8,7 @@ interface TimesheetBodyProps {
   onUpdate: (id: string, field: keyof TimesheetEntry, value: string | number) => void;
   onApproveEntry?: (entryId: string) => void;
   onRejectEntry?: (entryId: string) => void;
+  isDateSpecific?: boolean;
 }
 
 export const TimesheetBody = ({ 
@@ -15,7 +16,8 @@ export const TimesheetBody = ({
   readOnly, 
   onUpdate,
   onApproveEntry,
-  onRejectEntry 
+  onRejectEntry,
+  isDateSpecific = false
 }: TimesheetBodyProps) => {
   return (
     <tbody>
@@ -27,8 +29,19 @@ export const TimesheetBody = ({
           onUpdate={onUpdate}
           onApproveEntry={onApproveEntry}
           onRejectEntry={onRejectEntry}
+          isDateSpecific={isDateSpecific}
         />
       ))}
+      
+      {entries.length === 0 && (
+        <tr className="bg-gray-50">
+          <td colSpan={isDateSpecific ? 11 : 12} className="px-6 py-8 text-center text-gray-500">
+            {isDateSpecific 
+              ? "No timesheet entry for this date. Please fill in your work hours." 
+              : "No timesheet entries found for this period."}
+          </td>
+        </tr>
+      )}
     </tbody>
   );
 };
