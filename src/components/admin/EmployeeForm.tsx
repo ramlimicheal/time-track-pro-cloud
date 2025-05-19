@@ -75,14 +75,14 @@ export const EmployeeForm = ({
   };
 
   return (
-    <div className="grid gap-4 py-4">
+    <div className="grid gap-6 py-4">
       {/* Personal Information Section */}
       <div className="mb-4">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
           <User className="h-4 w-4 mr-1" />
           Personal Information
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+        <div className="bg-gray-50 p-4 rounded-md space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               label="Name"
@@ -135,7 +135,7 @@ export const EmployeeForm = ({
           <Phone className="h-4 w-4 mr-1" />
           Contact Information
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+        <div className="bg-gray-50 p-4 rounded-md space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               label="Phone Number"
@@ -177,7 +177,7 @@ export const EmployeeForm = ({
           <Home className="h-4 w-4 mr-1" />
           Address Information
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+        <div className="bg-gray-50 p-4 rounded-md space-y-4">
           <FormField
             label="Indian Address"
             name="indianAddress"
@@ -208,7 +208,7 @@ export const EmployeeForm = ({
           <Building className="h-4 w-4 mr-1" />
           Employment Details
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+        <div className="bg-gray-50 p-4 rounded-md space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               label="Department"
@@ -258,7 +258,7 @@ export const EmployeeForm = ({
           <Key className="h-4 w-4 mr-1" />
           Login Credentials
         </h3>
-        <div className="bg-gray-50 p-4 rounded-md space-y-3">
+        <div className="bg-gray-50 p-4 rounded-md space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
             <div className="text-sm font-medium">
               <label>Username</label>

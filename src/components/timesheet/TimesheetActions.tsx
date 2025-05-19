@@ -7,7 +7,7 @@ interface TimesheetActionsProps {
   readOnly: boolean;
   onSave: () => void;
   entries?: TimesheetEntry[];
-  timesheetStatus?: "draft" | "pending" | "approved" | "rejected"; // Updated to include draft
+  timesheetStatus?: "draft" | "pending" | "approved" | "rejected";
   onGeneratePDF?: () => void;
 }
 
@@ -30,7 +30,7 @@ export const TimesheetActions = ({
 
   return (
     <div className="p-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 print:hidden">
-      {readOnly && timesheetStatus === "approved" && (
+      {readOnly && (timesheetStatus === "approved" || timesheetStatus === "rejected") && (
         <>
           <Button 
             onClick={handlePrint} 

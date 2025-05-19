@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { FileText, Printer } from "lucide-react";
+import { FileText, Printer, Check, X } from "lucide-react";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
 
@@ -84,30 +84,25 @@ export const TimesheetReview = ({
       <div className="mt-6 flex gap-4 justify-end print:hidden">
         {timesheetStatus === "pending" && (
           <>
-            <Button variant="outline" onClick={onReject}>
+            <Button variant="outline" onClick={onReject} className="flex items-center">
+              <X className="h-4 w-4 mr-2" />
               Reject with Comments
             </Button>
-            <Button onClick={onApprove} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={onApprove} className="bg-green-600 hover:bg-green-700 flex items-center">
+              <Check className="h-4 w-4 mr-2" />
               Approve Timesheet
             </Button>
           </>
         )}
         {timesheetStatus === "approved" && (
           <div className="px-4 py-2 rounded-md bg-green-100 text-green-700 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
+            <Check className="h-5 w-5 mr-2" />
             Timesheet Approved
           </div>
         )}
         {timesheetStatus === "rejected" && (
           <div className="px-4 py-2 rounded-md bg-red-100 text-red-700 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="15" y1="9" x2="9" y2="15"></line>
-              <line x1="9" y1="9" x2="15" y2="15"></line>
-            </svg>
+            <X className="h-5 w-5 mr-2" />
             Timesheet Rejected
           </div>
         )}
