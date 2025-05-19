@@ -79,13 +79,13 @@ export const EmployeeForm = ({
       {/* Personal Information Section */}
       <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <User className="h-4 w-4 mr-2" />
-          Personal Information
+          <User className="h-4 w-4 mr-2 text-timetrack-blue" />
+          <span className="font-semibold">Personal Information</span>
         </h3>
-        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5 shadow-sm border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
-              label="Name"
+              label="Full Name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
@@ -96,7 +96,7 @@ export const EmployeeForm = ({
             />
             
             <FormField
-              label="DOB"
+              label="Date of Birth"
               name="dob"
               value={formData.dob}
               onChange={handleInputChange}
@@ -107,32 +107,28 @@ export const EmployeeForm = ({
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <div className="w-full">
-              <FormField
-                label="Blood Group"
-                name="bloodGroup"
-                value={formData.bloodGroup}
-                type="select"
-                options={bloodGroups}
-                onSelectChange={handleSelectChange}
-                icon={Droplet}
-                className="w-full mb-0"
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              label="Blood Group"
+              name="bloodGroup"
+              value={formData.bloodGroup}
+              type="select"
+              options={bloodGroups}
+              onSelectChange={handleSelectChange}
+              icon={Droplet}
+              className="w-full"
+            />
             
-            <div className="w-full">
-              <FormField
-                label="Passport No."
-                name="passportNumber"
-                value={formData.passportNumber}
-                onChange={handleInputChange}
-                placeholder="AB1234567"
-                required
-                icon={User}
-                className="w-full mb-0"
-              />
-            </div>
+            <FormField
+              label="Passport No."
+              name="passportNumber"
+              value={formData.passportNumber}
+              onChange={handleInputChange}
+              placeholder="AB1234567"
+              required
+              icon={User}
+              className="w-full"
+            />
           </div>
         </div>
       </div>
@@ -140,10 +136,10 @@ export const EmployeeForm = ({
       {/* Contact Information Section */}
       <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Phone className="h-4 w-4 mr-2" />
-          Contact Information
+          <Phone className="h-4 w-4 mr-2 text-timetrack-blue" />
+          <span className="font-semibold">Contact Information</span>
         </h3>
-        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5 shadow-sm border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               label="Phone Number"
@@ -185,10 +181,10 @@ export const EmployeeForm = ({
       {/* Address Section */}
       <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Home className="h-4 w-4 mr-2" />
-          Address Information
+          <Home className="h-4 w-4 mr-2 text-timetrack-blue" />
+          <span className="font-semibold">Address Information</span>
         </h3>
-        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5 shadow-sm border border-gray-100">
           <FormField
             label="Indian Address"
             name="indianAddress"
@@ -218,10 +214,10 @@ export const EmployeeForm = ({
       {/* Employment Details Section */}
       <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Building className="h-4 w-4 mr-2" />
-          Employment Details
+          <Building className="h-4 w-4 mr-2 text-timetrack-blue" />
+          <span className="font-semibold">Employment Details</span>
         </h3>
-        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5 shadow-sm border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               label="Department"
@@ -272,10 +268,10 @@ export const EmployeeForm = ({
       {/* Login Credentials Section */}
       <div>
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Key className="h-4 w-4 mr-2" />
-          Login Credentials
+          <Key className="h-4 w-4 mr-2 text-timetrack-blue" />
+          <span className="font-semibold">Login Credentials</span>
         </h3>
-        <div className="bg-gray-50 p-6 rounded-md space-y-5">
+        <div className="bg-gray-50 p-6 rounded-md space-y-5 shadow-sm border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-6 items-center gap-4">
             <div className="md:col-span-1 text-sm font-medium flex items-center">
               <label>Username</label>
@@ -285,7 +281,7 @@ export const EmployeeForm = ({
                 name="username" 
                 value={mode === "add" ? (formData.username || generatedUsername) : formData.username} 
                 onChange={handleInputChange} 
-                className="w-full bg-gray-100 border-gray-300" 
+                className="w-full bg-gray-100 border-gray-300 text-gray-600 font-mono" 
                 readOnly
               />
               {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated username</p>}
@@ -301,7 +297,7 @@ export const EmployeeForm = ({
                 name="password" 
                 value={mode === "add" ? (formData.password || generatedPassword) : formData.password} 
                 onChange={handleInputChange} 
-                className="w-full bg-gray-100 border-gray-300" 
+                className="w-full bg-gray-100 border-gray-300 text-gray-600 font-mono" 
                 readOnly
               />
               {mode === "add" && <p className="text-xs text-gray-500 mt-1">Auto-generated password</p>}
