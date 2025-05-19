@@ -4,48 +4,48 @@ import { TimeIcon } from "@/components/TimeIcon";
 export const TimesheetTableHeader = () => {
   return (
     <thead>
-      <tr className="bg-gray-50 text-xs font-medium text-gray-700 uppercase tracking-wider">
-        <th className="px-3 py-2 text-left">Date</th>
-        <th className="px-3 py-2 text-left">
+      <tr className="bg-timetrack-lightBlue text-xs font-medium text-gray-700 uppercase tracking-wider border-b border-gray-200">
+        <th className="px-3 py-3 text-left">Date</th>
+        <th className="px-3 py-3 text-left">
           <div className="flex items-center gap-1">
-            Work Start
+            <span>Work Start</span>
             <TimeIcon />
           </div>
         </th>
-        <th className="px-3 py-2 text-left">
+        <th className="px-3 py-3 text-left">
           <div className="flex items-center gap-1">
-            Break Start
+            <span>Break Start</span>
             <TimeIcon />
           </div>
         </th>
-        <th className="px-3 py-2 text-left">
+        <th className="px-3 py-3 text-left">
           <div className="flex items-center gap-1">
-            Break End
+            <span>Break End</span>
             <TimeIcon />
           </div>
         </th>
-        <th className="px-3 py-2 text-left">
+        <th className="px-3 py-3 text-left">
           <div className="flex items-center gap-1">
-            Work End
+            <span>Work End</span>
             <TimeIcon />
           </div>
         </th>
-        <th className="px-3 py-2 text-left">Description</th>
-        <th className="px-3 py-2 text-left">
+        <th className="px-3 py-3 text-left">Description</th>
+        <th className="px-3 py-3 text-left">
           <div className="flex items-center gap-1">
-            OT Start
+            <span>OT Start</span>
             <TimeIcon />
           </div>
         </th>
-        <th className="px-3 py-2 text-left">
+        <th className="px-3 py-3 text-left">
           <div className="flex items-center gap-1">
-            OT End
+            <span>OT End</span>
             <TimeIcon />
           </div>
         </th>
-        <th className="px-3 py-2 text-left">Total Hours</th>
-        <th className="px-3 py-2 text-left">Remarks</th>
-        <th className="px-3 py-2 text-left">Status</th>
+        <th className="px-3 py-3 text-left">Total Hours</th>
+        <th className="px-3 py-3 text-left">Remarks</th>
+        <th className="px-3 py-3 text-left">Status</th>
       </tr>
     </thead>
   );

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
@@ -96,9 +97,9 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
-      <div className="p-4 bg-timetrack-lightBlue border-b border-gray-200 print:bg-white">
-        <h2 className="text-base font-medium text-gray-800 text-center">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+      <div className="p-5 bg-timetrack-lightBlue border-b border-gray-200 print:bg-white">
+        <h2 className="text-lg font-medium text-gray-800 text-center">
           Timesheet for {month} {year}
         </h2>
       </div>

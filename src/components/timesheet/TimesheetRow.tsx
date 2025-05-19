@@ -30,10 +30,21 @@ export const TimesheetRow = ({
 
   // Determine if the entry is editable (draft status and not readOnly)
   const isEditable = !readOnly && entry.status === "draft";
+  
+  // Determine background color based on status
+  const getRowBackgroundColor = () => {
+    switch (entry.status) {
+      case 'approved': return 'bg-green-50';
+      case 'pending': return 'bg-yellow-50';
+      case 'rejected': return 'bg-red-50';
+      default: return '';
+    }
+  };
 
-  return <tr className={entry.status === 'approved' ? 'bg-green-50' : ''}>
-      <td className="whitespace-nowrap px-[12px]">{entry.date}</td>
-      <td>
+  return (
+    <tr className={`${getRowBackgroundColor()} hover:bg-gray-50 transition-colors`}>
+      <td className="whitespace-nowrap px-[12px] py-3 font-medium">{entry.date}</td>
+      <td className="px-2 py-2">
         <TimePickerInput 
           value={entry.workStart} 
           onChange={(value) => onUpdate(entry.id, "workStart", value)} 
@@ -41,7 +52,7 @@ export const TimesheetRow = ({
           readOnly={!isEditable}
         />
       </td>
-      <td>
+      <td className="px-2 py-2">
         <TimePickerInput 
           value={entry.breakStart} 
           onChange={(value) => onUpdate(entry.id, "breakStart", value)} 
@@ -49,7 +60,7 @@ export const TimesheetRow = ({
           readOnly={!isEditable}
         />
       </td>
-      <td>
+      <td className="px-2 py-2">
         <TimePickerInput 
           value={entry.breakEnd} 
           onChange={(value) => onUpdate(entry.id, "breakEnd", value)} 
@@ -57,7 +68,7 @@ export const TimesheetRow = ({
           readOnly={!isEditable}
         />
       </td>
-      <td>
+      <td className="px-2 py-2">
         <TimePickerInput 
           value={entry.workEnd} 
           onChange={(value) => onUpdate(entry.id, "workEnd", value)} 
@@ -65,7 +76,7 @@ export const TimesheetRow = ({
           readOnly={!isEditable}
         />
       </td>
-      <td>
+      <td className="px-2 py-2">
         <Input 
           type="text" 
           value={entry.description} 
@@ -75,7 +86,7 @@ export const TimesheetRow = ({
           readOnly={!isEditable} 
         />
       </td>
-      <td>
+      <td className="px-2 py-2">
         <TimePickerInput 
           value={entry.otStart} 
           onChange={(value) => onUpdate(entry.id, "otStart", value)} 
@@ -83,7 +94,7 @@ export const TimesheetRow = ({
           readOnly={!isEditable}
         />
       </td>
-      <td>
+      <td className="px-2 py-2">
         <TimePickerInput 
           value={entry.otEnd} 
           onChange={(value) => onUpdate(entry.id, "otEnd", value)} 
@@ -91,16 +102,16 @@ export const TimesheetRow = ({
           readOnly={!isEditable}
         />
       </td>
-      <td className="font-medium">
+      <td className="font-medium px-2 py-2">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className={`flex items-center ${hasOvertime ? 'text-blue-600' : ''}`}>
+              <div className={`flex items-center ${hasOvertime ? 'text-blue-600 font-semibold' : ''}`}>
                 {calculateDisplayHours()}
                 {hasOvertime && <CheckCircle size={14} className="ml-1 text-blue-600" />}
               </div>
             </TooltipTrigger>
-            <TooltipContent side="top">
+            <TooltipContent side="top" className="bg-white p-2 shadow-lg">
               {hasOvertime 
                 ? `Regular hours: ${(entry.totalHours - 1).toFixed(2)}, Overtime: 1.00`
                 : `Regular working hours`
@@ -109,7 +120,7 @@ export const TimesheetRow = ({
           </Tooltip>
         </TooltipProvider>
       </td>
-      <td>
+      <td className="px-2 py-2">
         <Input 
           type="text" 
           value={entry.remarks} 
@@ -119,8 +130,8 @@ export const TimesheetRow = ({
           readOnly={!isEditable} 
         />
       </td>
-      <td>
-        <span className={`px-2 py-1 text-xs rounded-full ${
+      <td className="px-2 py-2">
+        <span className={`px-2.5 py-1 text-xs rounded-full font-medium ${
           entry.status === 'approved' ? 'bg-green-100 text-green-800' : 
           entry.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
           entry.status === 'rejected' ? 'bg-red-100 text-red-800' : 
@@ -129,5 +140,6 @@ export const TimesheetRow = ({
           {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
         </span>
       </td>
-    </tr>;
+    </tr>
+  );
 };

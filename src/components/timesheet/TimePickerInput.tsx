@@ -61,40 +61,35 @@ export const TimePickerInput = ({ value, onChange, error, readOnly, ...props }: 
       <PopoverTrigger asChild>
         <Button 
           variant="outline" 
-          className={`w-full justify-start text-left font-normal ${error ? "border-red-500" : ""}`}
+          className={`w-full justify-start text-left font-normal hover:bg-gray-50 ${error ? "border-red-500 text-red-500" : ""}`}
+          size="sm"
         >
-          <Clock className="mr-2 h-4 w-4" />
-          {value ? formatDisplayTime(value) : "Select time"}
+          <Clock className="mr-2 h-4 w-4 text-gray-500" />
+          {value ? formatDisplayTime(value) : "Click to set time"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[280px] p-0" align="start">
+      <PopoverContent className="w-[300px] p-4" align="start">
         <div className="grid p-2">
-          <div className="flex items-center justify-between mb-2 p-2 border-b">
-            <div className="font-medium">Hours</div>
-            <div className="font-medium">Minutes</div>
-            <div className="font-medium">Period</div>
+          <div className="flex items-center justify-between mb-4 p-2 border-b">
+            <div className="font-medium text-gray-700">Select Time</div>
           </div>
-          <div className="flex justify-between">
-            <div className="grid grid-cols-3 gap-2 max-h-[200px] overflow-y-auto">
-              {hours.map((hour) => (
-                <div key={`hour-${hour}`} className="p-1">
-                  {minutes.map((minute) => (
-                    <React.Fragment key={`${hour}-${minute}`}>
-                      {periods.map((period) => (
-                        <Button 
-                          key={`${hour}-${minute}-${period}`}
-                          variant="ghost" 
-                          className="w-full mb-1 text-xs"
-                          onClick={() => handleTimeSelection(hour, minute, period)}
-                        >
-                          {hour}:{minute} {period}
-                        </Button>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-3 gap-3 max-h-[300px] overflow-y-auto">
+            {hours.map((hour) => (
+              React.createElement(React.Fragment, { key: `hour-${hour}` },
+                minutes.map((minute) => (
+                  periods.map((period) => (
+                    <Button 
+                      key={`${hour}-${minute}-${period}`}
+                      variant="outline" 
+                      className="w-full text-sm hover:bg-timetrack-lightBlue hover:border-timetrack-blue"
+                      onClick={() => handleTimeSelection(hour, minute, period)}
+                    >
+                      {hour}:{minute} {period}
+                    </Button>
+                  ))
+                ))
+              )
+            ))}
           </div>
         </div>
       </PopoverContent>
