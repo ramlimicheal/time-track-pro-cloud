@@ -75,15 +75,15 @@ export const EmployeeForm = ({
   };
 
   return (
-    <div className="grid gap-6 py-4 max-w-5xl mx-auto">
+    <div className="grid gap-6 py-4 max-w-6xl mx-auto">
       {/* Personal Information Section */}
-      <div className="mb-4">
+      <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <User className="h-4 w-4 mr-1" />
+          <User className="h-4 w-4 mr-2" />
           Personal Information
         </h3>
         <div className="bg-gray-50 p-6 rounded-md space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               label="Name"
               name="name"
@@ -92,6 +92,7 @@ export const EmployeeForm = ({
               placeholder="John Doe"
               required
               icon={User}
+              className="w-full"
             />
             
             <FormField
@@ -102,10 +103,11 @@ export const EmployeeForm = ({
               type="date"
               required
               icon={Calendar}
+              className="w-full"
             />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               label="Blood Group"
               name="bloodGroup"
@@ -114,6 +116,7 @@ export const EmployeeForm = ({
               options={bloodGroups}
               onSelectChange={handleSelectChange}
               icon={Droplet}
+              className="w-full"
             />
             
             <FormField
@@ -124,19 +127,20 @@ export const EmployeeForm = ({
               placeholder="AB1234567"
               required
               icon={User}
+              className="w-full"
             />
           </div>
         </div>
       </div>
       
       {/* Contact Information Section */}
-      <div className="mb-4">
+      <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Phone className="h-4 w-4 mr-1" />
+          <Phone className="h-4 w-4 mr-2" />
           Contact Information
         </h3>
         <div className="bg-gray-50 p-6 rounded-md space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               label="Phone Number"
               name="phoneNumber"
@@ -145,6 +149,7 @@ export const EmployeeForm = ({
               placeholder="+91 1234567890"
               required
               icon={Phone}
+              className="w-full"
             />
             
             <FormField
@@ -155,6 +160,7 @@ export const EmployeeForm = ({
               placeholder="+91 1234567890"
               required
               icon={PhoneCall}
+              className="w-full"
             />
           </div>
           
@@ -167,14 +173,15 @@ export const EmployeeForm = ({
             type="email"
             required
             icon={Mail}
+            className="w-full"
           />
         </div>
       </div>
       
       {/* Address Section */}
-      <div className="mb-4">
+      <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Home className="h-4 w-4 mr-1" />
+          <Home className="h-4 w-4 mr-2" />
           Address Information
         </h3>
         <div className="bg-gray-50 p-6 rounded-md space-y-5">
@@ -187,6 +194,7 @@ export const EmployeeForm = ({
             type="textarea"
             required
             icon={Home}
+            className="w-full"
           />
           
           <FormField
@@ -198,18 +206,19 @@ export const EmployeeForm = ({
             type="textarea"
             required
             icon={Building}
+            className="w-full"
           />
         </div>
       </div>
       
       {/* Employment Details Section */}
-      <div className="mb-4">
+      <div className="mb-6">
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Building className="h-4 w-4 mr-1" />
+          <Building className="h-4 w-4 mr-2" />
           Employment Details
         </h3>
         <div className="bg-gray-50 p-6 rounded-md space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               label="Department"
               name="department"
@@ -218,6 +227,7 @@ export const EmployeeForm = ({
               options={departments}
               onSelectChange={handleSelectChange}
               required
+              className="w-full"
             />
             
             <FormField
@@ -227,10 +237,11 @@ export const EmployeeForm = ({
               onChange={handleInputChange}
               placeholder="Software Engineer"
               required
+              className="w-full"
             />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
               label="Join Date"
               name="joinDate"
@@ -238,6 +249,7 @@ export const EmployeeForm = ({
               onChange={handleInputChange}
               type="date"
               required
+              className="w-full"
             />
             
             <FormField
@@ -247,6 +259,7 @@ export const EmployeeForm = ({
               type="select"
               options={["active", "inactive", "onleave"]}
               onSelectChange={handleSelectChange}
+              className="w-full"
             />
           </div>
         </div>
@@ -255,7 +268,7 @@ export const EmployeeForm = ({
       {/* Login Credentials Section */}
       <div>
         <h3 className="text-sm font-medium mb-3 px-1 text-gray-700 flex items-center">
-          <Key className="h-4 w-4 mr-1" />
+          <Key className="h-4 w-4 mr-2" />
           Login Credentials
         </h3>
         <div className="bg-gray-50 p-6 rounded-md space-y-5">
