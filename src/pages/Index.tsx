@@ -10,7 +10,7 @@ const Index = () => {
     const user = localStorage.getItem("user");
     if (user) {
       const userData = JSON.parse(user);
-      navigate(userData.role === "employee" ? "/timesheet" : "/admin");
+      navigate(userData.role === "employee" ? "/dashboard" : "/admin");
     }
   }, [navigate]);
 

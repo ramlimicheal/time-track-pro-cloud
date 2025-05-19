@@ -22,7 +22,25 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
     setTimeout(() => {
       // In a real app, this would be an API call to validate credentials
       if (userType === "employee") {
-        if (username === "john" && password === "password") {
+        // First check if this username/password matches any admin-created employees
+        const storedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
+        const matchingEmployee = storedEmployees.find(
+          (emp: any) => emp.username === username && emp.password === password
+        );
+        
+        if (matchingEmployee) {
+          // Create user object from employee data
+          const user = {
+            id: matchingEmployee.id,
+            name: matchingEmployee.name,
+            email: matchingEmployee.email,
+            role: "employee"
+          };
+          localStorage.setItem("user", JSON.stringify(user));
+          navigate("/dashboard");
+          toast.success("Login successful");
+        } else if (username === "john" && password === "password") {
+          // Fallback to default demo account
           const user = {
             id: "emp-123",
             name: "John Employee",
@@ -65,7 +83,7 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder={userType === "employee" ? "john" : "admin"}
+          placeholder={userType === "employee" ? "Enter your username" : "admin"}
           required
         />
       </div>
@@ -84,7 +102,7 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder={userType === "employee" ? "password" : "admin123"}
+          placeholder="Enter your password"
           required
         />
       </div>
@@ -95,7 +113,10 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
       
       <div className="text-xs text-center text-gray-500 mt-4">
         {userType === "employee" ? (
-          <span>Use username: "john" and password: "password"</span>
+          <>
+            <p>Created by admin? Use your assigned username and password.</p>
+            <p>Or use demo: "john" and password: "password"</p>
+          </>
         ) : (
           <span>Use username: "admin" and password: "admin123"</span>
         )}
