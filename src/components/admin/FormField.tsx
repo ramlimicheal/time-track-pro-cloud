@@ -16,6 +16,7 @@ interface FormFieldProps {
   icon?: LucideIcon;
   options?: string[];
   onSelectChange?: (name: string, value: string) => void;
+  className?: string; // Added className prop
 }
 
 export const FormField = ({
@@ -28,7 +29,8 @@ export const FormField = ({
   type = "text",
   icon: Icon,
   options = [],
-  onSelectChange
+  onSelectChange,
+  className = "" // Added className prop with default value
 }: FormFieldProps) => {
   // Validate that we have the appropriate handlers for each input type
   if (type === "select" && !onSelectChange) {
@@ -39,7 +41,7 @@ export const FormField = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 items-center gap-4 mb-4">
+    <div className={`grid grid-cols-1 md:grid-cols-12 items-center gap-4 mb-4 ${className}`}>
       <div className="md:col-span-3 flex items-center text-sm">
         {Icon && <Icon className="h-4 w-4 mr-2" />}
         <label className="whitespace-nowrap font-medium text-gray-700">{label}{required && " *"}</label>
