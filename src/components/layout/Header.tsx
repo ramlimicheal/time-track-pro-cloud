@@ -18,8 +18,28 @@ export const Header: React.FC = () => {
     }
   }, []);
   
+  useEffect(() => {
+    // Listen for storage changes (for login/logout)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "user") {
+        if (e.newValue) {
+          setUser(JSON.parse(e.newValue));
+        } else {
+          setUser(null);
+        }
+      }
+    };
+    
+    window.addEventListener("storage", handleStorageChange);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+  
   const handleLogout = () => {
     localStorage.removeItem("user");
+    setUser(null);
     toast.success("Logged out successfully");
     navigate("/");
   };

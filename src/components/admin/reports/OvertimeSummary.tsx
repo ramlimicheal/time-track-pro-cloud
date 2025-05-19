@@ -1,53 +1,130 @@
 
+import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-
-// Mock data for overtime report
-const overtimeByEmployee = [
-  { name: "John Employee", hours: 12 },
-  { name: "Sarah Smith", hours: 8 },
-  { name: "Michael Brown", hours: 6 },
-  { name: "Emily Johnson", hours: 5 },
-  { name: "Robert Williams", hours: 4 },
-];
-
-const overtimeByDepartment = [
-  { name: "Engineering", value: 22 },
-  { name: "Marketing", value: 8 },
-  { name: "Finance", value: 5 },
-  { name: "HR", value: 0 },
-];
-
-const overtimeByDay = [
-  { day: "Mon", hours: 5 },
-  { day: "Tue", hours: 3 },
-  { day: "Wed", hours: 2 },
-  { day: "Thu", hours: 8 },
-  { day: "Fri", hours: 12 },
-  { day: "Sat", hours: 6 },
-  { day: "Sun", hours: 1 },
-];
+import { Employee } from "@/types";
 
 // Colors for pie chart
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff8042"];
 
+interface OvertimeEmployeeData {
+  name: string;
+  hours: number;
+  department?: string;
+}
+
+interface OvertimeDepartmentData {
+  name: string;
+  value: number;
+}
+
+interface OvertimeDayData {
+  day: string;
+  hours: number;
+}
+
 export const OvertimeSummary = () => {
+  const [overtimeByEmployee, setOvertimeByEmployee] = useState<OvertimeEmployeeData[]>([]);
+  const [overtimeByDepartment, setOvertimeByDepartment] = useState<OvertimeDepartmentData[]>([]);
+  const [overtimeByDay, setOvertimeByDay] = useState<OvertimeDayData[]>([]);
+  const [totalOvertime, setTotalOvertime] = useState(0);
+  const [avgOvertime, setAvgOvertime] = useState(0);
+  const [peakDay, setPeakDay] = useState("N/A");
+  const [peakDayHours, setPeakDayHours] = useState(0);
+  
+  useEffect(() => {
+    // Get all employees
+    const employees = JSON.parse(localStorage.getItem("employees") || "[]") as Employee[];
+    
+    if (employees.length === 0) {
+      // No data to show
+      return;
+    }
+    
+    // In a real app, we would calculate these from actual timesheet data
+    // For this example, we'll generate representative data based on employees
+    
+    // Generate overtime by employee (top 5)
+    const employeeOvertimeData: OvertimeEmployeeData[] = employees
+      .map(emp => ({
+        name: emp.name || "Unknown",
+        hours: Math.floor(Math.random() * 10), // Random hours between 0-9
+        department: emp.department
+      }))
+      .sort((a, b) => b.hours - a.hours)
+      .slice(0, 5);
+    
+    setOvertimeByEmployee(employeeOvertimeData);
+    
+    // Generate overtime by department
+    const departmentMap = new Map<string, number>();
+    
+    employeeOvertimeData.forEach(emp => {
+      if (emp.department) {
+        const current = departmentMap.get(emp.department) || 0;
+        departmentMap.set(emp.department, current + emp.hours);
+      }
+    });
+    
+    const departmentOvertimeData: OvertimeDepartmentData[] = [];
+    departmentMap.forEach((hours, dept) => {
+      departmentOvertimeData.push({
+        name: dept,
+        value: hours
+      });
+    });
+    
+    setOvertimeByDepartment(departmentOvertimeData);
+    
+    // Generate overtime by day
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const dayOvertimeData: OvertimeDayData[] = days.map(day => ({
+      day,
+      hours: Math.floor(Math.random() * 10) // Random hours between 0-9
+    }));
+    
+    setOvertimeByDay(dayOvertimeData);
+    
+    // Calculate totals and averages
+    const totalHours = employeeOvertimeData.reduce((sum, emp) => sum + emp.hours, 0);
+    setTotalOvertime(totalHours);
+    
+    const avgHours = employees.length > 0 ? totalHours / employees.length : 0;
+    setAvgOvertime(parseFloat(avgHours.toFixed(1)));
+    
+    // Find peak day
+    const peakDayData = dayOvertimeData.reduce((max, day) => 
+      day.hours > max.hours ? day : max, { day: "", hours: 0 });
+    
+    setPeakDay(peakDayData.day);
+    setPeakDayHours(peakDayData.hours);
+    
+  }, []);
+  
+  if (overtimeByEmployee.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">No overtime data available. Add employees and timesheets first.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="border rounded-lg p-4">
           <h3 className="text-lg font-medium mb-4">Total Overtime</h3>
           <div className="text-4xl font-bold text-center my-4">
-            35 <span className="text-lg font-normal text-gray-500">hours</span>
+            {totalOvertime} <span className="text-lg font-normal text-gray-500">hours</span>
           </div>
           <div className="text-sm text-center text-gray-500">
-            For May 2025
+            For current period
           </div>
         </div>
         
         <div className="border rounded-lg p-4">
           <h3 className="text-lg font-medium mb-4">Avg. Overtime</h3>
           <div className="text-4xl font-bold text-center my-4">
-            2.5 <span className="text-lg font-normal text-gray-500">hours/employee</span>
+            {avgOvertime} <span className="text-lg font-normal text-gray-500">hours/employee</span>
           </div>
           <div className="text-sm text-center text-gray-500">
             Across all departments
@@ -57,10 +134,10 @@ export const OvertimeSummary = () => {
         <div className="border rounded-lg p-4">
           <h3 className="text-lg font-medium mb-4">Peak Day</h3>
           <div className="text-4xl font-bold text-center my-4">
-            Friday
+            {peakDay}
           </div>
           <div className="text-sm text-center text-gray-500">
-            12 hours total
+            {peakDayHours} hours total
           </div>
         </div>
       </div>
@@ -148,15 +225,15 @@ export const OvertimeSummary = () => {
             <tbody>
               <tr>
                 <td className="border px-4 py-2 font-medium">Total Overtime:</td>
-                <td className="border px-4 py-2">35 hours</td>
+                <td className="border px-4 py-2">{totalOvertime} hours</td>
                 <td className="border px-4 py-2 font-medium">Avg Per Employee:</td>
-                <td className="border px-4 py-2">2.5 hours</td>
+                <td className="border px-4 py-2">{avgOvertime} hours</td>
               </tr>
               <tr>
                 <td className="border px-4 py-2 font-medium">Peak Day:</td>
-                <td className="border px-4 py-2">Friday (12 hours)</td>
+                <td className="border px-4 py-2">{peakDay} ({peakDayHours} hours)</td>
                 <td className="border px-4 py-2 font-medium">Report Period:</td>
-                <td className="border px-4 py-2">May 2025</td>
+                <td className="border px-4 py-2">Current Period</td>
               </tr>
             </tbody>
           </table>
@@ -197,7 +274,7 @@ export const OvertimeSummary = () => {
                 <tr key={dept.name}>
                   <td className="border px-4 py-2">{dept.name}</td>
                   <td className="border px-4 py-2">{dept.value}</td>
-                  <td className="border px-4 py-2">{((dept.value / 35) * 100).toFixed(1)}%</td>
+                  <td className="border px-4 py-2">{((dept.value / totalOvertime) * 100).toFixed(1)}%</td>
                 </tr>
               ))}
             </tbody>

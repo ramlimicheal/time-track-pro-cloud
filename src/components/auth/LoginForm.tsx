@@ -22,7 +22,7 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
     setTimeout(() => {
       // In a real app, this would be an API call to validate credentials
       if (userType === "employee") {
-        // First check if this username/password matches any admin-created employees
+        // Check if this username/password matches any admin-created employees
         const storedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
         const matchingEmployee = storedEmployees.find(
           (emp: any) => emp.username === username && emp.password === password
@@ -39,31 +39,37 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
           localStorage.setItem("user", JSON.stringify(user));
           navigate("/dashboard");
           toast.success("Login successful");
-        } else if (username === "john" && password === "password") {
-          // Fallback to default demo account
-          const user = {
-            id: "emp-123",
-            name: "John Employee",
-            email: "john@example.com",
-            role: "employee"
-          };
-          localStorage.setItem("user", JSON.stringify(user));
-          navigate("/dashboard");
-          toast.success("Login successful");
         } else {
           toast.error("Invalid credentials");
         }
       } else {
-        if (username === "admin" && password === "admin123") {
+        // For admin login, check if any admin accounts exist
+        const storedAdmins = JSON.parse(localStorage.getItem("admins") || "[]");
+        const matchingAdmin = storedAdmins.find(
+          (admin: any) => admin.username === username && admin.password === password
+        );
+        
+        if (matchingAdmin) {
           const user = {
-            id: "adm-123",
-            name: "Admin User",
-            email: "admin@example.com",
+            id: matchingAdmin.id,
+            name: matchingAdmin.name,
+            email: matchingAdmin.email,
             role: "manager"
           };
           localStorage.setItem("user", JSON.stringify(user));
           navigate("/admin");
           toast.success("Login successful");
+        } else if (storedAdmins.length === 0 && username === "setup" && password === "setup") {
+          // First-time setup account for creating admin
+          const user = {
+            id: "setup-admin",
+            name: "Setup Admin",
+            email: "setup@example.com",
+            role: "manager"
+          };
+          localStorage.setItem("user", JSON.stringify(user));
+          navigate("/admin");
+          toast.success("Welcome to first-time setup! Please create an admin account.");
         } else {
           toast.error("Invalid credentials");
         }
@@ -83,7 +89,7 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder={userType === "employee" ? "Enter your username" : "admin"}
+          placeholder="Enter your username"
           required
         />
       </div>
@@ -113,12 +119,9 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
       
       <div className="text-xs text-center text-gray-500 mt-4">
         {userType === "employee" ? (
-          <>
-            <p>Created by admin? Use your assigned username and password.</p>
-            <p>Or use demo: "john" and password: "password"</p>
-          </>
+          <p>Use your username and password provided by your administrator.</p>
         ) : (
-          <span>Use username: "admin" and password: "admin123"</span>
+          <p>If no admin account exists, use "setup" / "setup" for first-time setup.</p>
         )}
       </div>
     </form>

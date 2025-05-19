@@ -6,35 +6,63 @@ import { EmployeeHeader } from "@/components/dashboard/EmployeeHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { LeaveApplicationForm } from "@/components/dashboard/LeaveApplicationForm";
 import { RecentLeaveApplications } from "@/components/dashboard/RecentLeaveApplications";
+import { useNavigate } from "react-router-dom";
 
 const EmployeeDashboard = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
-    // Get employee data from localStorage
+    // Check if user is logged in
     const userData = localStorage.getItem("user");
-    if (userData) {
-      const user = JSON.parse(userData);
-      // In a real app, we would fetch the full employee profile based on the user ID
-      // For now, we'll use the user data from localStorage and add mock data
+    if (!userData) {
+      navigate("/");
+      return;
+    }
+    
+    const user = JSON.parse(userData);
+    if (user.role !== "employee") {
+      navigate("/");
+      return;
+    }
+    
+    // Get employee data from localStorage
+    const storedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
+    const matchingEmployee = storedEmployees.find((emp: any) => emp.id === user.id);
+    
+    if (matchingEmployee) {
       setEmployee({
         id: user.id,
         name: user.name,
         email: user.email,
-        department: user.department || "Engineering",
-        position: user.position || "Software Developer",
-        joinDate: user.joinDate || "2023-01-15",
-        status: user.status || "active",
-        pendingTimesheets: user.pendingTimesheets || 1,
-        phoneNumber: user.phoneNumber || "+968 9123 4567",
-        bloodGroup: user.bloodGroup || "O+",
-        emergencyPhoneNumber: user.emergencyPhoneNumber || "+91 9876 5432",
-        passportNumber: user.passportNumber || "J1234567",
-        dob: user.dob || "1990-05-15",
-        avatar: user.avatar
+        department: matchingEmployee.department,
+        position: matchingEmployee.position,
+        joinDate: matchingEmployee.joinDate,
+        status: matchingEmployee.status || "active",
+        pendingTimesheets: matchingEmployee.pendingTimesheets || 0,
+        phoneNumber: matchingEmployee.phoneNumber,
+        bloodGroup: matchingEmployee.bloodGroup,
+        emergencyPhoneNumber: matchingEmployee.emergencyPhoneNumber,
+        passportNumber: matchingEmployee.passportNumber,
+        dob: matchingEmployee.dob,
+        avatar: matchingEmployee.avatar,
+        indianAddress: matchingEmployee.indianAddress,
+        omanAddress: matchingEmployee.omanAddress
+      });
+    } else {
+      // If employee not found in the system, use basic user data
+      setEmployee({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        department: user.department || "",
+        position: user.position || "",
+        joinDate: user.joinDate || "",
+        status: "active",
+        pendingTimesheets: 0
       });
     }
-  }, []);
+  }, [navigate]);
 
   // Listen for changes in localStorage
   useEffect(() => {

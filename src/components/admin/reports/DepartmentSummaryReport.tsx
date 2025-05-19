@@ -1,40 +1,73 @@
 
 import { Card } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Employee } from "@/types";
+import { useEffect, useState } from "react";
 
-// Mock data for department summary
-const departmentData = [
-  {
-    department: "Engineering",
-    regularHours: 160,
-    overtimeHours: 12,
-    employees: 8,
-    avgHours: 21.5,
-  },
-  {
-    department: "Marketing",
-    regularHours: 140,
-    overtimeHours: 8,
-    employees: 6,
-    avgHours: 24.7,
-  },
-  {
-    department: "Finance",
-    regularHours: 120,
-    overtimeHours: 5,
-    employees: 5,
-    avgHours: 25.0,
-  },
-  {
-    department: "HR",
-    regularHours: 100,
-    overtimeHours: 0,
-    employees: 4,
-    avgHours: 25.0,
-  }
-];
+interface DepartmentData {
+  department: string;
+  regularHours: number;
+  overtimeHours: number;
+  employees: number;
+  avgHours: number;
+}
 
 export const DepartmentSummaryReport = () => {
+  const [departmentData, setDepartmentData] = useState<DepartmentData[]>([]);
+  
+  useEffect(() => {
+    // Get employees from localStorage
+    const employees = JSON.parse(localStorage.getItem("employees") || "[]") as Employee[];
+    
+    if (employees.length === 0) {
+      setDepartmentData([]);
+      return;
+    }
+    
+    // Group employees by department
+    const departmentMap = new Map<string, Employee[]>();
+    
+    employees.forEach(employee => {
+      if (!employee.department) return;
+      
+      if (!departmentMap.has(employee.department)) {
+        departmentMap.set(employee.department, []);
+      }
+      departmentMap.get(employee.department)?.push(employee);
+    });
+    
+    // Calculate department statistics
+    const departmentStats: DepartmentData[] = [];
+    
+    departmentMap.forEach((deptEmployees, department) => {
+      // In a real app, we would calculate these from actual timesheet data
+      // For now, use the number of employees to generate some representative data
+      const employeeCount = deptEmployees.length;
+      const regularHours = employeeCount * 20; // 20 hours per employee as example
+      const overtimeHours = Math.floor(employeeCount * 1.5); // 1.5 hours overtime per employee
+      const totalHours = regularHours + overtimeHours;
+      const avgHours = employeeCount > 0 ? totalHours / employeeCount : 0;
+      
+      departmentStats.push({
+        department,
+        regularHours,
+        overtimeHours,
+        employees: employeeCount,
+        avgHours: parseFloat(avgHours.toFixed(1))
+      });
+    });
+    
+    setDepartmentData(departmentStats);
+  }, []);
+
+  if (departmentData.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">No department data available. Add employees first.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
