@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Printer } from "lucide-react";
+import { FileText, Printer } from "lucide-react";
 import { TimesheetEntry } from "@/types";
 
 interface TimesheetActionsProps {
@@ -36,9 +36,11 @@ export const TimesheetActions = ({
       
       {!readOnly && (
         <Button onClick={onSave} className="bg-timetrack-blue hover:bg-blue-600">
+          <FileText className="h-4 w-4 mr-2" />
           Save & Submit Timesheet
         </Button>
       )}
     </div>
   );
 };
+

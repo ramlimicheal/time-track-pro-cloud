@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar } from "lucide-react";
+import { Calendar, Printer } from "lucide-react";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
@@ -71,6 +71,11 @@ const AdminPage = () => {
 
   // Calculate total hours
   const totalHours = mockEntries.reduce((sum, entry) => sum + entry.totalHours, 0);
+  
+  // Function to directly trigger printing
+  const handlePrint = () => {
+    window.print();
+  };
 
   return (
     <MainLayout>
@@ -130,13 +135,25 @@ const AdminPage = () => {
           </div>
         ) : (
           <>
-            <Button
-              variant="outline"
-              className="mb-4 print:hidden"
-              onClick={() => setSelectedEmployee(null)}
-            >
-              Back to Dashboard
-            </Button>
+            <div className="flex justify-between items-center mb-4 print:hidden">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedEmployee(null)}
+              >
+                Back to Dashboard
+              </Button>
+              
+              {timesheetStatus === "approved" && (
+                <Button 
+                  onClick={handlePrint} 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                >
+                  <Printer className="h-4 w-4" />
+                  Print Timesheet
+                </Button>
+              )}
+            </div>
             
             <div className="mb-4 print:hidden">
               <h2 className="text-xl font-semibold mb-2">
@@ -167,9 +184,11 @@ const AdminPage = () => {
             {/* Enhanced print layout - only visible when printing */}
             <div className="hidden print:block">
               <div className="print-header">
-                <h1 className="text-2xl font-bold">TimeTrack Pro</h1>
-                <p>123 Business Ave., Corporate Plaza, Suite 200</p>
-                <p>contact@timetrackpro.com | (555) 123-4567</p>
+                <div className="print-header-logo">TimeTrack Pro</div>
+                <div className="print-header-info">
+                  <p>123 Business Ave., Corporate Plaza, Suite 200</p>
+                  <p>contact@timetrackpro.com | (555) 123-4567</p>
+                </div>
               </div>
 
               <div className="timesheet-title">
@@ -177,12 +196,12 @@ const AdminPage = () => {
               </div>
 
               <div className="employee-info">
-                <div>
+                <div className="employee-info-section">
                   <p><span className="info-label">Employee:</span> {employees.find((e) => e.id === selectedEmployee)?.name}</p>
                   <p><span className="info-label">Department:</span> {employees.find((e) => e.id === selectedEmployee)?.department}</p>
                   <p><span className="info-label">Employee ID:</span> {selectedEmployee}</p>
                 </div>
-                <div>
+                <div className="employee-info-section">
                   <p><span className="info-label">Period:</span> May 2025</p>
                   <p><span className="info-label">Status:</span> {timesheetStatus.charAt(0).toUpperCase() + timesheetStatus.slice(1)}</p>
                   <p><span className="info-label">Total Hours:</span> {totalHours.toFixed(2)}</p>
@@ -192,28 +211,27 @@ const AdminPage = () => {
               {/* TimesheetTable is automatically displayed between these sections */}
 
               <div className="signature-section">
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <div>
-                    <div className="signature-box">
-                      Employee Signature
-                    </div>
-                    <div className="signature-box">
-                      Date
-                    </div>
+                <div className="signature-column">
+                  <div className="signature-box">
+                    Employee Signature
                   </div>
-                  <div>
-                    <div className="signature-box">
-                      Manager Approval
-                    </div>
-                    <div className="signature-box">
-                      Date
-                    </div>
+                  <div className="signature-box">
+                    Date
+                  </div>
+                </div>
+                <div className="signature-column">
+                  <div className="signature-box">
+                    Manager Approval
+                  </div>
+                  <div className="signature-box">
+                    Date
                   </div>
                 </div>
               </div>
 
               <div className="print-footer">
-                <p>Printed on {new Date().toLocaleDateString()} | TimeTrack Pro System | Page <span className="page-number"></span></p>
+                <div>TimeTrack Pro - Employee Timesheet Management System</div>
+                <div>Printed on {new Date().toLocaleDateString()} | Page <span className="page-number"></span></div>
               </div>
             </div>
           </>
