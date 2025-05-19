@@ -15,7 +15,7 @@ interface FormFieldProps {
   label: string;
   name: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   placeholder?: string;
   required?: boolean;
   type?: "text" | "email" | "date" | "textarea" | "select";
@@ -36,6 +36,15 @@ export const FormField = ({
   options = [],
   onSelectChange
 }: FormFieldProps) => {
+  // Validate that we have the appropriate handlers for each input type
+  if (type === "select" && !onSelectChange) {
+    console.warn(`FormField of type "select" is missing onSelectChange handler for field: ${name}`);
+  }
+  
+  if (type !== "select" && !onChange) {
+    console.warn(`FormField is missing onChange handler for field: ${name}`);
+  }
+
   return (
     <div className="grid grid-cols-4 items-center gap-4">
       <div className="flex items-center justify-end text-sm">
