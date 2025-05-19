@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { TimesheetHeader } from "@/components/timesheet/TimesheetHeader";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
-import { TimesheetEntry } from "@/types";
+import { TimesheetEntry, Timesheet } from "@/types";
 import { toast } from "sonner";
 
 const TimesheetPage = () => {
@@ -11,18 +11,34 @@ const TimesheetPage = () => {
   const [month, setMonth] = useState("May");
   const [year, setYear] = useState(2025);
   const [entries, setEntries] = useState<TimesheetEntry[]>([]);
+  const [timesheet, setTimesheet] = useState<Timesheet | null>(null);
 
   useEffect(() => {
     // In a real app, we would fetch the timesheet data from the server
-    // Here we're generating mock data
+    // Here we're getting user data and generating mock entries
     const userData = localStorage.getItem("user");
     if (userData) {
       const user = JSON.parse(userData);
       setEmployeeName(user.name);
     }
-
-    generateMockEntries();
+    
+    // Try to load existing timesheet from localStorage
+    loadTimesheet();
   }, [month, year]);
+
+  const loadTimesheet = () => {
+    const timesheetKey = `timesheet-${month}-${year}`;
+    const savedTimesheet = localStorage.getItem(timesheetKey);
+    
+    if (savedTimesheet) {
+      const parsedTimesheet = JSON.parse(savedTimesheet) as Timesheet;
+      setTimesheet(parsedTimesheet);
+      setEntries(parsedTimesheet.entries);
+      toast.info("Loaded existing timesheet");
+    } else {
+      generateMockEntries();
+    }
+  };
 
   const generateMockEntries = () => {
     const daysInMonth = new Date(year, getMonthNumber(month), 0).getDate();
@@ -59,7 +75,44 @@ const TimesheetPage = () => {
   const handleSaveTimesheet = (updatedEntries: TimesheetEntry[]) => {
     // In a real app, we would save the data to the server
     setEntries(updatedEntries);
-    toast.success("Timesheet saved successfully");
+    
+    // Create or update the timesheet object
+    const userData = localStorage.getItem("user");
+    const user = userData ? JSON.parse(userData) : { id: "guest", name: "Guest User" };
+    
+    const updatedTimesheet: Timesheet = {
+      id: `${user.id}-${month}-${year}`,
+      employeeId: user.id,
+      employeeName: user.name,
+      month: getMonthNumber(month),
+      year: year,
+      entries: updatedEntries,
+      status: getTimesheetStatus(updatedEntries),
+    };
+    
+    // Save to localStorage for persistence
+    const timesheetKey = `timesheet-${month}-${year}`;
+    localStorage.setItem(timesheetKey, JSON.stringify(updatedTimesheet));
+    setTimesheet(updatedTimesheet);
+  };
+
+  const getTimesheetStatus = (entries: TimesheetEntry[]): Timesheet["status"] => {
+    // If any entry is pending, the whole timesheet is pending
+    if (entries.some(entry => entry.status === "pending")) {
+      return "pending";
+    }
+    // If any entry is approved, and none are pending or rejected, the whole timesheet is approved
+    if (entries.some(entry => entry.status === "approved") && 
+        !entries.some(entry => entry.status === "pending" || entry.status === "rejected")) {
+      return "approved";
+    }
+    // If any entry is rejected, and none are pending, the whole timesheet is rejected
+    if (entries.some(entry => entry.status === "rejected") && 
+        !entries.some(entry => entry.status === "pending")) {
+      return "rejected";
+    }
+    // Default is draft
+    return "draft";
   };
 
   const handleNewTimesheet = () => {
@@ -85,6 +138,7 @@ const TimesheetPage = () => {
           onMonthChange={setMonth}
           onYearChange={setYear}
           onNewTimesheet={handleNewTimesheet}
+          timesheetStatus={timesheet?.status || "draft"}
         />
         
         <TimesheetTable
