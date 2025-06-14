@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { EmployeeTable } from "@/components/admin/EmployeeTable";
-import { EmployeeForm } from "@/components/admin/EmployeeForm";
+import { EmployeeModal } from "@/components/admin/EmployeeModal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -151,14 +151,13 @@ const AdminPage = () => {
               onEdit={handleEditEmployee}
               onDelete={handleDeleteEmployee}
             />
-            {isFormOpen && (
-              <EmployeeForm
-                onClose={() => setIsFormOpen(false)}
-                onCreate={handleCreateEmployee}
-                onUpdate={handleUpdateEmployee}
-                editingEmployee={editingEmployee}
-              />
-            )}
+            <EmployeeModal
+              isOpen={isFormOpen}
+              onClose={() => setIsFormOpen(false)}
+              onCreate={handleCreateEmployee}
+              onUpdate={handleUpdateEmployee}
+              editingEmployee={editingEmployee}
+            />
           </TabsContent>
 
           <TabsContent value="timesheets">

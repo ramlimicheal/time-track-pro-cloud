@@ -114,12 +114,16 @@ export const PerformanceInsights = () => {
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setSelectedPeriod(value as keyof PeriodData);
+  };
+
   const currentData = performanceData[selectedPeriod];
 
   return (
     <div className="space-y-6">
       {/* Period Selection */}
-      <Tabs value={selectedPeriod} onValueChange={setSelectedPeriod}>
+      <Tabs value={selectedPeriod} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="week">This Week</TabsTrigger>
           <TabsTrigger value="month">This Month</TabsTrigger>
