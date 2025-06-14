@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { User } from "@/types";
 import { toast } from "sonner";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 export const Header: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -87,10 +88,13 @@ export const Header: React.FC = () => {
             >
               <Link to="/history">
                 <History className="mr-1 h-4 w-4" />
-                <span>Status</span>
+                <span>History</span>
               </Link>
             </Button>
           </div>
+          
+          {/* Notification Center */}
+          <NotificationCenter />
           
           <div className="flex items-center gap-2">
             <div className="hidden md:block text-right">

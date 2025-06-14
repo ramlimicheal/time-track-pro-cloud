@@ -1,14 +1,15 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText, Search, Filter, ArrowDown, ArrowUp } from "lucide-react";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
-import { TimesheetEntry } from "@/types";
+import { TimesheetEntry, Timesheet } from "@/types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,59 +23,43 @@ const HistoryPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [timesheetHistory, setTimesheetHistory] = useState<any[]>([]);
+  const [selectedTimesheetData, setSelectedTimesheetData] = useState<Timesheet | null>(null);
   
-  // Mock data for timesheet history
-  const timesheetHistory = [
-    { id: "1", month: "April", year: 2025, status: "Approved" },
-    { id: "2", month: "March", year: 2025, status: "Approved" },
-    { id: "3", month: "February", year: 2025, status: "Rejected" },
-  ];
+  // Load actual timesheet history from localStorage
+  useEffect(() => {
+    loadTimesheetHistory();
+  }, []);
   
-  // Mock entries for selected timesheet
-  const mockEntries: TimesheetEntry[] = [
-    {
-      id: "1",
-      date: "01-Apr-2025",
-      workStart: "09:00",
-      workEnd: "17:00",
-      breakStart: "12:00",
-      breakEnd: "13:00",
-      otStart: "",
-      otEnd: "",
-      description: "Regular work day",
-      remarks: "",
-      totalHours: 7.0,
-      status: "approved",
-    },
-    {
-      id: "2",
-      date: "02-Apr-2025",
-      workStart: "09:00",
-      workEnd: "18:00",
-      breakStart: "12:30",
-      breakEnd: "13:30",
-      otStart: "18:00",
-      otEnd: "19:00",
-      description: "Project meeting",
-      remarks: "Overtime approved",
-      totalHours: 8.0,
-      status: "approved",
-    },
-    {
-      id: "3",
-      date: "03-Apr-2025",
-      workStart: "09:00",
-      workEnd: "17:00",
-      breakStart: "12:00",
-      breakEnd: "13:00",
-      otStart: "",
-      otEnd: "",
-      description: "Client call",
-      remarks: "",
-      totalHours: 7.0,
-      status: "approved",
-    },
-  ];
+  const loadTimesheetHistory = () => {
+    const keys = Object.keys(localStorage);
+    const timesheetKeys = keys.filter(key => key.startsWith('timesheet-'));
+    
+    const history = timesheetKeys.map(key => {
+      const data = JSON.parse(localStorage.getItem(key) || '{}');
+      return {
+        id: data.id || key,
+        month: getMonthName(data.month) || 'Unknown',
+        year: data.year || new Date().getFullYear(),
+        status: capitalizeStatus(data.status || 'draft'),
+        data: data
+      };
+    });
+    
+    setTimesheetHistory(history);
+  };
+  
+  const getMonthName = (monthNumber: number) => {
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return months[monthNumber - 1];
+  };
+  
+  const capitalizeStatus = (status: string) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
 
   // Filter timesheets based on search query and status filter
   const filteredTimesheets = timesheetHistory
@@ -95,6 +80,97 @@ const HistoryPage = () => {
 
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  };
+  
+  const handleTimesheetSelect = (timesheetId: string) => {
+    setSelectedTimesheet(timesheetId);
+    const selected = timesheetHistory.find(t => t.id === timesheetId);
+    if (selected) {
+      setSelectedTimesheetData(selected.data);
+    }
+  };
+  
+  const generatePDF = () => {
+    if (selectedTimesheetData) {
+      // Create a temporary print view
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        const printContent = generatePrintContent(selectedTimesheetData);
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+        toast.success("PDF generation initiated");
+      }
+    }
+  };
+  
+  const generatePrintContent = (timesheet: Timesheet) => {
+    const totalHours = timesheet.entries.reduce((sum, entry) => sum + entry.totalHours, 0);
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Timesheet Report - ${timesheet.employeeName}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .info { display: flex; justify-content: space-between; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f5f5f5; }
+            .signature { margin-top: 50px; display: flex; justify-content: space-between; }
+            .signature div { width: 200px; border-bottom: 1px solid #000; padding-bottom: 5px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>TimeTrack Pro</h1>
+            <h2>Employee Timesheet Report</h2>
+          </div>
+          <div class="info">
+            <div>
+              <p><strong>Employee:</strong> ${timesheet.employeeName}</p>
+              <p><strong>Period:</strong> ${getMonthName(timesheet.month)} ${timesheet.year}</p>
+            </div>
+            <div>
+              <p><strong>Status:</strong> ${capitalizeStatus(timesheet.status)}</p>
+              <p><strong>Total Hours:</strong> ${totalHours.toFixed(2)}</p>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Break</th>
+                <th>Hours</th>
+                <th>Description</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${timesheet.entries.map(entry => `
+                <tr>
+                  <td>${entry.date}</td>
+                  <td>${entry.workStart || '-'}</td>
+                  <td>${entry.workEnd || '-'}</td>
+                  <td>${entry.breakStart && entry.breakEnd ? `${entry.breakStart} - ${entry.breakEnd}` : '-'}</td>
+                  <td>${entry.totalHours.toFixed(2)}</td>
+                  <td>${entry.description || '-'}</td>
+                  <td>${capitalizeStatus(entry.status)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="signature">
+            <div>Employee Signature</div>
+            <div>Manager Approval</div>
+          </div>
+        </body>
+      </html>
+    `;
   };
 
   return (
@@ -160,6 +236,9 @@ const HistoryPage = () => {
                         <DropdownMenuItem onClick={() => setFilterStatus("Pending")}>
                           Pending
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setFilterStatus("Draft")}>
+                          Draft
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -174,7 +253,7 @@ const HistoryPage = () => {
                         className={`w-full justify-start text-left ${
                           selectedTimesheet === sheet.id ? "bg-timetrack-blue" : ""
                         }`}
-                        onClick={() => setSelectedTimesheet(sheet.id)}
+                        onClick={() => handleTimesheetSelect(sheet.id)}
                       >
                         <Calendar className="mr-2 h-4 w-4 shrink-0" />
                         <div className="flex items-center justify-between w-full">
@@ -185,7 +264,11 @@ const HistoryPage = () => {
                             className={`ml-2 whitespace-nowrap text-xs ${
                               sheet.status === "Approved"
                                 ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                : "bg-red-100 text-red-800 hover:bg-red-100"
+                                : sheet.status === "Rejected"
+                                ? "bg-red-100 text-red-800 hover:bg-red-100"
+                                : sheet.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                                : "bg-gray-100 text-gray-800 hover:bg-gray-100"
                             }`}
                             variant="outline"
                           >
@@ -196,7 +279,10 @@ const HistoryPage = () => {
                     ))
                   ) : (
                     <div className="text-center p-4 text-gray-500 text-sm">
-                      No timesheets match your search
+                      {timesheetHistory.length === 0 
+                        ? "No timesheets found. Create your first timesheet!"
+                        : "No timesheets match your search"
+                      }
                     </div>
                   )}
                 </nav>
@@ -207,18 +293,18 @@ const HistoryPage = () => {
           {/* Main Content */}
           <main className="lg:col-span-3">
             <Card className="h-full shadow-sm">
-              {selectedTimesheet ? (
+              {selectedTimesheet && selectedTimesheetData ? (
                 <>
                   <CardHeader className="pb-3 border-b">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                       <CardTitle className="text-lg font-semibold">
-                        {timesheetHistory.find((t) => t.id === selectedTimesheet)?.month}{" "}
-                        {timesheetHistory.find((t) => t.id === selectedTimesheet)?.year} Timesheet
+                        {getMonthName(selectedTimesheetData.month)} {selectedTimesheetData.year} Timesheet
                       </CardTitle>
                       <Button 
                         variant="outline" 
                         className="flex items-center gap-2 bg-timetrack-lightBlue text-timetrack-blue hover:bg-timetrack-lightBlue/80"
                         size="sm"
+                        onClick={generatePDF}
                       >
                         <FileText className="h-4 w-4" />
                         Export PDF
@@ -227,10 +313,11 @@ const HistoryPage = () => {
                   </CardHeader>
                   <CardContent className="p-0">
                     <TimesheetTable
-                      month={timesheetHistory.find((t) => t.id === selectedTimesheet)?.month || ""}
-                      year={timesheetHistory.find((t) => t.id === selectedTimesheet)?.year || 2025}
-                      entries={mockEntries}
+                      month={getMonthName(selectedTimesheetData.month)}
+                      year={selectedTimesheetData.year}
+                      entries={selectedTimesheetData.entries}
                       readOnly={true}
+                      timesheetStatus={selectedTimesheetData.status}
                     />
                   </CardContent>
                 </>
@@ -239,10 +326,13 @@ const HistoryPage = () => {
                   <Calendar className="h-12 w-12 text-gray-400 mb-6" />
                   <h3 className="text-lg font-medium text-gray-700 mb-3">No Timesheet Selected</h3>
                   <p className="text-gray-500 max-w-sm mb-6">
-                    Please select a timesheet from the history panel to view its details.
+                    {timesheetHistory.length === 0 
+                      ? "You haven't created any timesheets yet. Go to the Timesheet page to create your first one!"
+                      : "Please select a timesheet from the history panel to view its details."
+                    }
                   </p>
                   <div className="text-sm text-gray-400 italic">
-                    You can filter and search timesheets using the controls on the left
+                    {timesheetHistory.length > 0 && "You can filter and search timesheets using the controls on the left"}
                   </div>
                 </div>
               )}
