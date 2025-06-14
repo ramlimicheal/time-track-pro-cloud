@@ -9,9 +9,10 @@ interface TimePickerInputProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   value: string;
   onChange: (value: string) => void;
   error?: boolean;
+  compact?: boolean;
 }
 
-export const TimePickerInput = ({ value, onChange, error, readOnly, ...props }: TimePickerInputProps) => {
+export const TimePickerInput = ({ value, onChange, error, readOnly, compact = false, ...props }: TimePickerInputProps) => {
   const hours = Array.from({ length: 12 }, (_, i) => i === 0 ? 12 : i);
   const minutes = ["00", "15", "30", "45"];
   const periods = ["AM", "PM"];
@@ -44,12 +45,18 @@ export const TimePickerInput = ({ value, onChange, error, readOnly, ...props }: 
     }
   };
 
+  const buttonClasses = compact 
+    ? "w-full justify-start text-left font-normal hover:bg-gray-50 h-8 text-sm px-2"
+    : "w-full justify-start text-left font-normal hover:bg-gray-50";
+
+  const iconClasses = compact ? "mr-1 h-3 w-3 text-gray-500" : "mr-2 h-4 w-4 text-gray-500";
+
   if (readOnly) {
     return (
       <Input 
         type="text" 
         value={formatDisplayTime(value)} 
-        className={`time-input ${error ? "border-red-500" : ""}`}
+        className={`time-input ${error ? "border-red-500" : ""} ${compact ? "h-8 text-sm" : ""}`}
         readOnly={true}
         {...props}
       />
@@ -61,19 +68,19 @@ export const TimePickerInput = ({ value, onChange, error, readOnly, ...props }: 
       <PopoverTrigger asChild>
         <Button 
           variant="outline" 
-          className={`w-full justify-start text-left font-normal hover:bg-gray-50 ${error ? "border-red-500 text-red-500" : ""}`}
-          size="sm"
+          className={`${buttonClasses} ${error ? "border-red-500 text-red-500" : ""}`}
+          size={compact ? "sm" : "default"}
         >
-          <Clock className="mr-2 h-4 w-4 text-gray-500" />
-          {value ? formatDisplayTime(value) : "Click to set time"}
+          <Clock className={iconClasses} />
+          {value ? formatDisplayTime(value) : "Set time"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-4" align="start">
-        <div className="grid p-2">
-          <div className="flex items-center justify-between mb-4 p-2 border-b">
-            <div className="font-medium text-gray-700">Select Time</div>
+      <PopoverContent className="w-[280px] p-3" align="start">
+        <div className="grid p-1">
+          <div className="flex items-center justify-between mb-3 p-1 border-b">
+            <div className="font-medium text-gray-700 text-sm">Select Time</div>
           </div>
-          <div className="grid grid-cols-3 gap-3 max-h-[300px] overflow-y-auto">
+          <div className="grid grid-cols-3 gap-2 max-h-[280px] overflow-y-auto">
             {hours.map((hour) => (
               React.createElement(React.Fragment, { key: `hour-${hour}` },
                 minutes.map((minute) => (
@@ -81,7 +88,7 @@ export const TimePickerInput = ({ value, onChange, error, readOnly, ...props }: 
                     <Button 
                       key={`${hour}-${minute}-${period}`}
                       variant="outline" 
-                      className={`w-full text-sm hover:bg-timetrack-lightBlue hover:border-timetrack-blue ${
+                      className={`w-full text-xs hover:bg-timetrack-lightBlue hover:border-timetrack-blue h-8 ${
                         period === "AM" 
                           ? "bg-[#D3E4FD] hover:bg-[#C3D4ED]" 
                           : "bg-[#E5DEFF] hover:bg-[#D5CEEF]"

@@ -31,24 +31,26 @@ export const TimesheetActions = ({
   );
 
   return (
-    <div className="p-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 print:hidden">
+    <div className="p-3 border-t border-gray-200 bg-gray-50 flex justify-end gap-2 print:hidden">
       {readOnly && (timesheetStatus === "approved" || timesheetStatus === "rejected") && (
         <>
           <Button 
             onClick={handlePrint} 
             variant="outline" 
-            className="flex items-center gap-2 hover:bg-gray-100 border-gray-300"
+            size="sm"
+            className="flex items-center gap-2 hover:bg-gray-100 border-gray-300 h-8 text-xs"
           >
-            <Printer className="h-4 w-4" />
+            <Printer className="h-3 w-3" />
             Print Timesheet
           </Button>
           {onGeneratePDF && (
             <Button 
               onClick={onGeneratePDF}
               variant="outline"
-              className="flex items-center gap-2 hover:bg-timetrack-lightBlue border-timetrack-blue text-timetrack-blue"
+              size="sm"
+              className="flex items-center gap-2 hover:bg-timetrack-lightBlue border-timetrack-blue text-timetrack-blue h-8 text-xs"
             >
-              <FileText className="h-4 w-4" />
+              <FileText className="h-3 w-3" />
               Generate PDF
             </Button>
           )}
@@ -58,10 +60,11 @@ export const TimesheetActions = ({
       {!readOnly && (
         <Button 
           onClick={onSave} 
-          className="bg-timetrack-blue hover:bg-blue-600 shadow-sm transition-all"
+          size="sm"
+          className="bg-timetrack-blue hover:bg-blue-600 shadow-sm transition-all h-8 text-xs"
           disabled={!hasEntries}
         >
-          <Save className="h-4 w-4 mr-2" />
+          <Save className="h-3 w-3 mr-1" />
           {isDateSpecific 
             ? "Submit Entry for Approval" 
             : "Save & Submit Timesheet"}

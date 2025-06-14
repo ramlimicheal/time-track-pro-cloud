@@ -169,10 +169,10 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-      <div className="p-5 bg-timetrack-lightBlue border-b border-gray-200 print:bg-white">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
+      <div className="p-3 bg-timetrack-lightBlue border-b border-gray-200 print:bg-white">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-medium text-gray-800">
+          <h2 className="text-base font-medium text-gray-800">
             {getTableTitle()}
           </h2>
           
@@ -183,18 +183,18 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
                   <div className="text-sm text-gray-600">
                     {selectedEntries.length} selected
                   </div>
-                  <Button size="sm" onClick={selectAllEntries} variant="outline">
+                  <Button size="sm" onClick={selectAllEntries} variant="outline" className="h-8 text-xs">
                     Select All
                   </Button>
-                  <Button size="sm" onClick={clearSelection} variant="outline">
+                  <Button size="sm" onClick={clearSelection} variant="outline" className="h-8 text-xs">
                     Clear
                   </Button>
-                  <Button size="sm" onClick={handleBulkApprove} className="bg-green-600 hover:bg-green-700">
-                    <CheckCircle className="h-4 w-4 mr-1" />
+                  <Button size="sm" onClick={handleBulkApprove} className="bg-green-600 hover:bg-green-700 h-8 text-xs">
+                    <CheckCircle className="h-3 w-3 mr-1" />
                     Approve Selected
                   </Button>
-                  <Button size="sm" onClick={handleBulkReject} variant="destructive">
-                    <XCircle className="h-4 w-4 mr-1" />
+                  <Button size="sm" onClick={handleBulkReject} variant="destructive" className="h-8 text-xs">
+                    <XCircle className="h-3 w-3 mr-1" />
                     Reject Selected
                   </Button>
                 </>
@@ -203,6 +203,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
                 size="sm" 
                 onClick={() => setBulkSelectMode(!bulkSelectMode)}
                 variant={bulkSelectMode ? "default" : "outline"}
+                className="h-8 text-xs"
               >
                 {bulkSelectMode ? "Exit Bulk Mode" : "Bulk Actions"}
               </Button>
@@ -212,7 +213,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
       </div>
 
       {timesheetStatus === "approved" && (
-        <Alert className="m-4 bg-green-50 border-green-200">
+        <Alert className="m-3 bg-green-50 border-green-200">
           <Check className="h-4 w-4 text-green-600" />
           <AlertTitle className="text-green-700">Timesheet Approved</AlertTitle>
           <AlertDescription className="text-green-600">
@@ -222,7 +223,7 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
       )}
 
       {timesheetStatus === "rejected" && (
-        <Alert className="m-4 bg-red-50 border-red-200">
+        <Alert className="m-3 bg-red-50 border-red-200">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertTitle className="text-red-700">Timesheet Rejected</AlertTitle>
           <AlertDescription className="text-red-600">

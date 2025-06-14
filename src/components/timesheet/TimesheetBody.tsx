@@ -44,7 +44,7 @@ export const TimesheetBody = ({
       
       {entries.length === 0 && (
         <tr className="bg-gray-50">
-          <td colSpan={bulkSelectMode ? 13 : 12} className="px-6 py-8 text-center text-gray-500">
+          <td colSpan={bulkSelectMode ? 13 : 12} className="px-4 py-6 text-center text-gray-500 text-sm">
             {isDateSpecific 
               ? "No timesheet entry for this date. Please fill in your work hours." 
               : "No timesheet entries found for this period."}
