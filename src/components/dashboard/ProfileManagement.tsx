@@ -16,7 +16,7 @@ import {
   Briefcase, 
   Edit,
   Heart,
-  Passport
+  FileText
 } from "lucide-react";
 
 interface ProfileManagementProps {
@@ -145,7 +145,7 @@ export const ProfileManagement = ({ employee, onProfileUpdate }: ProfileManageme
               profileData.dob ? format(new Date(profileData.dob), 'dd MMM yyyy') : undefined
             } />
             <ProfileField icon={Heart} label="Blood Group" value={profileData.bloodGroup} />
-            <ProfileField icon={Passport} label="Passport Number" value={profileData.passportNumber} />
+            <ProfileField icon={FileText} label="Passport Number" value={profileData.passportNumber} />
           </CardContent>
         </Card>
 
