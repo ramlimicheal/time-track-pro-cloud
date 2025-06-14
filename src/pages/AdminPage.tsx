@@ -14,7 +14,9 @@ import {
 } from "lucide-react";
 import { User } from "@/types";
 import { toast } from "sonner";
-import { EnhancedDashboard } from "@/components/dashboard/EnhancedDashboard";
+import { CleanAdminDashboard } from "@/components/dashboard/CleanAdminDashboard";
+import { SmartTimesheetManagement } from "@/components/admin/SmartTimesheetManagement";
+import { LeaveManagementDashboard } from "@/components/admin/LeaveManagementDashboard";
 
 const AdminPage = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -36,7 +38,6 @@ const AdminPage = () => {
     if (storedUsers) {
       setUsers(JSON.parse(storedUsers));
     } else {
-      // Create a default admin user if none exists
       const defaultAdmin: User = {
         id: "admin",
         name: "Administrator",
@@ -108,49 +109,43 @@ const AdminPage = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
-              Comprehensive workforce management and business intelligence
+            <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
+            <p className="text-gray-600 text-sm">
+              Manage employees, timesheets, and leave applications
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
-              Export Data
+              Export
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => {
+              setEditingEmployee(null);
+              setIsFormOpen(true);
+            }}>
               <Plus className="h-4 w-4 mr-2" />
-              Quick Actions
+              Add Employee
             </Button>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="employees">Employees</TabsTrigger>
             <TabsTrigger value="timesheets">Timesheets</TabsTrigger>
-            <TabsTrigger value="reports">Reports</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="setup">Setup</TabsTrigger>
+            <TabsTrigger value="leave">Leave</TabsTrigger>
+            <TabsTrigger value="users">Admin Users</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            <EnhancedDashboard userRole="admin" />
+          <TabsContent value="dashboard" className="space-y-4">
+            <CleanAdminDashboard employees={employees} />
           </TabsContent>
 
           <TabsContent value="employees" className="space-y-4">
-            <div className="flex justify-end">
-              <Button onClick={() => {
-                setEditingEmployee(null);
-                setIsFormOpen(true);
-              }}>
-                Add Employee
-              </Button>
-            </div>
             <EmployeeTable
               employees={employees}
               onEdit={handleEditEmployee}
@@ -165,17 +160,17 @@ const AdminPage = () => {
             />
           </TabsContent>
 
-          <TabsContent value="timesheets">
-            <p>Timesheets content</p>
+          <TabsContent value="timesheets" className="space-y-4">
+            <SmartTimesheetManagement employees={employees} />
           </TabsContent>
 
-          <TabsContent value="reports">
-            <p>Reports content</p>
+          <TabsContent value="leave" className="space-y-4">
+            <LeaveManagementDashboard />
           </TabsContent>
 
-          <TabsContent value="users">
+          <TabsContent value="users" className="space-y-4">
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold">Admin Users</h2>
+              <h2 className="text-xl font-semibold">Admin Users</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="username">Username</Label>
@@ -198,10 +193,6 @@ const AdminPage = () => {
               </div>
               <Button onClick={handleCreateAdmin}>Create Admin</Button>
             </div>
-          </TabsContent>
-
-          <TabsContent value="setup">
-            <p>Setup content</p>
           </TabsContent>
         </Tabs>
       </div>

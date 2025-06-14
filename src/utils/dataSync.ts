@@ -72,6 +72,24 @@ class DataSyncManager {
     this.emit("timesheet-approved", { timesheetId, employeeId });
   }
 
+  rejectTimesheet(timesheetId: string, employeeId: string) {
+    const keys = Object.keys(localStorage).filter(key => key.startsWith('timesheet-'));
+    keys.forEach(key => {
+      const timesheet = JSON.parse(localStorage.getItem(key) || '{}');
+      if (timesheet.id === timesheetId) {
+        timesheet.status = 'rejected';
+        timesheet.entries = timesheet.entries.map((entry: TimesheetEntry) => ({
+          ...entry,
+          status: 'rejected'
+        }));
+        localStorage.setItem(key, JSON.stringify(timesheet));
+      }
+    });
+
+    this.updateEmployeePendingTimesheets(employeeId, 0);
+    this.emit("timesheet-rejected", { timesheetId, employeeId });
+  }
+
   private updateEmployeePendingTimesheets(employeeId: string, count: number) {
     const employees = JSON.parse(localStorage.getItem("employees") || "[]");
     const updatedEmployees = employees.map((emp: Employee) =>
@@ -97,6 +115,62 @@ class DataSyncManager {
     this.emit("leave-status-updated", { applicationId, status });
   }
 
+  // Get real-time dashboard data
+  getDashboardData() {
+    const timesheets = this.getAllTimesheets();
+    const applications = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
+    
+    return {
+      pendingTimesheets: timesheets.filter(t => t.status === 'pending').length,
+      pendingLeave: applications.filter((app: LeaveApplication) => app.status === 'pending').length,
+      recentSubmissions: this.getRecentSubmissions(),
+      totalEmployees: JSON.parse(localStorage.getItem("employees") || "[]").length
+    };
+  }
+
+  getAllTimesheets(): Timesheet[] {
+    const keys = Object.keys(localStorage).filter(key => key.startsWith('timesheet-'));
+    const timesheets: Timesheet[] = [];
+    
+    keys.forEach(key => {
+      try {
+        const timesheet = JSON.parse(localStorage.getItem(key) || '{}');
+        if (timesheet.id) {
+          timesheets.push(timesheet);
+        }
+      } catch (e) {
+        console.error("Error parsing timesheet:", e);
+      }
+    });
+    
+    return timesheets;
+  }
+
+  getRecentSubmissions() {
+    const timesheets = this.getAllTimesheets();
+    const applications = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
+    const employees = JSON.parse(localStorage.getItem("employees") || "[]");
+    
+    const submissions = [
+      ...timesheets.map(t => ({
+        type: 'timesheet',
+        employeeName: employees.find((e: Employee) => e.id === t.employeeId)?.name || 'Unknown',
+        status: t.status,
+        date: new Date().toISOString(),
+        id: t.id
+      })),
+      ...applications.map((app: LeaveApplication) => ({
+        type: 'leave',
+        employeeName: employees.find((e: Employee) => e.id === app.employeeId)?.name || 'Unknown',
+        status: app.status,
+        date: app.createdAt,
+        id: app.id
+      }))
+    ];
+    
+    return submissions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+  }
+
   // Get employee statistics
   getEmployeeStats(employeeId: string) {
     // Get timesheet data
@@ -114,7 +188,6 @@ class DataSyncManager {
       }
     });
 
-    // Get leave data
     const applications = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
     const employeeApplications = applications.filter((app: LeaveApplication) => app.employeeId === employeeId);
     const pendingLeave = employeeApplications.filter((app: LeaveApplication) => app.status === "pending").length;
@@ -123,7 +196,7 @@ class DataSyncManager {
       totalHours,
       pendingTimesheets,
       pendingLeave,
-      productivity: Math.min(100, Math.max(0, (totalHours / 160) * 100)) // Based on ~160 hours/month
+      productivity: Math.min(100, Math.max(0, (totalHours / 160) * 100))
     };
   }
 }
