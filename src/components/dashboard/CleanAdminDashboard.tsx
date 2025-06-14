@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +14,8 @@ import {
 import { dataSyncManager } from "@/utils/dataSync";
 import { Employee, Timesheet, LeaveApplication } from "@/types";
 import { toast } from "sonner";
+import { LiveEmployeeGrid } from "./LiveEmployeeGrid";
+import { LiveActivityFeed } from "./LiveActivityFeed";
 
 interface CleanAdminDashboardProps {
   employees: Employee[];
@@ -98,6 +99,9 @@ export const CleanAdminDashboard = ({ employees }: CleanAdminDashboardProps) => 
 
   return (
     <div className="space-y-4">
+      {/* Live Employee Tracking */}
+      <LiveEmployeeGrid />
+
       {/* Essential Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -149,8 +153,13 @@ export const CleanAdminDashboard = ({ employees }: CleanAdminDashboardProps) => 
         </Card>
       </div>
 
-      {/* Quick Actions Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Live Activity and Quick Actions Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Live Activity Feed */}
+        <div className="lg:col-span-1">
+          <LiveActivityFeed />
+        </div>
+
         {/* Pending Timesheets */}
         <Card>
           <CardHeader className="pb-3">
@@ -245,44 +254,6 @@ export const CleanAdminDashboard = ({ employees }: CleanAdminDashboardProps) => 
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center">
-            <FileText className="h-5 w-5 mr-2" />
-            Recent Employee Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {dashboardData.recentSubmissions.length === 0 ? (
-              <p className="text-gray-500 text-sm">No recent activity</p>
-            ) : (
-              dashboardData.recentSubmissions.map((submission: any, index) => (
-                <div key={index} className="flex items-center justify-between p-2 border-l-4 border-blue-200 bg-blue-50">
-                  <div>
-                    <p className="font-medium text-sm">{submission.employeeName}</p>
-                    <p className="text-xs text-gray-600">
-                      Submitted {submission.type} • {new Date(submission.date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Badge 
-                    variant="outline"
-                    className={
-                      submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      submission.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }
-                  >
-                    {submission.status}
-                  </Badge>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
