@@ -4,12 +4,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Calendar, CalendarCheck, CalendarX } from "lucide-react";
 import { FormField } from "@/components/admin/FormField";
+import { dataSyncManager } from "@/utils/dataSync";
 
 interface LeaveApplicationFormProps {
   employeeId: string;
+  onSuccess?: () => void;
 }
 
-export const LeaveApplicationForm = ({ employeeId }: LeaveApplicationFormProps) => {
+export const LeaveApplicationForm = ({ employeeId, onSuccess }: LeaveApplicationFormProps) => {
   const [formData, setFormData] = useState({
     startDate: "",
     endDate: "",
@@ -35,7 +37,15 @@ export const LeaveApplicationForm = ({ employeeId }: LeaveApplicationFormProps) 
       return;
     }
 
-    // In a real app, this would be sent to an API
+    // Validate date range
+    const startDate = new Date(formData.startDate);
+    const endDate = new Date(formData.endDate);
+    
+    if (endDate < startDate) {
+      toast.error("End date cannot be before start date");
+      return;
+    }
+
     const leaveApplication = {
       id: `leave-${Date.now()}`,
       employeeId,
@@ -43,14 +53,12 @@ export const LeaveApplicationForm = ({ employeeId }: LeaveApplicationFormProps) 
       endDate: formData.endDate,
       leaveType: formData.leaveType,
       reason: formData.reason,
-      status: "pending",
+      status: "pending" as const,
       createdAt: new Date().toISOString()
     };
 
-    // Save to localStorage for persistence
-    const existingLeaves = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
-    localStorage.setItem("leaveApplications", JSON.stringify([...existingLeaves, leaveApplication]));
-
+    // Use data sync manager to submit leave application
+    dataSyncManager.submitLeaveApplication(leaveApplication);
     toast.success("Leave application submitted successfully");
     
     // Reset form
@@ -60,11 +68,15 @@ export const LeaveApplicationForm = ({ employeeId }: LeaveApplicationFormProps) 
       leaveType: "annual",
       reason: ""
     });
+
+    // Call success callback if provided
+    if (onSuccess) {
+      onSuccess();
+    }
   };
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Apply for Leave</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           label="Start Date"
@@ -106,7 +118,12 @@ export const LeaveApplicationForm = ({ employeeId }: LeaveApplicationFormProps) 
           required
         />
         
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {onSuccess && (
+            <Button type="button" variant="outline" onClick={onSuccess}>
+              Cancel
+            </Button>
+          )}
           <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
             Submit Application
           </Button>

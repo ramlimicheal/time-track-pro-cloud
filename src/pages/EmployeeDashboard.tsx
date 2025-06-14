@@ -1,14 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Employee } from "@/types";
 import { EmployeeHeader } from "@/components/dashboard/EmployeeHeader";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { LeaveApplicationForm } from "@/components/dashboard/LeaveApplicationForm";
-import { RecentLeaveApplications } from "@/components/dashboard/RecentLeaveApplications";
 import { LeaveBalanceTracker } from "@/components/dashboard/LeaveBalanceTracker";
-import { ProfileManagement } from "@/components/dashboard/ProfileManagement";
+import { RecentLeaveApplications } from "@/components/dashboard/RecentLeaveApplications";
+import { QuickActions } from "@/components/dashboard/QuickActions";
 import { useNavigate } from "react-router-dom";
 import { EnhancedDashboard } from "@/components/dashboard/EnhancedDashboard";
+import { dataSyncManager } from "@/utils/dataSync";
 
 const EmployeeDashboard = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -66,6 +67,34 @@ const EmployeeDashboard = () => {
     }
   }, [navigate]);
 
+  // Listen for data changes
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      // Refresh employee data when updates occur
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        const user = JSON.parse(userData);
+        setEmployee(prevEmployee => {
+          if (!prevEmployee) return null;
+          return {
+            ...prevEmployee,
+            ...user
+          };
+        });
+      }
+    };
+
+    dataSyncManager.subscribe("employee-updated", handleDataUpdate);
+    dataSyncManager.subscribe("timesheet-submitted", handleDataUpdate);
+    dataSyncManager.subscribe("leave-submitted", handleDataUpdate);
+    
+    return () => {
+      dataSyncManager.unsubscribe("employee-updated", handleDataUpdate);
+      dataSyncManager.unsubscribe("timesheet-submitted", handleDataUpdate);
+      dataSyncManager.unsubscribe("leave-submitted", handleDataUpdate);
+    };
+  }, []);
+
   // Listen for changes in localStorage
   useEffect(() => {
     const handleStorageChange = () => {
@@ -90,6 +119,7 @@ const EmployeeDashboard = () => {
 
   const handleProfileUpdate = (updatedEmployee: Employee) => {
     setEmployee(updatedEmployee);
+    dataSyncManager.updateEmployeeProfile(updatedEmployee.id, updatedEmployee);
   };
 
   if (!employee) {
@@ -117,6 +147,7 @@ const EmployeeDashboard = () => {
           </div>
           
           <div className="space-y-6">
+            <QuickActions employeeId={employee.id} />
             <LeaveBalanceTracker employeeId={employee.id} />
             <RecentLeaveApplications employeeId={employee.id} />
           </div>

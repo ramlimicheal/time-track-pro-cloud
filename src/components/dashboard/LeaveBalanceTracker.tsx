@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Calendar, Clock, CheckCircle } from "lucide-react";
 import { LeaveApplication } from "@/types";
 import { differenceInDays } from "date-fns";
+import { dataSyncManager } from "@/utils/dataSync";
 
 interface LeaveBalanceTrackerProps {
   employeeId: string;
@@ -24,34 +25,55 @@ export const LeaveBalanceTracker = ({ employeeId }: LeaveBalanceTrackerProps) =>
   });
 
   useEffect(() => {
-    calculateLeaveBalance();
-  }, [employeeId]);
+    const calculateLeaveBalance = () => {
+      const applications: LeaveApplication[] = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
+      const employeeApplications = applications.filter(app => app.employeeId === employeeId);
 
-  const calculateLeaveBalance = () => {
-    const applications: LeaveApplication[] = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
-    const employeeApplications = applications.filter(app => app.employeeId === employeeId);
+      const balance: LeaveBalance = {
+        annual: { total: 21, used: 0, pending: 0 },
+        sick: { total: 10, used: 0, pending: 0 },
+        personal: { total: 5, used: 0, pending: 0 }
+      };
 
-    const balance: LeaveBalance = {
-      annual: { total: 21, used: 0, pending: 0 },
-      sick: { total: 10, used: 0, pending: 0 },
-      personal: { total: 5, used: 0, pending: 0 }
+      const currentYear = new Date().getFullYear();
+
+      employeeApplications.forEach(app => {
+        const appDate = new Date(app.startDate);
+        // Only count applications from current year
+        if (appDate.getFullYear() === currentYear) {
+          const days = differenceInDays(new Date(app.endDate), new Date(app.startDate)) + 1;
+          const leaveType = app.leaveType as keyof LeaveBalance;
+          
+          if (balance[leaveType]) {
+            if (app.status === "approved") {
+              balance[leaveType].used += days;
+            } else if (app.status === "pending") {
+              balance[leaveType].pending += days;
+            }
+          }
+        }
+      });
+
+      setLeaveBalance(balance);
     };
 
-    employeeApplications.forEach(app => {
-      const days = differenceInDays(new Date(app.endDate), new Date(app.startDate)) + 1;
-      const leaveType = app.leaveType as keyof LeaveBalance;
-      
-      if (balance[leaveType]) {
-        if (app.status === "approved") {
-          balance[leaveType].used += days;
-        } else if (app.status === "pending") {
-          balance[leaveType].pending += days;
-        }
-      }
-    });
+    calculateLeaveBalance();
 
-    setLeaveBalance(balance);
-  };
+    // Subscribe to leave updates
+    const handleLeaveUpdate = () => calculateLeaveBalance();
+    dataSyncManager.subscribe("leave-submitted", handleLeaveUpdate);
+    dataSyncManager.subscribe("leave-status-updated", handleLeaveUpdate);
+
+    // Listen for storage changes
+    const handleStorageChange = () => calculateLeaveBalance();
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      dataSyncManager.unsubscribe("leave-submitted", handleLeaveUpdate);
+      dataSyncManager.unsubscribe("leave-status-updated", handleLeaveUpdate);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [employeeId]);
 
   const getProgressValue = (used: number, total: number) => {
     return Math.min((used / total) * 100, 100);

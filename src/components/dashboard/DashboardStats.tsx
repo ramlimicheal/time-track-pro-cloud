@@ -1,117 +1,136 @@
 
 import { useEffect, useState } from "react";
-import { Employee, Timesheet } from "@/types";
+import { Employee, Timesheet, LeaveApplication } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Calendar, FileCheck, FileX } from "lucide-react";
+import { dataSyncManager } from "@/utils/dataSync";
+import { differenceInDays } from "date-fns";
 
 interface DashboardStatsProps {
   employee: Employee;
 }
 
+interface EmployeeStats {
+  totalHours: number;
+  pendingTimesheets: number;
+  pendingLeave: number;
+  productivity: number;
+  leaveBalance: number;
+}
+
 export const DashboardStats = ({ employee }: DashboardStatsProps) => {
-  const [latestTimesheet, setLatestTimesheet] = useState<Timesheet | null>(null);
-  
-  // Find the latest timesheet for this employee
+  const [stats, setStats] = useState<EmployeeStats>({
+    totalHours: 0,
+    pendingTimesheets: 0,
+    pendingLeave: 0,
+    productivity: 0,
+    leaveBalance: 21
+  });
+
   useEffect(() => {
-    const findLatestTimesheet = () => {
-      const keys = Object.keys(localStorage);
-      const timesheetKeys = keys.filter(key => key.startsWith('timesheet-'));
+    const loadStats = () => {
+      // Get timesheet data
+      const keys = Object.keys(localStorage).filter(key => key.startsWith('timesheet-'));
+      let totalHours = 0;
+      let pendingTimesheets = 0;
       
-      let latest: Timesheet | null = null;
-      let latestDate = new Date(0);
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
       
-      timesheetKeys.forEach(key => {
+      keys.forEach(key => {
         try {
           const timesheet = JSON.parse(localStorage.getItem(key) || '{}') as Timesheet;
-          if (timesheet.employeeId === employee.id) {
-            const timesheetDate = new Date(timesheet.year, timesheet.month - 1);
-            if (timesheetDate > latestDate) {
-              latestDate = timesheetDate;
-              latest = timesheet;
-            }
+          if (timesheet.employeeId === employee.id && 
+              timesheet.month === currentMonth && 
+              timesheet.year === currentYear) {
+            if (timesheet.status === 'pending') pendingTimesheets++;
+            timesheet.entries?.forEach(entry => {
+              totalHours += entry.totalHours || 0;
+            });
           }
         } catch (e) {
           console.error("Error parsing timesheet:", e);
         }
       });
+
+      // Get leave data
+      const applications = JSON.parse(localStorage.getItem("leaveApplications") || "[]") as LeaveApplication[];
+      const employeeApplications = applications.filter(app => app.employeeId === employee.id);
+      const pendingLeave = employeeApplications.filter(app => app.status === "pending").length;
       
-      setLatestTimesheet(latest);
+      // Calculate used leave days this year
+      const currentYearApplications = employeeApplications.filter(app => {
+        const appDate = new Date(app.startDate);
+        return appDate.getFullYear() === currentYear && app.status === "approved";
+      });
+      
+      const usedLeaveDays = currentYearApplications.reduce((total, app) => {
+        return total + differenceInDays(new Date(app.endDate), new Date(app.startDate)) + 1;
+      }, 0);
+      
+      const leaveBalance = Math.max(0, 21 - usedLeaveDays); // Assuming 21 days annual leave
+      const productivity = totalHours > 0 ? Math.min(100, (totalHours / 160) * 100) : 0; // Based on ~160 hours/month
+
+      setStats({
+        totalHours,
+        pendingTimesheets,
+        pendingLeave,
+        productivity,
+        leaveBalance
+      });
     };
-    
-    findLatestTimesheet();
-    
-    // Add event listener for storage changes
-    const handleStorageChange = () => {
-      findLatestTimesheet();
-    };
-    
+
+    loadStats();
+
+    // Subscribe to data changes
+    const handleDataUpdate = () => loadStats();
+    dataSyncManager.subscribe("timesheet-submitted", handleDataUpdate);
+    dataSyncManager.subscribe("timesheet-approved", handleDataUpdate);
+    dataSyncManager.subscribe("leave-submitted", handleDataUpdate);
+    dataSyncManager.subscribe("leave-status-updated", handleDataUpdate);
+
+    // Listen for storage changes from other tabs
+    const handleStorageChange = () => loadStats();
     window.addEventListener('storage', handleStorageChange);
+    
     return () => {
+      dataSyncManager.unsubscribe("timesheet-submitted", handleDataUpdate);
+      dataSyncManager.unsubscribe("timesheet-approved", handleDataUpdate);
+      dataSyncManager.unsubscribe("leave-submitted", handleDataUpdate);
+      dataSyncManager.unsubscribe("leave-status-updated", handleDataUpdate);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [employee.id]);
-  
-  // Get stats based on timesheet status
+
+  // Get status info based on timesheet status
   const getTimesheetStatusInfo = () => {
-    if (!latestTimesheet) {
+    if (stats.pendingTimesheets > 0) {
       return {
-        value: "0",
-        change: "No timesheets",
-        color: "text-gray-500",
-        bgColor: "bg-gray-100"
+        value: stats.pendingTimesheets.toString(),
+        change: "Awaiting approval",
+        color: "text-yellow-500",
+        bgColor: "bg-yellow-100"
       };
     }
     
-    switch(latestTimesheet.status) {
-      case "approved":
-        return {
-          value: "0",
-          change: "Timesheet approved",
-          color: "text-green-500",
-          bgColor: "bg-green-100"
-        };
-      case "rejected":
-        return {
-          value: "1",
-          change: "Timesheet rejected",
-          color: "text-red-500",
-          bgColor: "bg-red-100"
-        };
-      case "pending":
-        return {
-          value: "1",
-          change: "Awaiting approval",
-          color: "text-yellow-500",
-          bgColor: "bg-yellow-100"
-        };
-      case "draft":
-        return {
-          value: "1",
-          change: "Draft - needs submission",
-          color: "text-blue-500",
-          bgColor: "bg-blue-100"
-        };
-      default:
-        return {
-          value: "0",
-          change: "No timesheets",
-          color: "text-gray-500",
-          bgColor: "bg-gray-100"
-        };
-    }
+    return {
+      value: "0",
+      change: "All approved",
+      color: "text-green-500",
+      bgColor: "bg-green-100"
+    };
   };
   
   const timesheetStatus = getTimesheetStatusInfo();
   
-  // In a real app, these values would come from the API
-  const stats = [
+  const dashboardStats = [
     {
       title: "Hours this month",
-      value: "145.5",
-      change: "+12.5%",
+      value: `${stats.totalHours.toFixed(1)}h`,
+      change: stats.totalHours > 120 ? "Above target" : stats.totalHours > 80 ? "On track" : "Below target",
       icon: Clock,
-      color: "text-blue-500",
-      bgColor: "bg-blue-100"
+      color: stats.totalHours > 120 ? "text-green-500" : stats.totalHours > 80 ? "text-blue-500" : "text-orange-500",
+      bgColor: stats.totalHours > 120 ? "bg-green-100" : stats.totalHours > 80 ? "bg-blue-100" : "bg-orange-100"
     },
     {
       title: "Timesheet Status",
@@ -123,7 +142,7 @@ export const DashboardStats = ({ employee }: DashboardStatsProps) => {
     },
     {
       title: "Leave Balance",
-      value: "14",
+      value: stats.leaveBalance.toString(),
       change: "Days remaining",
       icon: Calendar,
       color: "text-purple-500",
@@ -131,17 +150,17 @@ export const DashboardStats = ({ employee }: DashboardStatsProps) => {
     },
     {
       title: "Pending Applications",
-      value: "2",
-      change: "Awaiting approval",
+      value: stats.pendingLeave.toString(),
+      change: stats.pendingLeave > 0 ? "Awaiting approval" : "All processed",
       icon: FileX,
-      color: "text-orange-500",
-      bgColor: "bg-orange-100"
+      color: stats.pendingLeave > 0 ? "text-orange-500" : "text-green-500",
+      bgColor: stats.pendingLeave > 0 ? "bg-orange-100" : "bg-green-100"
     }
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {stats.map((stat, index) => (
+      {dashboardStats.map((stat, index) => (
         <Card key={index}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
