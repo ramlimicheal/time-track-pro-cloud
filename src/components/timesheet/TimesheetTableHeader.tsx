@@ -1,28 +1,53 @@
 
 interface TimesheetTableHeaderProps {
   showActions?: boolean;
-  isDateSpecific?: boolean;
+  showBulkSelect?: boolean;
 }
 
-export const TimesheetTableHeader = ({ 
-  showActions = false, 
-  isDateSpecific = false 
-}: TimesheetTableHeaderProps) => {
+export const TimesheetTableHeader = ({ showActions = false, showBulkSelect = false }: TimesheetTableHeaderProps) => {
   return (
-    <thead className="bg-gray-50 text-xs uppercase text-gray-700 border-b border-gray-200">
+    <thead className="bg-gray-50 border-b border-gray-200">
       <tr>
-        {!isDateSpecific && <th className="px-[12px] py-3">Date</th>}
-        <th className="px-2 py-3">Start</th>
-        <th className="px-2 py-3">Break Start</th>
-        <th className="px-2 py-3">Break End</th>
-        <th className="px-2 py-3">End</th>
-        <th className="px-2 py-3">Description</th>
-        <th className="px-2 py-3">OT Start</th>
-        <th className="px-2 py-3">OT End</th>
-        <th className="px-2 py-3">Hours</th>
-        <th className="px-2 py-3">Remarks</th>
-        <th className="px-2 py-3">Status</th>
-        {showActions && <th className="px-2 py-3">Actions</th>}
+        {showBulkSelect && (
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Select
+          </th>
+        )}
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Date
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Work Start
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Work End
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Break Start
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Break End
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          OT Start
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          OT End
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Description
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Total Hours
+        </th>
+        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+          Status
+        </th>
+        {showActions && (
+          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Actions
+          </th>
+        )}
       </tr>
     </thead>
   );

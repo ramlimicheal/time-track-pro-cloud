@@ -1,6 +1,6 @@
-
 import { TimesheetEntry } from "@/types";
 import { TimesheetRow } from "./TimesheetRow";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TimesheetBodyProps {
   entries: TimesheetEntry[];
@@ -9,6 +9,9 @@ interface TimesheetBodyProps {
   onApproveEntry?: (entryId: string) => void;
   onRejectEntry?: (entryId: string) => void;
   isDateSpecific?: boolean;
+  bulkSelectMode?: boolean;
+  selectedEntries?: string[];
+  onToggleSelection?: (entryId: string) => void;
 }
 
 export const TimesheetBody = ({ 
@@ -17,7 +20,10 @@ export const TimesheetBody = ({
   onUpdate,
   onApproveEntry,
   onRejectEntry,
-  isDateSpecific = false
+  isDateSpecific = false,
+  bulkSelectMode = false,
+  selectedEntries = [],
+  onToggleSelection
 }: TimesheetBodyProps) => {
   return (
     <tbody>
@@ -30,12 +36,15 @@ export const TimesheetBody = ({
           onApproveEntry={onApproveEntry}
           onRejectEntry={onRejectEntry}
           isDateSpecific={isDateSpecific}
+          bulkSelectMode={bulkSelectMode}
+          isSelected={selectedEntries.includes(entry.id)}
+          onToggleSelection={onToggleSelection}
         />
       ))}
       
       {entries.length === 0 && (
         <tr className="bg-gray-50">
-          <td colSpan={isDateSpecific ? 11 : 12} className="px-6 py-8 text-center text-gray-500">
+          <td colSpan={bulkSelectMode ? 13 : 12} className="px-6 py-8 text-center text-gray-500">
             {isDateSpecific 
               ? "No timesheet entry for this date. Please fill in your work hours." 
               : "No timesheet entries found for this period."}

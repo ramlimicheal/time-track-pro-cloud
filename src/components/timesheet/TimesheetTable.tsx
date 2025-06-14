@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
@@ -7,8 +6,9 @@ import { TimesheetTableHeader } from "./TimesheetTableHeader";
 import { TimesheetBody } from "./TimesheetBody";
 import { TimesheetActions } from "./TimesheetActions";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Check, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface TimesheetTableProps {
   month: string;
@@ -38,6 +38,8 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   isDateSpecific = false,
 }) => {
   const [localEntries, setLocalEntries] = useState<TimesheetEntry[]>(entries);
+  const [bulkSelectMode, setBulkSelectMode] = useState(false);
+  const [selectedEntries, setSelectedEntries] = useState<string[]>([]);
 
   useEffect(() => {
     setLocalEntries(entries);
@@ -82,6 +84,52 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
     setLocalEntries(updatedEntries);
   };
 
+  const handleBulkApprove = () => {
+    if (selectedEntries.length === 0) {
+      toast.error("Please select entries to approve");
+      return;
+    }
+    
+    selectedEntries.forEach(entryId => {
+      if (onApproveEntry) onApproveEntry(entryId);
+    });
+    
+    toast.success(`${selectedEntries.length} entries approved`);
+    setSelectedEntries([]);
+    setBulkSelectMode(false);
+  };
+
+  const handleBulkReject = () => {
+    if (selectedEntries.length === 0) {
+      toast.error("Please select entries to reject");
+      return;
+    }
+    
+    selectedEntries.forEach(entryId => {
+      if (onRejectEntry) onRejectEntry(entryId);
+    });
+    
+    toast.success(`${selectedEntries.length} entries rejected`);
+    setSelectedEntries([]);
+    setBulkSelectMode(false);
+  };
+
+  const toggleEntrySelection = (entryId: string) => {
+    setSelectedEntries(prev => 
+      prev.includes(entryId) 
+        ? prev.filter(id => id !== entryId)
+        : [...prev, entryId]
+    );
+  };
+
+  const selectAllEntries = () => {
+    setSelectedEntries(localEntries.map(entry => entry.id));
+  };
+
+  const clearSelection = () => {
+    setSelectedEntries([]);
+  };
+
   const handleSave = () => {
     // Validate all entries
     const invalidEntries = localEntries.filter(entry => 
@@ -123,9 +171,44 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
       <div className="p-5 bg-timetrack-lightBlue border-b border-gray-200 print:bg-white">
-        <h2 className="text-lg font-medium text-gray-800 text-center">
-          {getTableTitle()}
-        </h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-medium text-gray-800">
+            {getTableTitle()}
+          </h2>
+          
+          {(onApproveEntry || onRejectEntry) && (
+            <div className="flex items-center gap-2">
+              {bulkSelectMode && (
+                <>
+                  <div className="text-sm text-gray-600">
+                    {selectedEntries.length} selected
+                  </div>
+                  <Button size="sm" onClick={selectAllEntries} variant="outline">
+                    Select All
+                  </Button>
+                  <Button size="sm" onClick={clearSelection} variant="outline">
+                    Clear
+                  </Button>
+                  <Button size="sm" onClick={handleBulkApprove} className="bg-green-600 hover:bg-green-700">
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Approve Selected
+                  </Button>
+                  <Button size="sm" onClick={handleBulkReject} variant="destructive">
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Reject Selected
+                  </Button>
+                </>
+              )}
+              <Button 
+                size="sm" 
+                onClick={() => setBulkSelectMode(!bulkSelectMode)}
+                variant={bulkSelectMode ? "default" : "outline"}
+              >
+                {bulkSelectMode ? "Exit Bulk Mode" : "Bulk Actions"}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {timesheetStatus === "approved" && (
@@ -150,13 +233,16 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
 
       <div className="overflow-x-auto">
         <table className="w-full timesheet-table text-sm">
-          <TimesheetTableHeader showActions={Boolean(onApproveEntry || onRejectEntry)} />
+          <TimesheetTableHeader showActions={Boolean(onApproveEntry || onRejectEntry)} showBulkSelect={bulkSelectMode} />
           <TimesheetBody 
             entries={localEntries} 
             readOnly={readOnly} 
             onUpdate={updateEntry}
             onApproveEntry={onApproveEntry}
             onRejectEntry={onRejectEntry}
+            bulkSelectMode={bulkSelectMode}
+            selectedEntries={selectedEntries}
+            onToggleSelection={toggleEntrySelection}
           />
         </table>
       </div>
