@@ -1,196 +1,208 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { UserManagement } from "@/components/admin/UserManagement";
-import { EmployeeManagement } from "@/components/admin/EmployeeManagement";
-import { LeaveManagementDashboard } from "@/components/admin/LeaveManagementDashboard";
-import { TimesheetReview } from "@/components/admin/TimesheetReview";
-import { ReportsSection } from "@/components/admin/ReportsSection";
-import { SetupGuide } from "@/components/admin/SetupGuide";
-import { Employee } from "@/types";
-import { AdvancedUserManagement } from "@/components/admin/AdvancedUserManagement";
-import { AuditTrail } from "@/components/admin/AuditTrail";
-import { SmartTimesheetManagement } from "@/components/admin/SmartTimesheetManagement";
+import { EmployeeTable } from "@/components/admin/EmployeeTable";
+import { EmployeeForm } from "@/components/admin/EmployeeForm";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Download,
+  Plus
+} from "lucide-react";
+import { User } from "@/types";
+import { toast } from "sonner";
+import { EnhancedDashboard } from "@/components/dashboard/EnhancedDashboard";
 
 const AdminPage = () => {
-  const [activeSection, setActiveSection] = useState<
-    "users" | "leave" | "employees" | "timesheet" | "reports" | "profile" | "overview" | "audit" | "advanced"
-  >("overview");
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [showSetupGuide, setShowSetupGuide] = useState(false);
-
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("dashboard");
+  const [newUsername, setNewUsername] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const navigate = useNavigate();
+  
   useEffect(() => {
-    fetchEmployees();
-    checkFirstTimeSetup();
-  }, []);
-
-  const checkFirstTimeSetup = () => {
-    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-    
-    // Show setup guide if user is setup-admin and no real admin accounts exist
-    if (currentUser.id === "setup-admin" && storedUsers.length === 0) {
-      setShowSetupGuide(true);
-      setActiveSection("users");
-    }
-  };
-
-  const fetchEmployees = () => {
     const storedEmployees = localStorage.getItem("employees");
     if (storedEmployees) {
       setEmployees(JSON.parse(storedEmployees));
     }
+    
+    const storedUsers = localStorage.getItem("users");
+    if (storedUsers) {
+      setUsers(JSON.parse(storedUsers));
+    } else {
+      // Create a default admin user if none exists
+      const defaultAdmin = {
+        id: "admin",
+        username: "admin",
+        password: "password",
+        email: "admin@example.com",
+        role: "admin"
+      };
+      localStorage.setItem("users", JSON.stringify([defaultAdmin]));
+      setUsers([defaultAdmin]);
+    }
+  }, []);
+  
+  useEffect(() => {
+    localStorage.setItem("employees", JSON.stringify(employees));
+  }, [employees]);
+  
+  useEffect(() => {
+    localStorage.setItem("users", JSON.stringify(users));
+  }, [users]);
+  
+  const handleCreateEmployee = (newEmployee: any) => {
+    setEmployees([...employees, newEmployee]);
+    setIsFormOpen(false);
+    toast.success("Employee created successfully");
   };
-
-  const handleCreateFirstAdmin = () => {
-    setShowSetupGuide(false);
-    setActiveSection("users");
-  };
-
-  if (showSetupGuide) {
-    return (
-      <MainLayout>
-        <div className="container mx-auto px-4 py-8">
-          <SetupGuide onCreateFirstAdmin={handleCreateFirstAdmin} />
-        </div>
-      </MainLayout>
+  
+  const handleUpdateEmployee = (updatedEmployee: any) => {
+    const updatedEmployees = employees.map((employee) =>
+      employee.id === updatedEmployee.id ? updatedEmployee : employee
     );
-  }
+    setEmployees(updatedEmployees);
+    setEditingEmployee(null);
+    setIsFormOpen(false);
+    toast.success("Employee updated successfully");
+  };
+  
+  const handleDeleteEmployee = (employeeToDelete: any) => {
+    const updatedEmployees = employees.filter(
+      (employee) => employee.id !== employeeToDelete.id
+    );
+    setEmployees(updatedEmployees);
+    toast.success("Employee deleted successfully");
+  };
+  
+  const handleEditEmployee = (employee: any) => {
+    setEditingEmployee(employee);
+    setIsFormOpen(true);
+  };
+  
+  const handleCreateAdmin = () => {
+    if (newUsername && newPassword) {
+      const newAdmin = {
+        id: new Date().getTime().toString(),
+        username: newUsername,
+        password: newPassword,
+        email: `${newUsername}@example.com`,
+        role: "admin"
+      };
+      setUsers([...users, newAdmin]);
+      setNewUsername("");
+      setNewPassword("");
+      toast.success("Admin created successfully");
+    } else {
+      toast.error("Please enter a username and password");
+    }
+  };
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-semibold mb-4">Advanced Admin Dashboard</h1>
-
-        <div className="flex flex-wrap gap-2 mb-6">
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeSection === "overview"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            onClick={() => setActiveSection("overview")}
-          >
-            Overview
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeSection === "users"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            onClick={() => setActiveSection("users")}
-          >
-            User Management
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeSection === "employees"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            onClick={() => setActiveSection("employees")}
-          >
-            Employee Management
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeSection === "advanced"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            onClick={() => setActiveSection("advanced")}
-          >
-            Smart Timesheets
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeSection === "leave"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            onClick={() => setActiveSection("leave")}
-          >
-            Leave Management
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeSection === "reports"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            onClick={() => setActiveSection("reports")}
-          >
-            Reports & Analytics
-          </button>
-          <button
-            className={`px-4 py-2 rounded-md ${
-              activeSection === "audit"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            }`}
-            onClick={() => setActiveSection("audit")}
-          >
-            Security Audit
-          </button>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+            <p className="text-muted-foreground">
+              Comprehensive workforce management and business intelligence
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Data
+            </Button>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Quick Actions
+            </Button>
+          </div>
         </div>
 
-        {(() => {
-          switch (activeSection) {
-            case "users":
-              return <AdvancedUserManagement />;
-              
-            case "leave":
-              return <LeaveManagementDashboard />;
-              
-            case "employees":
-              return <EmployeeManagement employees={employees} />;
-              
-            case "advanced":
-              return <SmartTimesheetManagement employees={employees} />;
-              
-            case "timesheet":
-              return <TimesheetReview 
-                employee={undefined}
-                entries={[]}
-                timesheetStatus="pending"
-                onBack={() => setActiveSection("overview")}
-                onApprove={() => {}}
-                onReject={() => {}}
-                onGeneratePDF={() => {}}
-              />;
-              
-            case "reports":
-              return <ReportsSection employees={employees} />;
-              
-            case "audit":
-              return <AuditTrail />;
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="employees">Employees</TabsTrigger>
+            <TabsTrigger value="timesheets">Timesheets</TabsTrigger>
+            <TabsTrigger value="reports">Reports</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="setup">Setup</TabsTrigger>
+          </TabsList>
 
-            case "profile":
-              return <EmployeeManagement employees={employees} />;
+          <TabsContent value="dashboard" className="space-y-6">
+            <EnhancedDashboard userRole="admin" />
+          </TabsContent>
 
-            default:
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 className="text-lg font-semibold mb-2">Total Employees</h3>
-                    <p className="text-3xl font-bold text-blue-600">{employees.length}</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 className="text-lg font-semibold mb-2">Pending Timesheets</h3>
-                    <p className="text-3xl font-bold text-yellow-600">12</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 className="text-lg font-semibold mb-2">Active Users</h3>
-                    <p className="text-3xl font-bold text-green-600">8</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg shadow-sm border">
-                    <h3 className="text-lg font-semibold mb-2">This Month Hours</h3>
-                    <p className="text-3xl font-bold text-purple-600">1,247</p>
-                  </div>
+          <TabsContent value="employees" className="space-y-4">
+            <div className="flex justify-end">
+              <Button onClick={() => {
+                setEditingEmployee(null);
+                setIsFormOpen(true);
+              }}>
+                Add Employee
+              </Button>
+            </div>
+            <EmployeeTable
+              employees={employees}
+              onEdit={handleEditEmployee}
+              onDelete={handleDeleteEmployee}
+            />
+            {isFormOpen && (
+              <EmployeeForm
+                isOpen={isFormOpen}
+                onClose={() => setIsFormOpen(false)}
+                onCreate={handleCreateEmployee}
+                onUpdate={handleUpdateEmployee}
+                editingEmployee={editingEmployee}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="timesheets">
+            <p>Timesheets content</p>
+          </TabsContent>
+
+          <TabsContent value="reports">
+            <p>Reports content</p>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Admin Users</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    type="text"
+                    id="username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                  />
                 </div>
-              );
-          }
-        })()}
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    type="password"
+                    id="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Button onClick={handleCreateAdmin}>Create Admin</Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="setup">
+            <p>Setup content</p>
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );

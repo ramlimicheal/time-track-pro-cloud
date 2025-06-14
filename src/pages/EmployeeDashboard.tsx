@@ -8,6 +8,7 @@ import { RecentLeaveApplications } from "@/components/dashboard/RecentLeaveAppli
 import { LeaveBalanceTracker } from "@/components/dashboard/LeaveBalanceTracker";
 import { ProfileManagement } from "@/components/dashboard/ProfileManagement";
 import { useNavigate } from "react-router-dom";
+import { EnhancedDashboard } from "@/components/dashboard/EnhancedDashboard";
 
 const EmployeeDashboard = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -94,8 +95,11 @@ const EmployeeDashboard = () => {
   if (!employee) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center h-[80vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>
+            <p className="text-gray-600">Setting up your dashboard</p>
+          </div>
         </div>
       </MainLayout>
     );
@@ -103,24 +107,20 @@ const EmployeeDashboard = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="space-y-6">
         <EmployeeHeader employee={employee} />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <DashboardStats employee={employee} />
-            <RecentLeaveApplications employeeId={employee.id} />
+            <EnhancedDashboard userRole="employee" />
           </div>
           
           <div className="space-y-6">
-            <LeaveBalanceTracker employeeId={employee.id} />
-            <div className="bg-white rounded-lg shadow p-6">
-              <LeaveApplicationForm employeeId={employee.id} />
-            </div>
+            <LeaveBalanceTracker employee={employee} />
+            <RecentLeaveApplications employeeId={employee.id} />
           </div>
         </div>
-        
-        <ProfileManagement employee={employee} onProfileUpdate={handleProfileUpdate} />
       </div>
     </MainLayout>
   );
