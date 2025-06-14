@@ -57,6 +57,26 @@ export const SmartTimesheetManagement = ({ employees }: SmartTimesheetManagement
     return entries;
   };
 
+  const approveTimesheet = (timesheetId: string) => {
+    const updatedTimesheets = timesheets.map(ts => 
+      ts.id === timesheetId ? { ...ts, status: 'approved' as const } : ts
+    );
+    setTimesheets(updatedTimesheets);
+    
+    const timesheet = timesheets.find(ts => ts.id === timesheetId);
+    toast.success(`Timesheet approved for ${timesheet?.employeeName}`);
+  };
+
+  const rejectTimesheet = (timesheetId: string) => {
+    const updatedTimesheets = timesheets.map(ts => 
+      ts.id === timesheetId ? { ...ts, status: 'rejected' as const } : ts
+    );
+    setTimesheets(updatedTimesheets);
+    
+    const timesheet = timesheets.find(ts => ts.id === timesheetId);
+    toast.success(`Timesheet rejected for ${timesheet?.employeeName}`);
+  };
+
   const bulkApproveTimesheets = (status: 'approved' | 'rejected') => {
     const pendingTimesheets = timesheets.filter(ts => ts.status === 'pending');
     const updatedTimesheets = timesheets.map(ts => 
@@ -207,14 +227,35 @@ export const SmartTimesheetManagement = ({ employees }: SmartTimesheetManagement
                       2 days ago
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" className="text-green-600">
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600">
-                          <XCircle className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
+                      <div className="flex gap-2">
+                        {timesheet.status === 'pending' && (
+                          <>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              onClick={() => approveTimesheet(timesheet.id)}
+                              title="Approve timesheet"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => rejectTimesheet(timesheet.id)}
+                              title="Reject timesheet"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          title="Download timesheet"
+                        >
                           <Download className="h-4 w-4" />
                         </Button>
                       </div>
