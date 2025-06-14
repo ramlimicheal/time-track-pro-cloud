@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -44,20 +45,20 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
         // For admin login, check if any admin accounts exist
         const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
         const matchingAdmin = storedUsers.find(
-          (user: any) => user.username === username && user.password === password && user.role === "admin"
+          (user: any) => user.username === username && user.password === password && user.role === "manager"
         );
         
         if (matchingAdmin) {
           const user = {
             id: matchingAdmin.id,
-            name: matchingAdmin.username,
+            name: matchingAdmin.name,
             email: matchingAdmin.email,
             role: "admin"
           };
           localStorage.setItem("user", JSON.stringify(user));
           navigate("/admin");
           toast.success("Login successful");
-        } else if (storedUsers.length === 0 && username === "setup" && password === "setup") {
+        } else if (username === "setup" && password === "setup") {
           // First-time setup account for creating admin
           const user = {
             id: "setup-admin",
@@ -119,7 +120,10 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
         {userType === "employee" ? (
           <p>Use your username and password provided by your administrator.</p>
         ) : (
-          <p>If no admin account exists, use "setup" / "setup" for first-time setup.</p>
+          <div className="space-y-1">
+            <p>Default admin: username "admin", password "admin123"</p>
+            <p>Or use "setup" / "setup" for first-time setup.</p>
+          </div>
         )}
       </div>
     </form>

@@ -1,9 +1,10 @@
-
 export interface User {
   id: string;
   name: string;
   email: string;
   role: 'employee' | 'manager';
+  username?: string;
+  password?: string;
 }
 
 export interface TimesheetEntry {

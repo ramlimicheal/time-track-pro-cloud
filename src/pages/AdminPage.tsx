@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -40,7 +41,9 @@ const AdminPage = () => {
         id: "admin",
         name: "Administrator",
         email: "admin@example.com",
-        role: "manager"
+        role: "manager",
+        username: "admin",
+        password: "admin123"
       };
       localStorage.setItem("users", JSON.stringify([defaultAdmin]));
       setUsers([defaultAdmin]);
@@ -90,7 +93,9 @@ const AdminPage = () => {
         id: new Date().getTime().toString(),
         name: newUsername,
         email: `${newUsername}@example.com`,
-        role: "manager"
+        role: "manager",
+        username: newUsername,
+        password: newPassword
       };
       setUsers([...users, newAdmin]);
       setNewUsername("");
