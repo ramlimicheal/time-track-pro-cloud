@@ -6,6 +6,7 @@ import { EmployeeManagement } from "@/components/admin/EmployeeManagement";
 import { LeaveManagementDashboard } from "@/components/admin/LeaveManagementDashboard";
 import { TimesheetReview } from "@/components/admin/TimesheetReview";
 import { ReportsSection } from "@/components/admin/ReportsSection";
+import { SetupGuide } from "@/components/admin/SetupGuide";
 import { Employee } from "@/types";
 
 const AdminPage = () => {
@@ -13,10 +14,23 @@ const AdminPage = () => {
     "users" | "leave" | "employees" | "timesheet" | "reports" | "profile" | "overview"
   >("overview");
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [showSetupGuide, setShowSetupGuide] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
+    checkFirstTimeSetup();
   }, []);
+
+  const checkFirstTimeSetup = () => {
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
+    
+    // Show setup guide if user is setup-admin and no real admin accounts exist
+    if (currentUser.id === "setup-admin" && storedUsers.length === 0) {
+      setShowSetupGuide(true);
+      setActiveSection("users");
+    }
+  };
 
   const fetchEmployees = () => {
     const storedEmployees = localStorage.getItem("employees");
@@ -24,6 +38,21 @@ const AdminPage = () => {
       setEmployees(JSON.parse(storedEmployees));
     }
   };
+
+  const handleCreateFirstAdmin = () => {
+    setShowSetupGuide(false);
+    setActiveSection("users");
+  };
+
+  if (showSetupGuide) {
+    return (
+      <MainLayout>
+        <div className="container mx-auto px-4 py-8">
+          <SetupGuide onCreateFirstAdmin={handleCreateFirstAdmin} />
+        </div>
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
@@ -92,7 +121,7 @@ const AdminPage = () => {
               return <LeaveManagementDashboard />;
               
             case "employees":
-              return <EmployeeManagement employees={employees} />;
+              return <EmployeeManagement employees={employees} onEmployeeUpdate={fetchEmployees} />;
               
             case "timesheet":
               return <TimesheetReview 
@@ -100,16 +129,16 @@ const AdminPage = () => {
                 entries={[]}
                 timesheetStatus="pending"
                 onBack={() => setActiveSection("overview")}
+                onSubmit={() => {}}
                 onApprove={() => {}}
                 onReject={() => {}}
-                onGeneratePDF={() => {}}
               />;
               
             case "reports":
               return <ReportsSection employees={employees} />;
               
             case "profile":
-              return <EmployeeManagement employees={employees} />;
+              return <EmployeeManagement employees={employees} onEmployeeUpdate={fetchEmployees} />;
 
             default:
               return <div>Overview Section</div>;

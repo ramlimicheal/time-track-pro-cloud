@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
     setIsLoading(true);
     
     setTimeout(() => {
-      // In a real app, this would be an API call to validate credentials
       if (userType === "employee") {
         // Check if this username/password matches any admin-created employees
         const storedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
@@ -44,28 +42,28 @@ export const LoginForm = ({ userType }: LoginFormProps) => {
         }
       } else {
         // For admin login, check if any admin accounts exist
-        const storedAdmins = JSON.parse(localStorage.getItem("admins") || "[]");
-        const matchingAdmin = storedAdmins.find(
-          (admin: any) => admin.username === username && admin.password === password
+        const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
+        const matchingAdmin = storedUsers.find(
+          (user: any) => user.username === username && user.password === password && user.role === "admin"
         );
         
         if (matchingAdmin) {
           const user = {
             id: matchingAdmin.id,
-            name: matchingAdmin.name,
+            name: matchingAdmin.username,
             email: matchingAdmin.email,
-            role: "manager"
+            role: "admin"
           };
           localStorage.setItem("user", JSON.stringify(user));
           navigate("/admin");
           toast.success("Login successful");
-        } else if (storedAdmins.length === 0 && username === "setup" && password === "setup") {
+        } else if (storedUsers.length === 0 && username === "setup" && password === "setup") {
           // First-time setup account for creating admin
           const user = {
             id: "setup-admin",
             name: "Setup Admin",
             email: "setup@example.com",
-            role: "manager"
+            role: "admin"
           };
           localStorage.setItem("user", JSON.stringify(user));
           navigate("/admin");
