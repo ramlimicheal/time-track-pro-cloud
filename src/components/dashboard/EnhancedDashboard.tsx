@@ -14,7 +14,9 @@ import {
   Calendar,
   DollarSign,
   Activity,
-  Globe
+  Globe,
+  Target,
+  Award
 } from "lucide-react";
 import { WorkforceMap } from "./analytics/WorkforceMap";
 import { RealtimeMetrics } from "./analytics/RealtimeMetrics";
@@ -32,7 +34,11 @@ export const EnhancedDashboard = ({ userRole }: EnhancedDashboardProps) => {
     ongoingProjects: 12,
     clientSatisfaction: 94.5,
     revenue: 125000,
-    pendingApprovals: 8
+    pendingApprovals: 8,
+    myProductivity: 92.3,
+    myHoursToday: 7.5,
+    myTasksCompleted: 8,
+    myTeamRating: 4.8
   });
 
   useEffect(() => {
@@ -42,13 +48,16 @@ export const EnhancedDashboard = ({ userRole }: EnhancedDashboardProps) => {
         ...prev,
         activeEmployees: prev.activeEmployees + Math.floor(Math.random() * 3) - 1,
         clientSatisfaction: Math.max(90, Math.min(100, prev.clientSatisfaction + (Math.random() - 0.5))),
+        myProductivity: Math.max(80, Math.min(100, prev.myProductivity + (Math.random() - 0.5))),
+        myHoursToday: Math.max(6, Math.min(10, prev.myHoursToday + (Math.random() - 0.5) * 0.5)),
       }));
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const dashboardMetrics = [
+  // Admin dashboard metrics
+  const adminMetrics = [
     {
       title: "Active Workforce",
       value: realtimeData.activeEmployees.toString(),
@@ -87,11 +96,53 @@ export const EnhancedDashboard = ({ userRole }: EnhancedDashboardProps) => {
     }
   ];
 
+  // Employee dashboard metrics
+  const employeeMetrics = [
+    {
+      title: "My Productivity",
+      value: `${realtimeData.myProductivity.toFixed(1)}%`,
+      change: "+3.2%",
+      icon: Target,
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
+      trend: "up"
+    },
+    {
+      title: "Hours Today",
+      value: `${realtimeData.myHoursToday.toFixed(1)}h`,
+      change: "on track",
+      icon: Clock,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+      trend: "up"
+    },
+    {
+      title: "Tasks Completed",
+      value: realtimeData.myTasksCompleted.toString(),
+      change: "+2 today",
+      icon: CheckCircle,
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
+      trend: "up"
+    },
+    {
+      title: "Team Rating",
+      value: `${realtimeData.myTeamRating.toFixed(1)}/5`,
+      change: "excellent",
+      icon: Award,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-100",
+      trend: "up"
+    }
+  ];
+
   const urgentAlerts = [
     { id: 1, type: "warning", message: "3 employees need visa renewal within 30 days", priority: "high" },
     { id: 2, type: "info", message: "New project assignment available for skilled welders", priority: "medium" },
     { id: 3, type: "error", message: "2 timesheets pending approval for over 48 hours", priority: "high" },
   ];
+
+  const dashboardMetrics = userRole === "admin" ? adminMetrics : employeeMetrics;
 
   return (
     <div className="space-y-6">
@@ -116,8 +167,8 @@ export const EnhancedDashboard = ({ userRole }: EnhancedDashboardProps) => {
         ))}
       </div>
 
-      {/* Urgent Alerts */}
-      {urgentAlerts.length > 0 && (
+      {/* Urgent Alerts - Only show for admin */}
+      {userRole === "admin" && urgentAlerts.length > 0 && (
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader>
             <CardTitle className="flex items-center text-orange-800">
@@ -140,34 +191,91 @@ export const EnhancedDashboard = ({ userRole }: EnhancedDashboardProps) => {
         </Card>
       )}
 
-      {/* Main Dashboard Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="workforce">Workforce</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
+      {/* Main Dashboard Tabs - Only show for admin */}
+      {userRole === "admin" && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="workforce">Workforce</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RealtimeMetrics />
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <RealtimeMetrics />
+              <ProjectStatus />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="workforce" className="space-y-4">
+            <WorkforceMap />
+          </TabsContent>
+
+          <TabsContent value="projects" className="space-y-4">
             <ProjectStatus />
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="workforce" className="space-y-4">
-          <WorkforceMap />
-        </TabsContent>
+          <TabsContent value="analytics" className="space-y-4">
+            <PerformanceInsights />
+          </TabsContent>
+        </Tabs>
+      )}
 
-        <TabsContent value="projects" className="space-y-4">
-          <ProjectStatus />
-        </TabsContent>
+      {/* Employee-specific content */}
+      {userRole === "employee" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Target className="h-5 w-5 mr-2 text-blue-600" />
+                My Performance Today
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Tasks Completed</span>
+                  <span className="text-lg font-bold">{realtimeData.myTasksCompleted}/10</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Hours Worked</span>
+                  <span className="text-lg font-bold">{realtimeData.myHoursToday.toFixed(1)}h</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Productivity Score</span>
+                  <span className="text-lg font-bold text-green-600">{realtimeData.myProductivity.toFixed(1)}%</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <PerformanceInsights />
-        </TabsContent>
-      </Tabs>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="h-5 w-5 mr-2 text-purple-600" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-3">
+                <Button variant="outline" className="justify-start">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Submit Timesheet
+                </Button>
+                <Button variant="outline" className="justify-start">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Request Leave
+                </Button>
+                <Button variant="outline" className="justify-start">
+                  <Users className="h-4 w-4 mr-2" />
+                  View Team Updates
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
