@@ -19,7 +19,7 @@ export const AuthTabs: React.FC<AuthTabsProps> = ({ activeTab, onTabChange }) =>
         onClick={() => onTabChange("employee")}
       >
         <User size={18} />
-        Employee Login
+        <span>Employee Login</span>
       </button>
       <button
         className={`flex items-center gap-2 py-2 px-4 ${
@@ -30,7 +30,7 @@ export const AuthTabs: React.FC<AuthTabsProps> = ({ activeTab, onTabChange }) =>
         onClick={() => onTabChange("admin")}
       >
         <Shield size={18} />
-        Admin Login
+        <span>Admin Login</span>
       </button>
     </div>
   );
