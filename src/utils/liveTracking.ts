@@ -57,7 +57,7 @@ class LiveTrackingManager {
       isOnline: true,
       lastActivity: now,
       sessionDuration: 0,
-      currentActivity: "Dashboard",
+      currentActivity: "Online",
       workHoursToday: this.getTodayWorkHours(employeeId)
     };
 
@@ -78,25 +78,39 @@ class LiveTrackingManager {
     }
   }
 
-  // Update employee activity
+  // Update employee activity with enhanced work timer support
   updateActivity(employeeId: string, activity: string, details?: string) {
     const employee = this.onlineEmployees.get(employeeId);
     if (employee) {
       employee.currentActivity = activity;
       employee.lastActivity = new Date().toISOString();
-      this.addActivity(employeeId, activity.toLowerCase().replace(/\s+/g, '_'), details);
+      
+      // Map timer activities to more readable actions
+      let actionType = activity.toLowerCase().replace(/\s+/g, '_');
+      if (activity === "Working") actionType = "started_working";
+      if (activity === "Break") actionType = "took_break";
+      if (activity === "Work Ended") actionType = "ended_work";
+      
+      this.addActivity(employeeId, actionType, details);
       this.saveToStorage();
       this.emit("activity-updated", { employeeId, activity, details });
     }
   }
 
-  // Track work hours in real-time
+  // Enhanced work hours tracking for real-time timer updates
   updateWorkHours(employeeId: string, hours: number) {
     const employee = this.onlineEmployees.get(employeeId);
     if (employee) {
       employee.workHoursToday = hours;
       this.saveToStorage();
       this.emit("work-hours-updated", { employeeId, hours });
+      
+      // Also emit a general activity update to refresh admin dashboard
+      this.emit("activity-updated", { 
+        employeeId, 
+        activity: "Work Hours Updated", 
+        details: `Total: ${hours.toFixed(1)} hours` 
+      });
     }
   }
 
@@ -117,19 +131,25 @@ class LiveTrackingManager {
     return this.onlineEmployees.get(employeeId) || null;
   }
 
-  // Get live statistics
+  // Enhanced live statistics with work timer data
   getLiveStats() {
     const onlineCount = this.getOnlineEmployees().length;
     const totalWorkHours = Array.from(this.onlineEmployees.values())
       .reduce((sum, emp) => sum + emp.workHoursToday, 0);
-    const activeNow = this.getOnlineEmployees().filter(emp => 
-      new Date().getTime() - new Date(emp.lastActivity).getTime() < 5 * 60 * 1000 // Active in last 5 minutes
+    const activeNow = this.getOnlineEmployees().filter(emp => {
+      const timeSinceActivity = new Date().getTime() - new Date(emp.lastActivity).getTime();
+      return timeSinceActivity < 5 * 60 * 1000 && 
+             (emp.currentActivity === "Working" || emp.currentActivity === "Online");
+    }).length;
+    const workingNow = this.getOnlineEmployees().filter(emp => 
+      emp.currentActivity === "Working"
     ).length;
 
     return {
       onlineEmployees: onlineCount,
       totalWorkHoursToday: Math.round(totalWorkHours * 10) / 10,
       activeNow,
+      workingNow,
       recentActivities: this.getRecentActivities(5).length
     };
   }

@@ -54,8 +54,8 @@ export const LiveEmployeeGrid = () => {
 
   return (
     <div className="space-y-4">
-      {/* Live Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Live Stats with work timer data */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card className="p-3">
           <div className="flex items-center justify-between">
             <div>
@@ -69,10 +69,20 @@ export const LiveEmployeeGrid = () => {
         <Card className="p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-600">Active Now</p>
-              <p className="text-xl font-bold text-blue-600">{liveStats.activeNow}</p>
+              <p className="text-xs text-gray-600">Working Now</p>
+              <p className="text-xl font-bold text-blue-600">{liveStats.workingNow || 0}</p>
             </div>
-            <Activity className="h-4 w-4 text-blue-500" />
+            <Clock className="h-4 w-4 text-blue-500" />
+          </div>
+        </Card>
+        
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-600">Active Now</p>
+              <p className="text-xl font-bold text-purple-600">{liveStats.activeNow}</p>
+            </div>
+            <Activity className="h-4 w-4 text-purple-500" />
           </div>
         </Card>
         
@@ -80,9 +90,9 @@ export const LiveEmployeeGrid = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-600">Work Hours</p>
-              <p className="text-xl font-bold text-purple-600">{liveStats.totalWorkHoursToday}h</p>
+              <p className="text-xl font-bold text-orange-600">{liveStats.totalWorkHoursToday}h</p>
             </div>
-            <Clock className="h-4 w-4 text-purple-500" />
+            <Clock className="h-4 w-4 text-orange-500" />
           </div>
         </Card>
         
@@ -90,14 +100,14 @@ export const LiveEmployeeGrid = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-600">Activities</p>
-              <p className="text-xl font-bold text-orange-600">{liveStats.recentActivities}</p>
+              <p className="text-xl font-bold text-red-600">{liveStats.recentActivities}</p>
             </div>
-            <User className="h-4 w-4 text-orange-500" />
+            <User className="h-4 w-4 text-red-500" />
           </div>
         </Card>
       </div>
 
-      {/* Online Employees Grid */}
+      {/* Online Employees Grid with work status */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center">
@@ -124,9 +134,16 @@ export const LiveEmployeeGrid = () => {
                         <p className="text-xs text-gray-500">{employee.currentActivity}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">
-                      Online
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">
+                        Online
+                      </Badge>
+                      {employee.currentActivity === "Working" && (
+                        <Badge variant="outline" className="bg-blue-100 text-blue-800 text-xs">
+                          Working
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   
                   <div className="space-y-1">

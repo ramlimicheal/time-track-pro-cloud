@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Employee } from "@/types";
@@ -10,10 +9,18 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { useNavigate } from "react-router-dom";
 import { EnhancedDashboard } from "@/components/dashboard/EnhancedDashboard";
 import { dataSyncManager } from "@/utils/dataSync";
+import { useEmployeeTracking } from "@/hooks/useEmployeeTracking";
+import { WorkTimer } from "@/components/dashboard/WorkTimer";
 
 const EmployeeDashboard = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const navigate = useNavigate();
+  
+  // Add live tracking for this employee
+  const { trackActivity } = useEmployeeTracking(
+    employee?.id || "", 
+    employee?.name || ""
+  );
   
   useEffect(() => {
     // Check if user is logged in
@@ -120,6 +127,7 @@ const EmployeeDashboard = () => {
   const handleProfileUpdate = (updatedEmployee: Employee) => {
     setEmployee(updatedEmployee);
     dataSyncManager.updateEmployeeProfile(updatedEmployee.id, updatedEmployee);
+    trackActivity("Profile Updated", "Employee profile information updated");
   };
 
   if (!employee) {
@@ -143,6 +151,10 @@ const EmployeeDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <DashboardStats employee={employee} />
+            
+            {/* Add Work Timer prominently */}
+            <WorkTimer employeeId={employee.id} employeeName={employee.name} />
+            
             <EnhancedDashboard userRole="employee" />
           </div>
           
