@@ -1,3 +1,4 @@
+
 import { TimesheetEntry } from "@/types";
 import { TimePickerInput } from "./TimePickerInput";
 import { Badge } from "@/components/ui/badge";
@@ -45,9 +46,9 @@ export const TimesheetRow = ({
     }
     
     // Add overtime
-    if (entry.overtimeStart && entry.overtimeEnd) {
-      const overtimeStart = new Date(`2000-01-01 ${entry.overtimeStart}`);
-      const overtimeEnd = new Date(`2000-01-01 ${entry.overtimeEnd}`);
+    if (entry.otStart && entry.otEnd) {
+      const overtimeStart = new Date(`2000-01-01 ${entry.otStart}`);
+      const overtimeEnd = new Date(`2000-01-01 ${entry.otEnd}`);
       const overtimeMinutes = (overtimeEnd.getTime() - overtimeStart.getTime()) / (1000 * 60);
       totalMinutes += overtimeMinutes;
     }
@@ -106,15 +107,15 @@ export const TimesheetRow = ({
       </td>
       <td className="px-4 py-2">
         <TimePickerInput
-          value={entry.overtimeStart}
-          onChange={(value) => onUpdate(entry.id, "overtimeStart", value)}
+          value={entry.otStart}
+          onChange={(value) => onUpdate(entry.id, "otStart", value)}
           disabled={readOnly}
         />
       </td>
       <td className="px-4 py-2">
         <TimePickerInput
-          value={entry.overtimeEnd}
-          onChange={(value) => onUpdate(entry.id, "overtimeEnd", value)}
+          value={entry.otEnd}
+          onChange={(value) => onUpdate(entry.id, "otEnd", value)}
           disabled={readOnly}
         />
       </td>
