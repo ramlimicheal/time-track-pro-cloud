@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { User } from "lucide-react";
+import { User, Shield } from "lucide-react";
 
 interface AuthTabsProps {
   activeTab: "employee" | "admin";
@@ -13,8 +13,8 @@ export const AuthTabs: React.FC<AuthTabsProps> = ({ activeTab, onTabChange }) =>
       <button
         className={`flex items-center gap-2 py-2 px-4 ${
           activeTab === "employee"
-            ? "border-b-2 border-timetrack-blue text-timetrack-blue font-medium"
-            : "text-gray-500"
+            ? "border-b-2 border-timetrack-blue text-timetrack-blue font-medium bg-blue-50"
+            : "text-gray-500 hover:text-timetrack-blue"
         }`}
         onClick={() => onTabChange("employee")}
       >
@@ -24,12 +24,12 @@ export const AuthTabs: React.FC<AuthTabsProps> = ({ activeTab, onTabChange }) =>
       <button
         className={`flex items-center gap-2 py-2 px-4 ${
           activeTab === "admin"
-            ? "border-b-2 border-timetrack-blue text-timetrack-blue font-medium"
-            : "text-gray-500"
+            ? "border-b-2 border-red-600 text-red-600 font-medium bg-red-50"
+            : "text-gray-500 hover:text-red-600"
         }`}
         onClick={() => onTabChange("admin")}
       >
-        <User size={18} />
+        <Shield size={18} />
         Admin Login
       </button>
     </div>
