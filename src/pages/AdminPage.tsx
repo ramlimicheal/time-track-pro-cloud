@@ -121,24 +121,24 @@ const AdminPage = () => {
               return <LeaveManagementDashboard />;
               
             case "employees":
-              return <EmployeeManagement employees={employees} onEmployeeUpdate={fetchEmployees} />;
+              return <EmployeeManagement employees={employees} />;
               
             case "timesheet":
               return <TimesheetReview 
-                employee={null}
+                employee={undefined}
                 entries={[]}
                 timesheetStatus="pending"
                 onBack={() => setActiveSection("overview")}
-                onSubmit={() => {}}
                 onApprove={() => {}}
                 onReject={() => {}}
+                onGeneratePDF={() => {}}
               />;
               
             case "reports":
               return <ReportsSection employees={employees} />;
               
             case "profile":
-              return <EmployeeManagement employees={employees} onEmployeeUpdate={fetchEmployees} />;
+              return <EmployeeManagement employees={employees} />;
 
             default:
               return <div>Overview Section</div>;
