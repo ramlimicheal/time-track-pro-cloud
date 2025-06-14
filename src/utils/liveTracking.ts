@@ -1,253 +1,119 @@
-import { dataSyncManager } from "./dataSync";
-
-export interface EmployeeActivity {
-  id: string;
-  employeeId: string;
-  action: string;
-  timestamp: string;
-  details?: string;
-}
-
-export interface OnlineEmployee {
+interface LiveEmployee {
   id: string;
   name: string;
-  isOnline: boolean;
+  status: string;
   lastActivity: string;
-  sessionDuration: number;
-  currentActivity: string;
-  workHoursToday: number;
+  workHours: number;
+  isOnline: boolean;
+}
+
+interface LiveStats {
+  onlineEmployees: number;
+  totalWorkHoursToday: number;
+  activeNow: number;
+  recentActivities: number;
+  workingNow: number;
 }
 
 class LiveTrackingManager {
-  private onlineEmployees: Map<string, OnlineEmployee> = new Map();
-  private activities: EmployeeActivity[] = [];
-  private listeners: { [key: string]: Function[] } = {};
-  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private employees: Map<string, LiveEmployee> = new Map();
+  private listeners: Map<string, Function[]> = new Map();
 
   constructor() {
-    this.loadStoredData();
-    this.startHeartbeat();
+    // Initialize with some dummy data
+    this.addEmployee("1", "John Doe");
+    this.addEmployee("2", "Jane Smith");
+    this.addEmployee("3", "Alice Johnson");
+    this.addEmployee("4", "Bob Williams");
+    this.addEmployee("5", "Emily Brown");
+  }
+
+  addEmployee(employeeId: string, employeeName: string) {
+    const newEmployee: LiveEmployee = {
+      id: employeeId,
+      name: employeeName,
+      status: "Offline",
+      lastActivity: new Date().toISOString(),
+      workHours: 0,
+      isOnline: false
+    };
+    this.employees.set(employeeId, newEmployee);
+  }
+
+  removeEmployee(employeeId: string) {
+    this.employees.delete(employeeId);
+  }
+
+  updateActivity(employeeId: string, activity: string, details: string) {
+    const employee = this.employees.get(employeeId);
+    if (employee) {
+      employee.status = activity;
+      employee.lastActivity = new Date().toISOString();
+      employee.isOnline = true;
+      this.employees.set(employeeId, employee);
+      this.notifyListeners('activity-updated', { employeeId, activity, details });
+    }
+  }
+
+  updateWorkHours(employeeId: string, hours: number) {
+    const employee = this.employees.get(employeeId);
+    if (employee) {
+      employee.workHours = hours;
+      this.employees.set(employeeId, employee);
+      this.notifyListeners('work-hours-updated', { employeeId, hours });
+    }
+  }
+
+  getLiveStats(): LiveStats {
+    const employees = Array.from(this.employees.values());
+    const now = new Date().getTime();
+    const fiveMinutesAgo = now - (5 * 60 * 1000);
+
+    const onlineEmployees = employees.filter(emp => {
+      const lastActivity = new Date(emp.lastActivity).getTime();
+      return emp.isOnline && lastActivity > fiveMinutesAgo;
+    }).length;
+
+    const workingNow = employees.filter(emp => 
+      emp.status === "Working" && emp.isOnline
+    ).length;
+
+    const totalWorkHoursToday = employees.reduce((total, emp) => total + emp.workHours, 0);
+
+    return {
+      onlineEmployees,
+      totalWorkHoursToday,
+      activeNow: onlineEmployees,
+      recentActivities: employees.length,
+      workingNow
+    };
+  }
+
+  getAllEmployees(): LiveEmployee[] {
+    return Array.from(this.employees.values());
   }
 
   subscribe(event: string, callback: Function) {
-    if (!this.listeners[event]) {
-      this.listeners[event] = [];
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, []);
     }
-    this.listeners[event].push(callback);
+    this.listeners.get(event)!.push(callback);
   }
 
   unsubscribe(event: string, callback: Function) {
-    if (this.listeners[event]) {
-      this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
-    }
-  }
-
-  emit(event: string, data?: any) {
-    if (this.listeners[event]) {
-      this.listeners[event].forEach(callback => callback(data));
-    }
-  }
-
-  // Employee comes online
-  employeeOnline(employeeId: string, employeeName: string) {
-    const now = new Date().toISOString();
-    const employee: OnlineEmployee = {
-      id: employeeId,
-      name: employeeName,
-      isOnline: true,
-      lastActivity: now,
-      sessionDuration: 0,
-      currentActivity: "Online",
-      workHoursToday: this.getTodayWorkHours(employeeId)
-    };
-
-    this.onlineEmployees.set(employeeId, employee);
-    this.addActivity(employeeId, "came_online", "Employee logged in");
-    this.saveToStorage();
-    this.emit("employee-online", employee);
-  }
-
-  // Employee goes offline
-  employeeOffline(employeeId: string) {
-    const employee = this.onlineEmployees.get(employeeId);
-    if (employee) {
-      employee.isOnline = false;
-      this.addActivity(employeeId, "went_offline", "Employee logged out");
-      this.saveToStorage();
-      this.emit("employee-offline", employee);
-    }
-  }
-
-  // Update employee activity with enhanced work timer support
-  updateActivity(employeeId: string, activity: string, details?: string) {
-    const employee = this.onlineEmployees.get(employeeId);
-    if (employee) {
-      employee.currentActivity = activity;
-      employee.lastActivity = new Date().toISOString();
-      
-      // Map timer activities to more readable actions
-      let actionType = activity.toLowerCase().replace(/\s+/g, '_');
-      if (activity === "Working") actionType = "started_working";
-      if (activity === "Break") actionType = "took_break";
-      if (activity === "Work Ended") actionType = "ended_work";
-      
-      this.addActivity(employeeId, actionType, details);
-      this.saveToStorage();
-      this.emit("activity-updated", { employeeId, activity, details });
-    }
-  }
-
-  // Enhanced work hours tracking for real-time timer updates
-  updateWorkHours(employeeId: string, hours: number) {
-    const employee = this.onlineEmployees.get(employeeId);
-    if (employee) {
-      employee.workHoursToday = hours;
-      this.saveToStorage();
-      this.emit("work-hours-updated", { employeeId, hours });
-      
-      // Also emit a general activity update to refresh admin dashboard
-      this.emit("activity-updated", { 
-        employeeId, 
-        activity: "Work Hours Updated", 
-        details: `Total: ${hours.toFixed(1)} hours` 
-      });
-    }
-  }
-
-  // Get all online employees
-  getOnlineEmployees(): OnlineEmployee[] {
-    return Array.from(this.onlineEmployees.values()).filter(emp => emp.isOnline);
-  }
-
-  // Get recent activities
-  getRecentActivities(limit: number = 10): EmployeeActivity[] {
-    return this.activities
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
-  }
-
-  // Get employee status
-  getEmployeeStatus(employeeId: string): OnlineEmployee | null {
-    return this.onlineEmployees.get(employeeId) || null;
-  }
-
-  // Enhanced live statistics with work timer data
-  getLiveStats() {
-    const onlineCount = this.getOnlineEmployees().length;
-    const totalWorkHours = Array.from(this.onlineEmployees.values())
-      .reduce((sum, emp) => sum + emp.workHoursToday, 0);
-    const activeNow = this.getOnlineEmployees().filter(emp => {
-      const timeSinceActivity = new Date().getTime() - new Date(emp.lastActivity).getTime();
-      return timeSinceActivity < 5 * 60 * 1000 && 
-             (emp.currentActivity === "Working" || emp.currentActivity === "Online");
-    }).length;
-    const workingNow = this.getOnlineEmployees().filter(emp => 
-      emp.currentActivity === "Working"
-    ).length;
-
-    return {
-      onlineEmployees: onlineCount,
-      totalWorkHoursToday: Math.round(totalWorkHours * 10) / 10,
-      activeNow,
-      workingNow,
-      recentActivities: this.getRecentActivities(5).length
-    };
-  }
-
-  private addActivity(employeeId: string, action: string, details?: string) {
-    const activity: EmployeeActivity = {
-      id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      employeeId,
-      action,
-      timestamp: new Date().toISOString(),
-      details
-    };
-
-    this.activities.unshift(activity);
-    
-    // Keep only last 100 activities
-    if (this.activities.length > 100) {
-      this.activities = this.activities.slice(0, 100);
-    }
-  }
-
-  private getTodayWorkHours(employeeId: string): number {
-    // Get today's work hours from existing timesheet data
-    const today = new Date();
-    const keys = Object.keys(localStorage).filter(key => key.startsWith('timesheet-'));
-    
-    for (const key of keys) {
-      try {
-        const timesheet = JSON.parse(localStorage.getItem(key) || '{}');
-        if (timesheet.employeeId === employeeId && 
-            timesheet.month === today.getMonth() && 
-            timesheet.year === today.getFullYear()) {
-          const todayEntry = timesheet.entries?.find((entry: any) => 
-            new Date(entry.date).toDateString() === today.toDateString()
-          );
-          return todayEntry?.totalHours || 0;
-        }
-      } catch (e) {
-        console.error("Error parsing timesheet:", e);
+    const callbacks = this.listeners.get(event);
+    if (callbacks) {
+      const index = callbacks.indexOf(callback);
+      if (index > -1) {
+        callbacks.splice(index, 1);
       }
     }
-    
-    return 0;
   }
 
-  private saveToStorage() {
-    localStorage.setItem('liveTracking', JSON.stringify({
-      onlineEmployees: Array.from(this.onlineEmployees.entries()),
-      activities: this.activities.slice(0, 50) // Save only recent activities
-    }));
-  }
-
-  private loadStoredData() {
-    try {
-      const stored = localStorage.getItem('liveTracking');
-      if (stored) {
-        const data = JSON.parse(stored);
-        this.onlineEmployees = new Map(data.onlineEmployees || []);
-        this.activities = data.activities || [];
-        
-        // Mark all as offline on page load (they'll come back online when they connect)
-        this.onlineEmployees.forEach(employee => {
-          employee.isOnline = false;
-        });
-      }
-    } catch (e) {
-      console.error("Error loading live tracking data:", e);
-    }
-  }
-
-  private startHeartbeat() {
-    // Update session durations every minute
-    this.heartbeatInterval = setInterval(() => {
-      const now = Date.now();
-      this.onlineEmployees.forEach(employee => {
-        if (employee.isOnline) {
-          const lastActivity = new Date(employee.lastActivity).getTime();
-          const timeSinceActivity = now - lastActivity;
-          
-          // Mark as offline if no activity for 10 minutes
-          if (timeSinceActivity > 10 * 60 * 1000) {
-            employee.isOnline = false;
-            this.addActivity(employee.id, "went_idle", "No activity detected");
-            this.emit("employee-idle", employee);
-          } else {
-            employee.sessionDuration = Math.floor(timeSinceActivity / 1000 / 60); // in minutes
-          }
-        }
-      });
-      
-      this.saveToStorage();
-      this.emit("heartbeat", this.getLiveStats());
-    }, 60000); // Every minute
-  }
-
-  destroy() {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
+  private notifyListeners(event: string, data: any) {
+    const callbacks = this.listeners.get(event);
+    if (callbacks) {
+      callbacks.forEach(callback => callback(data));
     }
   }
 }
