@@ -1,11 +1,10 @@
-
-import { Input } from "@/components/ui/input";
-import { TimePickerInput } from "./TimePickerInput";
 import { TimesheetEntry } from "@/types";
-import { isValidTimeFormat } from "@/utils/timeUtils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertCircle, CheckCircle, Check, X } from "lucide-react";
+import { TimePickerInput } from "./TimePickerInput";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { CheckCircle, XCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TimesheetRowProps {
   entry: TimesheetEntry;
@@ -14,171 +13,158 @@ interface TimesheetRowProps {
   onApproveEntry?: (entryId: string) => void;
   onRejectEntry?: (entryId: string) => void;
   isDateSpecific?: boolean;
+  bulkSelectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelection?: (entryId: string) => void;
 }
 
-export const TimesheetRow = ({
-  entry,
-  readOnly,
+export const TimesheetRow = ({ 
+  entry, 
+  readOnly, 
   onUpdate,
   onApproveEntry,
   onRejectEntry,
-  isDateSpecific = false
+  isDateSpecific = false,
+  bulkSelectMode = false,
+  isSelected = false,
+  onToggleSelection
 }: TimesheetRowProps) => {
-  // Calculate the hours worked for this entry to show in Admin review
-  const calculateDisplayHours = () => {
-    if (entry.totalHours <= 0) {
-      return "0.00";
+  const calculateTotalHours = () => {
+    if (!entry.workStart || !entry.workEnd) return 0;
+    
+    const workStart = new Date(`2000-01-01 ${entry.workStart}`);
+    const workEnd = new Date(`2000-01-01 ${entry.workEnd}`);
+    let totalMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
+    
+    // Subtract break time
+    if (entry.breakStart && entry.breakEnd) {
+      const breakStart = new Date(`2000-01-01 ${entry.breakStart}`);
+      const breakEnd = new Date(`2000-01-01 ${entry.breakEnd}`);
+      const breakMinutes = (breakEnd.getTime() - breakStart.getTime()) / (1000 * 60);
+      totalMinutes -= breakMinutes;
     }
-    return entry.totalHours.toFixed(2);
+    
+    // Add overtime
+    if (entry.overtimeStart && entry.overtimeEnd) {
+      const overtimeStart = new Date(`2000-01-01 ${entry.overtimeStart}`);
+      const overtimeEnd = new Date(`2000-01-01 ${entry.overtimeEnd}`);
+      const overtimeMinutes = (overtimeEnd.getTime() - overtimeStart.getTime()) / (1000 * 60);
+      totalMinutes += overtimeMinutes;
+    }
+    
+    return Math.max(0, totalMinutes / 60);
   };
 
-  // Determine if there's overtime for this entry
-  const hasOvertime = entry.otStart && entry.otEnd;
-
-  // Determine if the entry is editable (draft status and not readOnly)
-  const isEditable = !readOnly && entry.status === "draft";
-  
-  // Determine background color based on status
-  const getRowBackgroundColor = () => {
-    switch (entry.status) {
-      case 'approved': return 'bg-green-50';
-      case 'pending': return 'bg-yellow-50';
-      case 'rejected': return 'bg-red-50';
-      default: return '';
-    }
-  };
-
-  // Show action buttons for pending entries when in review mode
-  const showActionButtons = onApproveEntry && onRejectEntry && entry.status === 'pending';
+  const totalHours = calculateTotalHours();
 
   return (
-    <tr className={`${getRowBackgroundColor()} hover:bg-gray-50 transition-colors`}>
-      {!isDateSpecific && (
-        <td className="whitespace-nowrap px-[12px] py-3 font-medium">{entry.date}</td>
+    <tr className={`${isSelected ? 'bg-blue-50' : 'bg-white'} hover:bg-gray-50`}>
+      {bulkSelectMode && (
+        <td className="px-4 py-2">
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onToggleSelection?.(entry.id)}
+          />
+        </td>
       )}
-      <td className="px-2 py-2">
-        <TimePickerInput 
-          value={entry.workStart} 
-          onChange={(value) => onUpdate(entry.id, "workStart", value)} 
-          error={!isValidTimeFormat(entry.workStart) && entry.workStart ? true : false}
-          readOnly={!isEditable}
+      <td className="px-4 py-2">
+        <input
+          type="date"
+          value={entry.date}
+          onChange={(e) => onUpdate(entry.id, "date", e.target.value)}
+          className="w-full p-2 border rounded"
+          disabled={readOnly}
         />
       </td>
-      <td className="px-2 py-2">
-        <TimePickerInput 
-          value={entry.breakStart} 
-          onChange={(value) => onUpdate(entry.id, "breakStart", value)} 
-          error={!isValidTimeFormat(entry.breakStart) && entry.breakStart ? true : false}
-          readOnly={!isEditable}
+      <td className="px-4 py-2">
+        <TimePickerInput
+          value={entry.workStart}
+          onChange={(value) => onUpdate(entry.id, "workStart", value)}
+          disabled={readOnly}
         />
       </td>
-      <td className="px-2 py-2">
-        <TimePickerInput 
-          value={entry.breakEnd} 
-          onChange={(value) => onUpdate(entry.id, "breakEnd", value)} 
-          error={!isValidTimeFormat(entry.breakEnd) && entry.breakEnd ? true : false}
-          readOnly={!isEditable}
+      <td className="px-4 py-2">
+        <TimePickerInput
+          value={entry.workEnd}
+          onChange={(value) => onUpdate(entry.id, "workEnd", value)}
+          disabled={readOnly}
         />
       </td>
-      <td className="px-2 py-2">
-        <TimePickerInput 
-          value={entry.workEnd} 
-          onChange={(value) => onUpdate(entry.id, "workEnd", value)} 
-          error={!isValidTimeFormat(entry.workEnd) && entry.workEnd ? true : false}
-          readOnly={!isEditable}
+      <td className="px-4 py-2">
+        <TimePickerInput
+          value={entry.breakStart}
+          onChange={(value) => onUpdate(entry.id, "breakStart", value)}
+          disabled={readOnly}
         />
       </td>
-      <td className="px-2 py-2">
-        <Input 
-          type="text" 
-          value={entry.description} 
-          onChange={e => onUpdate(entry.id, "description", e.target.value)} 
-          placeholder="Enter description" 
-          className="w-full" 
-          readOnly={!isEditable} 
+      <td className="px-4 py-2">
+        <TimePickerInput
+          value={entry.breakEnd}
+          onChange={(value) => onUpdate(entry.id, "breakEnd", value)}
+          disabled={readOnly}
         />
       </td>
-      <td className="px-2 py-2">
-        <TimePickerInput 
-          value={entry.otStart} 
-          onChange={(value) => onUpdate(entry.id, "otStart", value)} 
-          error={!isValidTimeFormat(entry.otStart) && entry.otStart ? true : false}
-          readOnly={!isEditable}
+      <td className="px-4 py-2">
+        <TimePickerInput
+          value={entry.overtimeStart}
+          onChange={(value) => onUpdate(entry.id, "overtimeStart", value)}
+          disabled={readOnly}
         />
       </td>
-      <td className="px-2 py-2">
-        <TimePickerInput 
-          value={entry.otEnd} 
-          onChange={(value) => onUpdate(entry.id, "otEnd", value)} 
-          error={!isValidTimeFormat(entry.otEnd) && entry.otEnd ? true : false}
-          readOnly={!isEditable}
+      <td className="px-4 py-2">
+        <TimePickerInput
+          value={entry.overtimeEnd}
+          onChange={(value) => onUpdate(entry.id, "overtimeEnd", value)}
+          disabled={readOnly}
         />
       </td>
-      <td className="font-medium px-2 py-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={`flex items-center ${hasOvertime ? 'text-blue-600 font-semibold' : ''}`}>
-                {calculateDisplayHours()}
-                {hasOvertime && <CheckCircle size={14} className="ml-1 text-blue-600" />}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="bg-white p-2 shadow-lg">
-              {hasOvertime 
-                ? `Regular hours: ${(entry.totalHours - 1).toFixed(2)}, Overtime: 1.00`
-                : `Regular working hours`
-              }
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </td>
-      <td className="px-2 py-2">
-        <Input 
-          type="text" 
-          value={entry.remarks} 
-          onChange={e => onUpdate(entry.id, "remarks", e.target.value)} 
-          placeholder="Add remarks" 
-          className="w-full" 
-          readOnly={!isEditable} 
+      <td className="px-4 py-2">
+        <Textarea
+          value={entry.description}
+          onChange={(e) => onUpdate(entry.id, "description", e.target.value)}
+          placeholder="Work description..."
+          className="min-h-[60px]"
+          disabled={readOnly}
         />
       </td>
-      <td className="px-2 py-2">
-        <span className={`px-2.5 py-1 text-xs rounded-full font-medium ${
-          entry.status === 'approved' ? 'bg-green-100 text-green-800' : 
-          entry.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-          entry.status === 'rejected' ? 'bg-red-100 text-red-800' : 
-          'bg-gray-100 text-gray-800'
-        }`}>
-          {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
-        </span>
+      <td className="px-4 py-2 text-center font-medium">
+        {totalHours.toFixed(2)}h
       </td>
-      
-      {/* Add action buttons column if we're in review mode */}
+      <td className="px-4 py-2">
+        <Badge 
+          variant={
+            entry.status === "approved" ? "default" : 
+            entry.status === "rejected" ? "destructive" : 
+            "secondary"
+          }
+        >
+          {entry.status}
+        </Badge>
+      </td>
       {(onApproveEntry || onRejectEntry) && (
-        <td className="px-2 py-2">
-          {showActionButtons && (
-            <div className="flex gap-1">
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                onClick={() => onApproveEntry && onApproveEntry(entry.id)}
+        <td className="px-4 py-2">
+          <div className="flex gap-2">
+            {onApproveEntry && entry.status === "pending" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onApproveEntry(entry.id)}
+                className="text-green-600 hover:text-green-700"
               >
-                <Check className="h-4 w-4" />
-                <span className="sr-only">Approve</span>
+                <CheckCircle className="h-4 w-4" />
               </Button>
-              
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={() => onRejectEntry && onRejectEntry(entry.id)}
+            )}
+            {onRejectEntry && entry.status === "pending" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onRejectEntry(entry.id)}
+                className="text-red-600 hover:text-red-700"
               >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Reject</span>
+                <XCircle className="h-4 w-4" />
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </td>
       )}
     </tr>

@@ -106,8 +106,8 @@ export const AdvancedUserManagement = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (user.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (user.email || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = selectedRole === "all" || user.role.id === selectedRole;
     return matchesSearch && matchesRole;
   });
@@ -241,7 +241,6 @@ export const AdvancedUserManagement = () => {
                       <Switch
                         checked={user.isActive}
                         onCheckedChange={() => toggleUserStatus(user.id)}
-                        size="sm"
                       />
                       <span className={`text-sm ${user.isActive ? 'text-green-600' : 'text-red-600'}`}>
                         {user.isActive ? 'Active' : 'Inactive'}
