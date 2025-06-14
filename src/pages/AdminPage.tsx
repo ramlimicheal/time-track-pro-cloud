@@ -10,11 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Employee, TimesheetEntry, Timesheet } from "@/types";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, UserPlus } from "lucide-react";
+import { Search, UserPlus, Clock, Calendar, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { LeaveManagementDashboard } from "@/components/admin/LeaveManagementDashboard";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -283,6 +284,28 @@ const AdminPage = () => {
     }
   }, [navigate]);
   
+  const tabs = [
+    { id: "employees", label: "Employee Management", icon: Users },
+    { id: "timesheets", label: "Timesheet Review", icon: Clock },
+    { id: "leaves", label: "Leave Management", icon: Calendar },
+    { id: "reports", label: "Reports & Analytics", icon: FileText },
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "employees":
+        return <EmployeeManagement />;
+      case "timesheets":
+        return <TimesheetReview />;
+      case "leaves":
+        return <LeaveManagementDashboard />;
+      case "reports":
+        return <ReportsSection />;
+      default:
+        return <EmployeeManagement />;
+    }
+  };
+
   return (
     <MainLayout>
       <div className="container mx-auto py-8 px-4 sm:px-6">
