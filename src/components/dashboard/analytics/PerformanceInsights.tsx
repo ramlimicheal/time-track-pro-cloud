@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,27 +14,46 @@ import {
   BarChart3
 } from "lucide-react";
 
-export const PerformanceInsights = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState("week");
+interface PerformanceMetric {
+  value: number;
+  change: number;
+  trend: "up" | "down";
+}
 
-  const performanceData = {
+interface PerformanceData {
+  productivity: PerformanceMetric;
+  efficiency: PerformanceMetric;
+  attendance: PerformanceMetric;
+  safety: PerformanceMetric;
+}
+
+interface PeriodData {
+  week: PerformanceData;
+  month: PerformanceData;
+  quarter: PerformanceData;
+}
+
+export const PerformanceInsights = () => {
+  const [selectedPeriod, setSelectedPeriod] = useState<keyof PeriodData>("week");
+
+  const performanceData: PeriodData = {
     week: {
-      productivity: { value: 87.5, change: +5.2, trend: "up" },
-      efficiency: { value: 92.1, change: +2.1, trend: "up" },
+      productivity: { value: 87.5, change: 5.2, trend: "up" },
+      efficiency: { value: 92.1, change: 2.1, trend: "up" },
       attendance: { value: 94.7, change: -1.2, trend: "down" },
-      safety: { value: 98.8, change: +0.5, trend: "up" }
+      safety: { value: 98.8, change: 0.5, trend: "up" }
     },
     month: {
-      productivity: { value: 85.3, change: +8.7, trend: "up" },
-      efficiency: { value: 89.5, change: +4.2, trend: "up" },
-      attendance: { value: 93.2, change: +2.1, trend: "up" },
-      safety: { value: 97.9, change: +1.8, trend: "up" }
+      productivity: { value: 85.3, change: 8.7, trend: "up" },
+      efficiency: { value: 89.5, change: 4.2, trend: "up" },
+      attendance: { value: 93.2, change: 2.1, trend: "up" },
+      safety: { value: 97.9, change: 1.8, trend: "up" }
     },
     quarter: {
-      productivity: { value: 83.8, change: +12.3, trend: "up" },
-      efficiency: { value: 87.2, change: +7.8, trend: "up" },
-      attendance: { value: 91.5, change: +5.4, trend: "up" },
-      safety: { value: 96.8, change: +3.2, trend: "up" }
+      productivity: { value: 83.8, change: 12.3, trend: "up" },
+      efficiency: { value: 87.2, change: 7.8, trend: "up" },
+      attendance: { value: 91.5, change: 5.4, trend: "up" },
+      safety: { value: 96.8, change: 3.2, trend: "up" }
     }
   };
 
@@ -111,7 +129,7 @@ export const PerformanceInsights = () => {
         <TabsContent value={selectedPeriod} className="space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Object.entries(currentData).map(([key, data]) => (
+            {(Object.entries(currentData) as [keyof PerformanceData, PerformanceMetric][]).map(([key, data]) => (
               <Card key={key}>
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">

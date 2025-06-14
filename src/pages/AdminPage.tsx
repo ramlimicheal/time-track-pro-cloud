@@ -36,12 +36,11 @@ const AdminPage = () => {
       setUsers(JSON.parse(storedUsers));
     } else {
       // Create a default admin user if none exists
-      const defaultAdmin = {
+      const defaultAdmin: User = {
         id: "admin",
-        username: "admin",
-        password: "password",
+        name: "Administrator",
         email: "admin@example.com",
-        role: "admin"
+        role: "manager"
       };
       localStorage.setItem("users", JSON.stringify([defaultAdmin]));
       setUsers([defaultAdmin]);
@@ -87,12 +86,11 @@ const AdminPage = () => {
   
   const handleCreateAdmin = () => {
     if (newUsername && newPassword) {
-      const newAdmin = {
+      const newAdmin: User = {
         id: new Date().getTime().toString(),
-        username: newUsername,
-        password: newPassword,
+        name: newUsername,
         email: `${newUsername}@example.com`,
-        role: "admin"
+        role: "manager"
       };
       setUsers([...users, newAdmin]);
       setNewUsername("");
@@ -155,7 +153,6 @@ const AdminPage = () => {
             />
             {isFormOpen && (
               <EmployeeForm
-                isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
                 onCreate={handleCreateEmployee}
                 onUpdate={handleUpdateEmployee}

@@ -117,7 +117,7 @@ const EmployeeDashboard = () => {
           </div>
           
           <div className="space-y-6">
-            <LeaveBalanceTracker employee={employee} />
+            <LeaveBalanceTracker employeeId={employee.id} />
             <RecentLeaveApplications employeeId={employee.id} />
           </div>
         </div>
