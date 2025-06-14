@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Clock, CheckCircle, XCircle, AlertCircle, Download, Filter, Calendar } from "lucide-react";
 import { TimesheetEntry, Timesheet, Employee } from "@/types";
 import { toast } from "sonner";
+import { generateTimesheetPDF } from "@/utils/pdfUtils";
 
 interface SmartTimesheetManagementProps {
   employees: Employee[];
@@ -84,6 +84,15 @@ export const SmartTimesheetManagement = ({ employees }: SmartTimesheetManagement
     );
     setTimesheets(updatedTimesheets);
     toast.success(`${pendingTimesheets.length} timesheets ${status}`);
+  };
+
+  const downloadTimesheet = (timesheet: Timesheet) => {
+    const success = generateTimesheetPDF(timesheet, timesheet.employeeName);
+    if (success) {
+      toast.success(`Timesheet PDF generated for ${timesheet.employeeName}`);
+    } else {
+      toast.error("Failed to generate PDF. Please try again.");
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -254,6 +263,7 @@ export const SmartTimesheetManagement = ({ employees }: SmartTimesheetManagement
                           variant="ghost" 
                           size="sm"
                           className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => downloadTimesheet(timesheet)}
                           title="Download timesheet"
                         >
                           <Download className="h-4 w-4" />
