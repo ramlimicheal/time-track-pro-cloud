@@ -1,51 +1,20 @@
-
-import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { LogOut, Clock, History, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { User } from "@/types";
-import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 export const Header: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-  
-  useEffect(() => {
-    // Listen for storage changes (for login/logout)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "user") {
-        if (e.newValue) {
-          setUser(JSON.parse(e.newValue));
-        } else {
-          setUser(null);
-        }
-      }
-    };
-    
-    window.addEventListener("storage", handleStorageChange);
-    
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-  }, []);
-  
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    toast.success("Logged out successfully");
+
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
-  
-  if (!user) return null;
+
+  if (!user || !profile) return null;
   
   return (
     <header className="bg-white border-b border-gray-200 py-3 px-4 md:px-6">
@@ -54,11 +23,11 @@ export const Header: React.FC = () => {
         
         <div className="flex items-center gap-3 md:gap-6">
           <div className="hidden md:flex gap-2">
-            {user.role === "employee" && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                asChild 
+            {profile.role === "employee" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
                 className="text-gray-600 hover:text-gray-900"
               >
                 <Link to="/dashboard">
@@ -67,23 +36,23 @@ export const Header: React.FC = () => {
                 </Link>
               </Button>
             )}
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              asChild 
+
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
               className="text-gray-600 hover:text-gray-900"
             >
-              <Link to={user.role === "employee" ? "/timesheet" : "/admin"}>
+              <Link to={profile.role === "employee" ? "/timesheet" : "/admin"}>
                 <Clock className="mr-1 h-4 w-4" />
                 <span>Timesheet</span>
               </Link>
             </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              asChild 
+
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
               className="text-gray-600 hover:text-gray-900"
             >
               <Link to="/history">
@@ -92,23 +61,22 @@ export const Header: React.FC = () => {
               </Link>
             </Button>
           </div>
-          
-          {/* Notification Center */}
+
           <NotificationCenter />
-          
+
           <div className="flex items-center gap-2">
             <div className="hidden md:block text-right">
-              <div className="text-sm font-medium">{user.name}</div>
-              <div className="text-xs text-muted-foreground">{user.role}</div>
+              <div className="text-sm font-medium">{profile.full_name}</div>
+              <div className="text-xs text-muted-foreground capitalize">{profile.role}</div>
             </div>
-            
+
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600">
-              {user.name.charAt(0)}
+              {profile.full_name.charAt(0).toUpperCase()}
             </div>
-            
-            <Button 
-              variant="ghost" 
-              size="icon" 
+
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleLogout}
               className="text-gray-600 hover:text-red-600 hidden md:flex"
               title="Logout"

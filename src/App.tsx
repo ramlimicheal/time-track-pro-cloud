@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import TimesheetPage from "./pages/TimesheetPage";
 import HistoryPage from "./pages/HistoryPage";
@@ -11,26 +13,55 @@ import AdminPage from "./pages/AdminPage";
 import EmployeeDashboard from "./pages/EmployeeDashboard";
 import NotFound from "./pages/NotFound";
 
-// Create a client outside the component to avoid re-creation on each render
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/timesheet" element={<TimesheetPage />} />
-            <Route path="/history" element={<HistoryPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/dashboard" element={<EmployeeDashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-        <Toaster />
-        <Sonner />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route
+                path="/timesheet"
+                element={
+                  <ProtectedRoute>
+                    <TimesheetPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/history"
+                element={
+                  <ProtectedRoute>
+                    <HistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'manager']}>
+                    <AdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <EmployeeDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <Toaster />
+          <Sonner />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
