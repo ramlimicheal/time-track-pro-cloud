@@ -1,73 +1,157 @@
-# Welcome to your Lovable project
+# Employee Timesheet Management System
 
-## Project info
+A comprehensive employee timesheet and workforce management application built with React, TypeScript, Vite, and Supabase.
 
-**URL**: https://lovable.dev/projects/bc6d0cbf-fe5c-4814-aec6-704a8fb1285f
+## Features
 
-## How can I edit this code?
+### For Employees
+- Work timer with start/stop functionality
+- Quick timesheet entry
+- View work history (day/month/year views)
+- Leave application submission
+- Leave balance tracking
+- Profile management
+- Real-time activity tracking
 
-There are several ways of editing your application.
+### For Administrators
+- Employee management (add, edit, delete)
+- User role management
+- Timesheet review and approval
+- Leave application review
+- Live employee activity monitoring
+- Advanced analytics and reports
+- Audit trail
+- Department and overtime summaries
+- Workforce insights and metrics
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/bc6d0cbf-fe5c-4814-aec6-704a8fb1285f) and start prompting.
+- **Frontend**: React 18, TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Routing**: React Router v6
+- **State Management**: TanStack Query (React Query)
+- **Forms**: React Hook Form with Zod validation
+- **Charts**: Recharts
+- **Database**: Supabase (PostgreSQL)
+- **UI Components**: Radix UI primitives
 
-Changes made via Lovable will be committed automatically to this repo.
+## Prerequisites
 
-**Use your preferred IDE**
+- Node.js (v18 or higher)
+- npm or yarn
+- Supabase account
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Clone the repository:
+```bash
+git clone <your-repository-url>
+cd <repository-name>
+```
 
-Follow these steps:
+2. Install dependencies:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. Set up environment variables:
+Create a `.env` file in the root directory with your Supabase credentials:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Available Scripts
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build in development mode
+- `npm run lint` - Run ESLint
+- `npm run preview` - Preview production build
 
-**Use GitHub Codespaces**
+## Project Structure
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+src/
+├── components/
+│   ├── admin/          # Admin-specific components
+│   ├── auth/           # Authentication components
+│   ├── dashboard/      # Dashboard components
+│   ├── history/        # History view components
+│   ├── layout/         # Layout components
+│   ├── notifications/  # Notification components
+│   ├── timesheet/      # Timesheet components
+│   └── ui/             # Reusable UI components (shadcn)
+├── hooks/              # Custom React hooks
+├── lib/                # Utility libraries
+├── pages/              # Page components
+├── types/              # TypeScript type definitions
+└── utils/              # Utility functions
+```
 
-## What technologies are used for this project?
+## Key Features Breakdown
 
-This project is built with:
+### Authentication & Authorization
+- Role-based access control (Employee, Manager, Admin)
+- Secure login system
+- Profile management
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Time Tracking
+- Real-time work timer
+- Manual timesheet entry
+- Historical time records
+- Multiple view modes (day, month, year)
 
-## How can I deploy this project?
+### Leave Management
+- Leave application submission
+- Leave balance tracking
+- Admin approval workflow
+- Leave history
 
-Simply open [Lovable](https://lovable.dev/projects/bc6d0cbf-fe5c-4814-aec6-704a8fb1285f) and click on Share -> Publish.
+### Analytics & Reporting
+- Work hour analytics
+- Department summaries
+- Overtime tracking
+- Performance insights
+- Exportable reports
 
-## Can I connect a custom domain to my Lovable project?
+### Admin Tools
+- Employee CRUD operations
+- Timesheet approval system
+- User management
+- Audit trail
+- Live activity monitoring
 
-Yes, you can!
+## Database Setup
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+This application uses Supabase for data persistence. You'll need to set up the following tables in your Supabase project:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- `employees` - Employee information
+- `timesheets` - Time entry records
+- `leave_applications` - Leave requests
+- `users` - User authentication data
+- Additional tables for audit trails and analytics
+
+Refer to the Supabase documentation for migration setup.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is private and proprietary.
+
+## Support
+
+For support, please contact your system administrator.
