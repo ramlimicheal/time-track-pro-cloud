@@ -1,4 +1,5 @@
 
+import React, { useMemo } from "react";
 import { TimesheetEntry } from "@/types";
 import { TimePickerInput } from "./TimePickerInput";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { calculateTotalHours } from "@/utils/timeUtils";
 
 interface TimesheetRowProps {
   entry: TimesheetEntry;
@@ -19,7 +21,7 @@ interface TimesheetRowProps {
   onToggleSelection?: (entryId: string) => void;
 }
 
-export const TimesheetRow = ({ 
+export const TimesheetRow = React.memo(({
   entry, 
   readOnly, 
   onUpdate,
@@ -30,33 +32,22 @@ export const TimesheetRow = ({
   isSelected = false,
   onToggleSelection
 }: TimesheetRowProps) => {
-  const calculateTotalHours = () => {
-    if (!entry.workStart || !entry.workEnd) return 0;
-    
-    const workStart = new Date(`2000-01-01 ${entry.workStart}`);
-    const workEnd = new Date(`2000-01-01 ${entry.workEnd}`);
-    let totalMinutes = (workEnd.getTime() - workStart.getTime()) / (1000 * 60);
-    
-    // Subtract break time
-    if (entry.breakStart && entry.breakEnd) {
-      const breakStart = new Date(`2000-01-01 ${entry.breakStart}`);
-      const breakEnd = new Date(`2000-01-01 ${entry.breakEnd}`);
-      const breakMinutes = (breakEnd.getTime() - breakStart.getTime()) / (1000 * 60);
-      totalMinutes -= breakMinutes;
-    }
-    
-    // Add overtime
-    if (entry.otStart && entry.otEnd) {
-      const overtimeStart = new Date(`2000-01-01 ${entry.otStart}`);
-      const overtimeEnd = new Date(`2000-01-01 ${entry.otEnd}`);
-      const overtimeMinutes = (overtimeEnd.getTime() - overtimeStart.getTime()) / (1000 * 60);
-      totalMinutes += overtimeMinutes;
-    }
-    
-    return Math.max(0, totalMinutes / 60);
-  };
-
-  const totalHours = calculateTotalHours();
+  // Use the optimized calculation from utils and memoize it
+  const totalHours = useMemo(() => calculateTotalHours(
+    entry.workStart,
+    entry.workEnd,
+    entry.breakStart,
+    entry.breakEnd,
+    entry.otStart,
+    entry.otEnd
+  ), [
+    entry.workStart,
+    entry.workEnd,
+    entry.breakStart,
+    entry.breakEnd,
+    entry.otStart,
+    entry.otEnd
+  ]);
 
   return (
     <tr className={`${isSelected ? 'bg-blue-50' : 'bg-white'} hover:bg-gray-50`}>
@@ -178,4 +169,6 @@ export const TimesheetRow = ({
       )}
     </tr>
   );
-};
+});
+
+TimesheetRow.displayName = "TimesheetRow";
