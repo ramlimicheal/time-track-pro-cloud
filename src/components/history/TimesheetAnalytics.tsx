@@ -1,4 +1,5 @@
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, Clock, Calendar, Award } from "lucide-react";
@@ -9,7 +10,7 @@ interface TimesheetAnalyticsProps {
 }
 
 export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
-  const calculateOverallStats = () => {
+  const stats = useMemo(() => {
     let totalHours = 0;
     let totalEntries = 0;
     let overtimeHours = 0;
@@ -36,9 +37,9 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
       averageDaily: workingDays > 0 ? totalHours / workingDays : 0,
       productivity: Math.min(100, (totalHours / (workingDays * 8)) * 100)
     };
-  };
+  }, [timesheets]);
 
-  const getMonthlyTrends = () => {
+  const monthlyTrends = useMemo(() => {
     const monthlyData: { [key: string]: { hours: number; days: number; overtime: number } } = {};
 
     timesheets.forEach(timesheet => {
@@ -65,10 +66,10 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
         average: data.days > 0 ? data.hours / data.days : 0
       }))
       .sort((a, b) => a.month.localeCompare(b.month));
-  };
+  }, [timesheets]);
 
-  const getStatusDistribution = () => {
-    const statusCount = { approved: 0, pending: 0, rejected: 0, draft: 0 };
+  const statusDistribution = useMemo(() => {
+    const statusCount: { [key: string]: number } = { approved: 0, pending: 0, rejected: 0, draft: 0 };
 
     timesheets.forEach(timesheet => {
       timesheet.entries.forEach((entry: TimesheetEntry) => {
@@ -83,9 +84,9 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
       value: count,
       percentage: ((count / Object.values(statusCount).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
     }));
-  };
+  }, [timesheets]);
 
-  const getWorkPatterns = () => {
+  const workPatterns = useMemo(() => {
     const patterns: { [hour: string]: number } = {};
 
     timesheets.forEach(timesheet => {
@@ -104,12 +105,7 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
         percentage: ((count / Object.values(patterns).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
       }))
       .sort((a, b) => a.hour.localeCompare(b.hour));
-  };
-
-  const stats = calculateOverallStats();
-  const monthlyTrends = getMonthlyTrends();
-  const statusDistribution = getStatusDistribution();
-  const workPatterns = getWorkPatterns();
+  }, [timesheets]);
 
   const COLORS = ['#22c55e', '#eab308', '#ef4444', '#6b7280'];
 
