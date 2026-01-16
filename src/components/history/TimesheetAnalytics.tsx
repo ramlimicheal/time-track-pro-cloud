@@ -1,4 +1,5 @@
 
+import { memo, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, Clock, Calendar, Award } from "lucide-react";
@@ -8,8 +9,8 @@ interface TimesheetAnalyticsProps {
   timesheets: Timesheet[];
 }
 
-export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
-  const calculateOverallStats = () => {
+export const TimesheetAnalytics = memo(({ timesheets }: TimesheetAnalyticsProps) => {
+  const stats = useMemo(() => {
     let totalHours = 0;
     let totalEntries = 0;
     let overtimeHours = 0;
@@ -36,9 +37,9 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
       averageDaily: workingDays > 0 ? totalHours / workingDays : 0,
       productivity: Math.min(100, (totalHours / (workingDays * 8)) * 100)
     };
-  };
+  }, [timesheets]);
 
-  const getMonthlyTrends = () => {
+  const monthlyTrends = useMemo(() => {
     const monthlyData: { [key: string]: { hours: number; days: number; overtime: number } } = {};
 
     timesheets.forEach(timesheet => {
@@ -65,15 +66,15 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
         average: data.days > 0 ? data.hours / data.days : 0
       }))
       .sort((a, b) => a.month.localeCompare(b.month));
-  };
+  }, [timesheets]);
 
-  const getStatusDistribution = () => {
-    const statusCount = { approved: 0, pending: 0, rejected: 0, draft: 0 };
+  const statusDistribution = useMemo(() => {
+    const statusCount: Record<string, number> = { approved: 0, pending: 0, rejected: 0, draft: 0 };
 
     timesheets.forEach(timesheet => {
       timesheet.entries.forEach((entry: TimesheetEntry) => {
         if (entry.totalHours > 0) {
-          statusCount[entry.status]++;
+          statusCount[entry.status] = (statusCount[entry.status] || 0) + 1;
         }
       });
     });
@@ -83,9 +84,9 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
       value: count,
       percentage: ((count / Object.values(statusCount).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
     }));
-  };
+  }, [timesheets]);
 
-  const getWorkPatterns = () => {
+  const workPatterns = useMemo(() => {
     const patterns: { [hour: string]: number } = {};
 
     timesheets.forEach(timesheet => {
@@ -104,12 +105,7 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
         percentage: ((count / Object.values(patterns).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
       }))
       .sort((a, b) => a.hour.localeCompare(b.hour));
-  };
-
-  const stats = calculateOverallStats();
-  const monthlyTrends = getMonthlyTrends();
-  const statusDistribution = getStatusDistribution();
-  const workPatterns = getWorkPatterns();
+  }, [timesheets]);
 
   const COLORS = ['#22c55e', '#eab308', '#ef4444', '#6b7280'];
 
@@ -284,14 +280,14 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
             <div className="p-4 bg-green-50 rounded-lg">
               <h4 className="font-medium text-green-900 mb-2">Consistency Score</h4>
               <div className="text-2xl font-bold text-green-600">
-                {((stats.workingDays / (timesheets.length * 22)) * 100).toFixed(1)}%
+                {((stats.workingDays / (Math.max(1, timesheets.length) * 22)) * 100).toFixed(1)}%
               </div>
               <p className="text-sm text-green-700">Days worked vs available</p>
             </div>
             <div className="p-4 bg-purple-50 rounded-lg">
               <h4 className="font-medium text-purple-900 mb-2">Overtime Rate</h4>
               <div className="text-2xl font-bold text-purple-600">
-                {((stats.overtimeHours / stats.totalHours) * 100).toFixed(1)}%
+                {stats.totalHours > 0 ? ((stats.overtimeHours / stats.totalHours) * 100).toFixed(1) : "0.0"}%
               </div>
               <p className="text-sm text-purple-700">Of total hours worked</p>
             </div>
@@ -300,4 +296,6 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
       </Card>
     </div>
   );
-};
+});
+
+TimesheetAnalytics.displayName = "TimesheetAnalytics";
