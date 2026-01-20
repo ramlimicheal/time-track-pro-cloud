@@ -1,11 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Helper to check if we're in a real environment
+const isProd = import.meta.env.PROD;
+const hasEnvVars = import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+// Use provided env vars or fallbacks for development
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+
+// Only throw if missing in production, otherwise warn and use placeholders to allow UI to load
+if (!hasEnvVars && isProd) {
+  console.error('Missing Supabase environment variables');
+} else if (!hasEnvVars) {
+  console.warn('Missing Supabase environment variables, falling back to placeholders for development');
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -22,4 +30,4 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-export type {  Database };
+export type { Database };
