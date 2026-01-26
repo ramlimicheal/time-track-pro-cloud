@@ -3,32 +3,69 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, Clock, Calendar, Award } from "lucide-react";
 import { Timesheet, TimesheetEntry } from "@/types";
+import { useMemo } from "react";
 
 interface TimesheetAnalyticsProps {
   timesheets: Timesheet[];
 }
 
 export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
-  const calculateOverallStats = () => {
+  const { stats, monthlyTrends, statusDistribution, workPatterns } = useMemo(() => {
+    // Initialize accumulators
     let totalHours = 0;
     let totalEntries = 0;
     let overtimeHours = 0;
     let workingDays = 0;
 
+    const monthlyData: { [key: string]: { hours: number; days: number; overtime: number } } = {};
+    const statusCount: { [key: string]: number } = { approved: 0, pending: 0, rejected: 0, draft: 0 };
+    const workPatternsMap: { [hour: string]: number } = {};
+
+    // Single pass iteration
     timesheets.forEach(timesheet => {
+      const monthKey = `${timesheet.year}-${timesheet.month.toString().padStart(2, '0')}`;
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { hours: 0, days: 0, overtime: 0 };
+      }
+
       timesheet.entries.forEach((entry: TimesheetEntry) => {
+        // Work Patterns - Counts regardless of totalHours, based on workStart existence
+        if (entry.workStart) {
+          const hour = entry.workStart.split(':')[0];
+          workPatternsMap[hour] = (workPatternsMap[hour] || 0) + 1;
+        }
+
+        // Stats, Monthly Trends, and Status Distribution - Only for entries with hours
         if (entry.totalHours > 0) {
+          // Overall Stats
           totalHours += entry.totalHours;
           totalEntries++;
           workingDays++;
           if (entry.totalHours > 8) {
             overtimeHours += entry.totalHours - 8;
           }
+
+          // Monthly Trends
+          monthlyData[monthKey].hours += entry.totalHours;
+          monthlyData[monthKey].days++;
+          if (entry.totalHours > 8) {
+            monthlyData[monthKey].overtime += entry.totalHours - 8;
+          }
+
+          // Status Distribution
+          // Using type assertion to access dynamic key on defined shape, or fallback to known keys
+          const statusKey = entry.status as string;
+          if (statusCount[statusKey] !== undefined) {
+            statusCount[statusKey]++;
+          } else {
+             statusCount[statusKey] = 1;
+          }
         }
       });
     });
 
-    return {
+    // Format Overall Stats
+    const calculatedStats = {
       totalHours,
       totalEntries,
       overtimeHours,
@@ -36,80 +73,41 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
       averageDaily: workingDays > 0 ? totalHours / workingDays : 0,
       productivity: Math.min(100, (totalHours / (workingDays * 8)) * 100)
     };
-  };
 
-  const getMonthlyTrends = () => {
-    const monthlyData: { [key: string]: { hours: number; days: number; overtime: number } } = {};
-
-    timesheets.forEach(timesheet => {
-      const key = `${timesheet.year}-${timesheet.month.toString().padStart(2, '0')}`;
-      if (!monthlyData[key]) {
-        monthlyData[key] = { hours: 0, days: 0, overtime: 0 };
-      }
-
-      timesheet.entries.forEach((entry: TimesheetEntry) => {
-        if (entry.totalHours > 0) {
-          monthlyData[key].hours += entry.totalHours;
-          monthlyData[key].days++;
-          if (entry.totalHours > 8) {
-            monthlyData[key].overtime += entry.totalHours - 8;
-          }
-        }
-      });
-    });
-
-    return Object.entries(monthlyData)
+    // Format Monthly Trends
+    const calculatedMonthlyTrends = Object.entries(monthlyData)
       .map(([key, data]) => ({
         month: key,
         ...data,
         average: data.days > 0 ? data.hours / data.days : 0
       }))
       .sort((a, b) => a.month.localeCompare(b.month));
-  };
 
-  const getStatusDistribution = () => {
-    const statusCount = { approved: 0, pending: 0, rejected: 0, draft: 0 };
-
-    timesheets.forEach(timesheet => {
-      timesheet.entries.forEach((entry: TimesheetEntry) => {
-        if (entry.totalHours > 0) {
-          statusCount[entry.status]++;
-        }
-      });
-    });
-
-    return Object.entries(statusCount).map(([status, count]) => ({
+    // Format Status Distribution
+    const totalStatusCount = Object.values(statusCount).reduce((a, b) => a + b, 0);
+    const calculatedStatusDistribution = Object.entries(statusCount).map(([status, count]) => ({
       name: status.charAt(0).toUpperCase() + status.slice(1),
       value: count,
-      percentage: ((count / Object.values(statusCount).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
+      percentage: totalStatusCount > 0 ? ((count / totalStatusCount) * 100).toFixed(1) : "0.0"
     }));
-  };
 
-  const getWorkPatterns = () => {
-    const patterns: { [hour: string]: number } = {};
-
-    timesheets.forEach(timesheet => {
-      timesheet.entries.forEach((entry: TimesheetEntry) => {
-        if (entry.workStart) {
-          const hour = entry.workStart.split(':')[0];
-          patterns[hour] = (patterns[hour] || 0) + 1;
-        }
-      });
-    });
-
-    return Object.entries(patterns)
+    // Format Work Patterns
+    const totalPatternsCount = Object.values(workPatternsMap).reduce((a, b) => a + b, 0);
+    const calculatedWorkPatterns = Object.entries(workPatternsMap)
       .map(([hour, count]) => ({
         hour: `${hour}:00`,
         count,
-        percentage: ((count / Object.values(patterns).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
+        percentage: totalPatternsCount > 0 ? ((count / totalPatternsCount) * 100).toFixed(1) : "0.0"
       }))
       .sort((a, b) => a.hour.localeCompare(b.hour));
-  };
 
-  const stats = calculateOverallStats();
-  const monthlyTrends = getMonthlyTrends();
-  const statusDistribution = getStatusDistribution();
-  const workPatterns = getWorkPatterns();
+    return {
+      stats: calculatedStats,
+      monthlyTrends: calculatedMonthlyTrends,
+      statusDistribution: calculatedStatusDistribution,
+      workPatterns: calculatedWorkPatterns
+    };
+  }, [timesheets]);
 
   const COLORS = ['#22c55e', '#eab308', '#ef4444', '#6b7280'];
 
@@ -291,7 +289,7 @@ export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
             <div className="p-4 bg-purple-50 rounded-lg">
               <h4 className="font-medium text-purple-900 mb-2">Overtime Rate</h4>
               <div className="text-2xl font-bold text-purple-600">
-                {((stats.overtimeHours / stats.totalHours) * 100).toFixed(1)}%
+                {stats.totalHours > 0 ? ((stats.overtimeHours / stats.totalHours) * 100).toFixed(1) : "0.0"}%
               </div>
               <p className="text-sm text-purple-700">Of total hours worked</p>
             </div>
