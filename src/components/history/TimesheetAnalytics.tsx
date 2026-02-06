@@ -1,115 +1,19 @@
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { TrendingUp, Clock, Calendar, Award } from "lucide-react";
-import { Timesheet, TimesheetEntry } from "@/types";
+import { Timesheet } from "@/types";
+import { calculateAnalytics } from "@/utils/analyticsCalculation";
 
 interface TimesheetAnalyticsProps {
   timesheets: Timesheet[];
 }
 
 export const TimesheetAnalytics = ({ timesheets }: TimesheetAnalyticsProps) => {
-  const calculateOverallStats = () => {
-    let totalHours = 0;
-    let totalEntries = 0;
-    let overtimeHours = 0;
-    let workingDays = 0;
-
-    timesheets.forEach(timesheet => {
-      timesheet.entries.forEach((entry: TimesheetEntry) => {
-        if (entry.totalHours > 0) {
-          totalHours += entry.totalHours;
-          totalEntries++;
-          workingDays++;
-          if (entry.totalHours > 8) {
-            overtimeHours += entry.totalHours - 8;
-          }
-        }
-      });
-    });
-
-    return {
-      totalHours,
-      totalEntries,
-      overtimeHours,
-      workingDays,
-      averageDaily: workingDays > 0 ? totalHours / workingDays : 0,
-      productivity: Math.min(100, (totalHours / (workingDays * 8)) * 100)
-    };
-  };
-
-  const getMonthlyTrends = () => {
-    const monthlyData: { [key: string]: { hours: number; days: number; overtime: number } } = {};
-
-    timesheets.forEach(timesheet => {
-      const key = `${timesheet.year}-${timesheet.month.toString().padStart(2, '0')}`;
-      if (!monthlyData[key]) {
-        monthlyData[key] = { hours: 0, days: 0, overtime: 0 };
-      }
-
-      timesheet.entries.forEach((entry: TimesheetEntry) => {
-        if (entry.totalHours > 0) {
-          monthlyData[key].hours += entry.totalHours;
-          monthlyData[key].days++;
-          if (entry.totalHours > 8) {
-            monthlyData[key].overtime += entry.totalHours - 8;
-          }
-        }
-      });
-    });
-
-    return Object.entries(monthlyData)
-      .map(([key, data]) => ({
-        month: key,
-        ...data,
-        average: data.days > 0 ? data.hours / data.days : 0
-      }))
-      .sort((a, b) => a.month.localeCompare(b.month));
-  };
-
-  const getStatusDistribution = () => {
-    const statusCount = { approved: 0, pending: 0, rejected: 0, draft: 0 };
-
-    timesheets.forEach(timesheet => {
-      timesheet.entries.forEach((entry: TimesheetEntry) => {
-        if (entry.totalHours > 0) {
-          statusCount[entry.status]++;
-        }
-      });
-    });
-
-    return Object.entries(statusCount).map(([status, count]) => ({
-      name: status.charAt(0).toUpperCase() + status.slice(1),
-      value: count,
-      percentage: ((count / Object.values(statusCount).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
-    }));
-  };
-
-  const getWorkPatterns = () => {
-    const patterns: { [hour: string]: number } = {};
-
-    timesheets.forEach(timesheet => {
-      timesheet.entries.forEach((entry: TimesheetEntry) => {
-        if (entry.workStart) {
-          const hour = entry.workStart.split(':')[0];
-          patterns[hour] = (patterns[hour] || 0) + 1;
-        }
-      });
-    });
-
-    return Object.entries(patterns)
-      .map(([hour, count]) => ({
-        hour: `${hour}:00`,
-        count,
-        percentage: ((count / Object.values(patterns).reduce((a, b) => a + b, 0)) * 100).toFixed(1)
-      }))
-      .sort((a, b) => a.hour.localeCompare(b.hour));
-  };
-
-  const stats = calculateOverallStats();
-  const monthlyTrends = getMonthlyTrends();
-  const statusDistribution = getStatusDistribution();
-  const workPatterns = getWorkPatterns();
+  const { stats, monthlyTrends, statusDistribution, workPatterns } = useMemo(() => {
+    return calculateAnalytics(timesheets);
+  }, [timesheets]);
 
   const COLORS = ['#22c55e', '#eab308', '#ef4444', '#6b7280'];
 
