@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (session?.user) {
           const fetchedProfile = await fetchProfile(session.user.id);
 
-          if (!fetchedProfile && _event === 'SIGNED_IN') {
+          if (!fetchedProfile && _event === 'SIGNED_IN' && session.user.app_metadata?.provider !== 'email') {
             // Create a profile row for new OAuth users
             const fullName = session.user.user_metadata?.full_name || session.user.email;
 
