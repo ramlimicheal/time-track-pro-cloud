@@ -50,6 +50,7 @@ export const AuthForm = () => {
       await signInWithOAuth(provider);
     } catch (err: any) {
       setError(err.message || `Failed to sign in with ${provider}`);
+    } finally {
       setIsLoading(false);
     }
   };
