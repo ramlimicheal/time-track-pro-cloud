@@ -22,6 +22,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -199,6 +200,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'github') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      console.error(`Error signing in with ${provider}:`, error);
+      toast.error(error.message || `Failed to sign in with ${provider}`);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     profile,
@@ -210,6 +227,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     resetPassword,
     updatePassword,
     refreshProfile,
+    signInWithOAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

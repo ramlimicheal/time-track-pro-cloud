@@ -3,7 +3,7 @@
 
 | # | Task | Priority | Gaps | Status |
 |---|------|----------|------|--------|
-| 01 | [Authentication & Security](HERMES_TASK_01_auth.md) | P0 | 1 | TODO |
+| 01 | [Authentication & Security](HERMES_TASK_01_auth.md) | P0 | 1 | DONE |
 | 02 | [Billing & Payments](HERMES_TASK_02_billing.md) | P1 | 5 | TODO |
 | 03 | [UX & UI Polish](HERMES_TASK_03_ux.md) | P3 | 1 | TODO |
 | 04 | [Content & SEO](HERMES_TASK_04_content.md) | P4+ | 5 | TODO |

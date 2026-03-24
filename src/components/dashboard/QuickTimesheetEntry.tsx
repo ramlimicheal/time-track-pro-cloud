@@ -71,7 +71,7 @@ export const QuickTimesheetEntry = ({ employeeId, onSuccess }: QuickTimesheetEnt
     const year = entryDate.getFullYear();
     const timesheetKey = `timesheet-${month}-${year}-${employeeId}`;
     
-    let timesheet = localStorage.getItem(timesheetKey);
+    const timesheet = localStorage.getItem(timesheetKey);
     let timesheetData: Timesheet;
 
     if (timesheet) {
