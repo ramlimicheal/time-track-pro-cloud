@@ -22,6 +22,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,7 +87,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          const fetchedProfile = await fetchProfile(session.user.id);
+
+          if (!fetchedProfile && _event === 'SIGNED_IN' && session.user.app_metadata?.provider !== 'email') {
+            // Create a profile row for new OAuth users
+            const fullName = session.user.user_metadata?.full_name || session.user.email;
+
+            try {
+              const { error: profileError } = await supabase.from('profiles').insert({
+                id: session.user.id,
+                full_name: fullName,
+                role: 'employee',
+              });
+
+              if (profileError) {
+                console.error('Error auto-creating profile:', profileError);
+              } else {
+                await fetchProfile(session.user.id);
+              }
+            } catch (err) {
+               console.error('Exception auto-creating profile:', err);
+            }
+          }
         } else {
           setProfile(null);
         }
@@ -199,6 +221,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'github') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      console.error(`Error signing in with ${provider}:`, error);
+      toast.error(error.message || `Failed to sign in with ${provider}`);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     profile,
@@ -210,6 +248,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     resetPassword,
     updatePassword,
     refreshProfile,
+    signInWithOAuth,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

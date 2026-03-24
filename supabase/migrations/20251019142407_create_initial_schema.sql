@@ -606,3 +606,7 @@ CREATE TRIGGER update_leave_applications_updated_at BEFORE UPDATE ON leave_appli
 
 CREATE TRIGGER update_leave_balances_updated_at BEFORE UPDATE ON leave_balances
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE POLICY "Users can create own profile"
+  ON profiles FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id AND role = 'employee');
