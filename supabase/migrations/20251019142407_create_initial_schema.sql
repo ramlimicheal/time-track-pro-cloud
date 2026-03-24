@@ -609,4 +609,4 @@ CREATE TRIGGER update_leave_balances_updated_at BEFORE UPDATE ON leave_balances
 CREATE POLICY "Users can create own profile"
   ON profiles FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid() = id);
+  WITH CHECK (auth.uid() = id AND role = 'employee');
