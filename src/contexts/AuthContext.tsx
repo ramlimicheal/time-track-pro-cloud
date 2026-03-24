@@ -87,7 +87,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          const fetchedProfile = await fetchProfile(session.user.id);
+
+          if (!fetchedProfile && _event === 'SIGNED_IN') {
+            // Create a profile row for new OAuth users
+            const fullName = session.user.user_metadata?.full_name || session.user.email;
+
+            try {
+              const { error: profileError } = await supabase.from('profiles').insert({
+                id: session.user.id,
+                full_name: fullName,
+                role: 'employee',
+              });
+
+              if (profileError) {
+                console.error('Error auto-creating profile:', profileError);
+              } else {
+                await fetchProfile(session.user.id);
+              }
+            } catch (err) {
+               console.error('Exception auto-creating profile:', err);
+            }
+          }
         } else {
           setProfile(null);
         }
