@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
 import { calculateTotalHours, validateEntry } from "@/utils/timeUtils";
@@ -46,43 +46,44 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
   }, [entries]);
 
   // Update entry and recalculate hours
-  const updateEntry = (
+  const updateEntry = useCallback((
     id: string,
     field: keyof TimesheetEntry,
     value: string | number
   ) => {
-    const updatedEntries = localEntries.map((entry) => {
-      if (entry.id === id) {
-        const updatedEntry = {
-          ...entry,
-          [field]: value,
-        };
+    setLocalEntries((prevEntries) => {
+      return prevEntries.map((entry) => {
+        if (entry.id === id) {
+          const updatedEntry = {
+            ...entry,
+            [field]: value,
+          };
 
-        // If this is a time field, recalculate total hours
-        if (
-          field === "workStart" || 
-          field === "workEnd" || 
-          field === "breakStart" || 
-          field === "breakEnd" ||
-          field === "otStart" ||
-          field === "otEnd"
-        ) {
-          updatedEntry.totalHours = calculateTotalHours(
-            updatedEntry.workStart,
-            updatedEntry.workEnd,
-            updatedEntry.breakStart,
-            updatedEntry.breakEnd,
-            updatedEntry.otStart,
-            updatedEntry.otEnd
-          );
+          // If this is a time field, recalculate total hours
+          if (
+            field === "workStart" ||
+            field === "workEnd" ||
+            field === "breakStart" ||
+            field === "breakEnd" ||
+            field === "otStart" ||
+            field === "otEnd"
+          ) {
+            updatedEntry.totalHours = calculateTotalHours(
+              updatedEntry.workStart,
+              updatedEntry.workEnd,
+              updatedEntry.breakStart,
+              updatedEntry.breakEnd,
+              updatedEntry.otStart,
+              updatedEntry.otEnd
+            );
+          }
+
+          return updatedEntry;
         }
-
-        return updatedEntry;
-      }
-      return entry;
+        return entry;
+      });
     });
-    setLocalEntries(updatedEntries);
-  };
+  }, []);
 
   const handleBulkApprove = () => {
     if (selectedEntries.length === 0) {
@@ -114,13 +115,13 @@ export const TimesheetTable: React.FC<TimesheetTableProps> = ({
     setBulkSelectMode(false);
   };
 
-  const toggleEntrySelection = (entryId: string) => {
+  const toggleEntrySelection = useCallback((entryId: string) => {
     setSelectedEntries(prev => 
       prev.includes(entryId) 
         ? prev.filter(id => id !== entryId)
         : [...prev, entryId]
     );
-  };
+  }, []);
 
   const selectAllEntries = () => {
     setSelectedEntries(localEntries.map(entry => entry.id));
