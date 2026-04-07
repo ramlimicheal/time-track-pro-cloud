@@ -1,15 +1,17 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Calendar, BarChart3, FileText, Download } from "lucide-react";
-import { YearView } from "./YearView";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { MonthView } from "./MonthView";
 import { DayView } from "./DayView";
-import { TimesheetAnalytics } from "./TimesheetAnalytics";
 import { AdvancedFilters } from "./AdvancedFilters";
 import { Timesheet } from "@/types";
+
+const TimesheetAnalytics = lazy(() => import("./TimesheetAnalytics").then(module => ({ default: module.TimesheetAnalytics })));
+const YearView = lazy(() => import("./YearView").then(module => ({ default: module.YearView })));
 
 interface EnhancedHistoryDashboardProps {
   timesheets: Timesheet[];
@@ -107,15 +109,17 @@ export const EnhancedHistoryDashboard = ({ timesheets, onExport }: EnhancedHisto
         </TabsList>
 
         <TabsContent value="year" className="mt-6">
-          <YearView 
-            timesheets={filteredTimesheets} 
-            year={selectedYear}
-            onYearChange={setSelectedYear}
-            onMonthSelect={(month) => {
-              setSelectedMonth(month);
-              setSelectedView("month");
-            }}
-          />
+          <Suspense fallback={<div className="flex justify-center p-8"><LoadingSpinner /></div>}>
+            <YearView
+              timesheets={filteredTimesheets}
+              year={selectedYear}
+              onYearChange={setSelectedYear}
+              onMonthSelect={(month) => {
+                setSelectedMonth(month);
+                setSelectedView("month");
+              }}
+            />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="month" className="mt-6">
@@ -141,7 +145,9 @@ export const EnhancedHistoryDashboard = ({ timesheets, onExport }: EnhancedHisto
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
-          <TimesheetAnalytics timesheets={filteredTimesheets} />
+          <Suspense fallback={<div className="flex justify-center p-8"><LoadingSpinner /></div>}>
+            <TimesheetAnalytics timesheets={filteredTimesheets} />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>
