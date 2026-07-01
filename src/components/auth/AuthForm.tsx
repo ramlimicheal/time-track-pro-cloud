@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, Lock, User, AlertCircle, Github } from 'lucide-react';
+import { Loader2, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { GoogleIcon } from './GoogleIcon';
 
 export const AuthForm = () => {
@@ -238,16 +238,10 @@ export const AuthForm = () => {
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 w-full">
-                <Button variant="outline" type="button" disabled={isLoading} onClick={() => handleOAuthLogin('github')}>
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
-                </Button>
-                <Button variant="outline" type="button" disabled={isLoading} onClick={() => handleOAuthLogin('google')}>
-                  <GoogleIcon className="mr-2 h-4 w-4" />
-                  Google
-                </Button>
-              </div>
+              <Button variant="outline" type="button" className="w-full" disabled={isLoading} onClick={() => handleOAuthLogin('google')}>
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Continue with Google
+              </Button>
             </CardFooter>
           </form>
         </TabsContent>
@@ -341,16 +335,10 @@ export const AuthForm = () => {
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 w-full">
-                <Button variant="outline" type="button" disabled={isLoading} onClick={() => handleOAuthLogin('github')}>
-                  <Github className="mr-2 h-4 w-4" />
-                  GitHub
-                </Button>
-                <Button variant="outline" type="button" disabled={isLoading} onClick={() => handleOAuthLogin('google')}>
-                  <GoogleIcon className="mr-2 h-4 w-4" />
-                  Google
-                </Button>
-              </div>
+              <Button variant="outline" type="button" className="w-full" disabled={isLoading} onClick={() => handleOAuthLogin('google')}>
+                <GoogleIcon className="mr-2 h-4 w-4" />
+                Continue with Google
+              </Button>
             </CardFooter>
           </form>
         </TabsContent>
