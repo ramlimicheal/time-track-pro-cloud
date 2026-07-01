@@ -17,7 +17,7 @@ export const useEmployeeTracking = (employeeId: string, employeeName: string) =>
     };
 
     // Track mouse and keyboard activity
-    let activityTimeout: NodeJS.Timeout;
+    let activityTimeout: ReturnType<typeof setTimeout>;
     const handleActivity = () => {
       clearTimeout(activityTimeout);
       liveTrackingManager.updateActivity(employeeId, "Active", "User interaction detected");

@@ -1,25 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+// Re-export the auto-generated Lovable Cloud client so all existing
+// `@/lib/supabase` imports keep working without touching the generated file.
 import type { Database } from '@/types/supabase';
+import { supabase as generatedSupabase } from '@/integrations/supabase/client';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
-});
-
-export type {  Database };
+// The auto-generated Lovable Cloud client is typed against an empty
+// Database schema (no tables have been synced yet). Existing services in
+// this project were written against a custom Database shape. Until the
+// schema is created via migrations and re-introspected, expose the client
+// with a permissive type so services keep compiling.
+export const supabase = generatedSupabase as any;
+export type { Database };

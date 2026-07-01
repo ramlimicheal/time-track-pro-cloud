@@ -12,7 +12,8 @@ export const LiveEmployeeGrid = () => {
     onlineEmployees: 0,
     totalWorkHoursToday: 0,
     activeNow: 0,
-    recentActivities: 0
+    recentActivities: 0,
+    workingNow: 0,
   });
 
   useEffect(() => {
