@@ -15,7 +15,7 @@ export const useWorkTimer = (employeeId: string, employeeName: string) => {
   const [currentSession, setCurrentSession] = useState<WorkSession | null>(null);
   const [todayHours, setTodayHours] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Load saved timer state on mount
   useEffect(() => {
