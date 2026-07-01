@@ -1,14 +1,19 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+export type AppRole = 'employee' | 'manager' | 'admin';
 
 interface Profile {
   id: string;
-  role: 'employee' | 'manager' | 'admin';
-  employee_id: string | null;
+  role: AppRole;
   full_name: string;
+  email: string;
   avatar_url: string | null;
+  employee_code: string | null;
+  department: string | null;
+  position: string | null;
 }
 
 interface AuthContextType {
@@ -17,12 +22,12 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, role?: 'employee' | 'manager' | 'admin') => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
-  signInWithOAuth: (provider: 'google' | 'github') => Promise<void>;
+  signInWithOAuth: (provider: 'google') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,19 +50,42 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+      const [{ data: profileRow, error: profileError }, { data: roleRows, error: roleError }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        supabase.from('user_roles').select('role').eq('user_id', userId),
+      ]);
 
-      if (error) throw error;
-      setProfile(data);
-      return data;
+      if (profileError) throw profileError;
+      if (roleError) throw roleError;
+      if (!profileRow) {
+        setProfile(null);
+        return null;
+      }
+
+      const roles = (roleRows ?? []).map((r) => r.role as AppRole);
+      const role: AppRole = roles.includes('admin')
+        ? 'admin'
+        : roles.includes('manager')
+          ? 'manager'
+          : 'employee';
+
+      const merged: Profile = {
+        id: profileRow.id,
+        full_name: profileRow.full_name ?? '',
+        email: profileRow.email ?? '',
+        avatar_url: profileRow.avatar_url ?? null,
+        employee_code: profileRow.employee_code ?? null,
+        department: profileRow.department ?? null,
+        position: profileRow.position ?? null,
+        role,
+      };
+      setProfile(merged);
+      return merged;
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setProfile(null);
       return null;
     }
   };
@@ -87,28 +115,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          const fetchedProfile = await fetchProfile(session.user.id);
-
-          if (!fetchedProfile && _event === 'SIGNED_IN' && session.user.app_metadata?.provider !== 'email') {
-            // Create a profile row for new OAuth users
-            const fullName = session.user.user_metadata?.full_name || session.user.email;
-
-            try {
-              const { error: profileError } = await supabase.from('profiles').insert({
-                id: session.user.id,
-                full_name: fullName,
-                role: 'employee',
-              });
-
-              if (profileError) {
-                console.error('Error auto-creating profile:', profileError);
-              } else {
-                await fetchProfile(session.user.id);
-              }
-            } catch (err) {
-               console.error('Exception auto-creating profile:', err);
-            }
-          }
+          // Profile + role rows are created by the on_auth_user_created trigger.
+          // Defer to avoid recursive Supabase calls inside the auth callback.
+          setTimeout(() => { fetchProfile(session.user.id); }, 0);
         } else {
           setProfile(null);
         }
@@ -139,35 +148,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-    fullName: string,
-    role: 'employee' | 'manager' | 'admin' = 'employee'
-  ) => {
+  const signUp = async (email: string, password: string, fullName: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: fullName,
-            role: role,
-          },
+          emailRedirectTo: `${window.location.origin}/`,
+          data: { full_name: fullName },
         },
       });
-
       if (error) throw error;
-
       if (data.user) {
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: data.user.id,
-          full_name: fullName,
-          role: role,
-        });
-
-        if (profileError) throw profileError;
-
+        // Trigger creates profile + role. First signup becomes admin.
         await fetchProfile(data.user.id);
         toast.success('Account created successfully');
       }
@@ -221,12 +214,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const signInWithOAuth = async (provider: 'google' | 'github') => {
+  const signInWithOAuth = async (provider: 'google') => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: window.location.origin,
         },
       });
       if (error) throw error;
