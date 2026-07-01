@@ -1,25 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+// Re-export the auto-generated Lovable Cloud client so all existing
+// `@/lib/supabase` imports keep working without touching the generated file.
 import type { Database } from '@/types/supabase';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
-});
-
-export type {  Database };
+export { supabase } from '@/integrations/supabase/client';
+export type { Database };
