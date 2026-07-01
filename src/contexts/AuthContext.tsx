@@ -216,13 +216,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signInWithOAuth = async (provider: 'google') => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin,
-        },
+      const { lovable } = await import('@/integrations/lovable/index');
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
       });
-      if (error) throw error;
+      if (result.error) throw new Error(result.error.message || 'OAuth sign-in failed');
     } catch (error: any) {
       console.error(`Error signing in with ${provider}:`, error);
       toast.error(error.message || `Failed to sign in with ${provider}`);
