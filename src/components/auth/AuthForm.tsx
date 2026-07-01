@@ -43,7 +43,7 @@ export const AuthForm = () => {
     }
   };
 
-  const handleOAuthLogin = async (provider: 'google' | 'github') => {
+  const handleOAuthLogin = async (provider: 'google') => {
     setError('');
     setIsLoading(true);
     try {
