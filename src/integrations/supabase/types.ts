@@ -14,16 +14,257 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      leave_applications: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          days: number
+          end_date: string
+          id: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          reason: string | null
+          rejection_reason: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          days: number
+          end_date: string
+          id?: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          reason?: string | null
+          rejection_reason?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          days?: number
+          end_date?: string
+          id?: string
+          leave_type?: Database["public"]["Enums"]["leave_type"]
+          reason?: string | null
+          rejection_reason?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leave_balances: {
+        Row: {
+          annual: number
+          casual: number
+          created_at: string
+          id: string
+          sick: number
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          annual?: number
+          casual?: number
+          created_at?: string
+          id?: string
+          sick?: number
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          annual?: number
+          casual?: number
+          created_at?: string
+          id?: string
+          sick?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          department: string | null
+          email: string
+          employee_code: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          position: string | null
+          status: Database["public"]["Enums"]["employee_status"]
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          email: string
+          employee_code?: string | null
+          full_name?: string
+          id: string
+          phone?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string
+          employee_code?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          position?: string | null
+          status?: Database["public"]["Enums"]["employee_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      timesheets: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          break_minutes: number
+          created_at: string
+          description: string | null
+          end_time: string | null
+          id: string
+          ot_end: string | null
+          ot_start: string | null
+          rejection_reason: string | null
+          start_time: string | null
+          status: Database["public"]["Enums"]["timesheet_status"]
+          total_hours: number | null
+          updated_at: string
+          user_id: string
+          work_date: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          break_minutes?: number
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          ot_end?: string | null
+          ot_start?: string | null
+          rejection_reason?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["timesheet_status"]
+          total_hours?: number | null
+          updated_at?: string
+          user_id: string
+          work_date: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          break_minutes?: number
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          ot_end?: string | null
+          ot_start?: string | null
+          rejection_reason?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["timesheet_status"]
+          total_hours?: number | null
+          updated_at?: string
+          user_id?: string
+          work_date?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin_or_manager: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "employee"
+      employee_status: "active" | "inactive" | "suspended"
+      leave_status: "pending" | "approved" | "rejected" | "cancelled"
+      leave_type: "annual" | "sick" | "casual" | "unpaid" | "other"
+      timesheet_status: "draft" | "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +391,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "employee"],
+      employee_status: ["active", "inactive", "suspended"],
+      leave_status: ["pending", "approved", "rejected", "cancelled"],
+      leave_type: ["annual", "sick", "casual", "unpaid", "other"],
+      timesheet_status: ["draft", "pending", "approved", "rejected"],
+    },
   },
 } as const
