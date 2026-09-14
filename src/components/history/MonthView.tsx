@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Timesheet, TimesheetEntry } from "@/types";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
+import { useMemo } from "react";
 
 interface MonthViewProps {
   timesheets: Timesheet[];
@@ -17,18 +18,34 @@ interface MonthViewProps {
 }
 
 export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange, onDateSelect }: MonthViewProps) => {
-  const currentMonth = new Date(year, month - 1);
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  // Memoize date calculations to avoid re-computing on every render
+  const currentMonth = useMemo(() => new Date(year, month - 1), [year, month]);
   
-  const monthTimesheet = timesheets.find(ts => ts.year === year && ts.month === month);
+  const monthDays = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start: monthStart, end: monthEnd });
+  }, [currentMonth]);
   
+  const monthTimesheet = useMemo(() =>
+    timesheets.find(ts => ts.year === year && ts.month === month),
+    [timesheets, year, month]
+  );
+
+  // Performance optimization: Create a lookup map for entries to avoid O(N*M) complexity in the render loop.
+  // This allows O(1) access to entries by date string.
+  const entriesByDate = useMemo(() => {
+    if (!monthTimesheet) return {};
+    return monthTimesheet.entries.reduce((acc, entry) => {
+      acc[entry.date] = entry;
+      return acc;
+    }, {} as Record<string, TimesheetEntry>);
+  }, [monthTimesheet]);
+
   const getEntryForDate = (date: Date): TimesheetEntry | null => {
     if (!monthTimesheet) return null;
-    
     const dateStr = format(date, "dd-MMM-yyyy");
-    return monthTimesheet.entries.find(entry => entry.date === dateStr) || null;
+    return entriesByDate[dateStr] || null;
   };
 
   const getStatusColor = (status: string) => {
@@ -40,7 +57,8 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
     }
   };
 
-  const calculateMonthStats = () => {
+  // Memoize stats calculation to prevent expensive re-calculation on unrelated re-renders
+  const monthStats = useMemo(() => {
     if (!monthTimesheet) return { totalHours: 0, workingDays: 0, averageDaily: 0, overtime: 0 };
     
     let totalHours = 0;
@@ -63,7 +81,7 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
       averageDaily: workingDays > 0 ? totalHours / workingDays : 0,
       overtime
     };
-  };
+  }, [monthTimesheet]);
 
   const navigateMonth = (direction: "prev" | "next") => {
     if (direction === "prev") {
@@ -83,7 +101,6 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
     }
   };
 
-  const stats = calculateMonthStats();
   const monthName = format(currentMonth, "MMMM yyyy");
 
   return (
@@ -131,25 +148,25 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.totalHours.toFixed(1)}h</div>
+            <div className="text-2xl font-bold text-blue-600">{monthStats.totalHours.toFixed(1)}h</div>
             <p className="text-sm text-gray-600">Total Hours</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{stats.workingDays}</div>
+            <div className="text-2xl font-bold text-green-600">{monthStats.workingDays}</div>
             <p className="text-sm text-gray-600">Working Days</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">{stats.averageDaily.toFixed(1)}h</div>
+            <div className="text-2xl font-bold text-purple-600">{monthStats.averageDaily.toFixed(1)}h</div>
             <p className="text-sm text-gray-600">Average Daily</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">{stats.overtime.toFixed(1)}h</div>
+            <div className="text-2xl font-bold text-orange-600">{monthStats.overtime.toFixed(1)}h</div>
             <p className="text-sm text-gray-600">Overtime</p>
           </CardContent>
         </Card>
