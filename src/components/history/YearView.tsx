@@ -1,4 +1,5 @@
 
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,9 +15,13 @@ interface YearViewProps {
 }
 
 export const YearView = ({ timesheets, year, onYearChange, onMonthSelect }: YearViewProps) => {
-  const yearTimesheets = timesheets.filter(ts => ts.year === year);
+  // Optimization: Memoize filtered timesheets to avoid filtering on every render
+  const yearTimesheets = useMemo(() => {
+    return timesheets.filter(ts => ts.year === year);
+  }, [timesheets, year]);
   
-  const calculateYearStats = () => {
+  // Optimization: Memoize year stats calculation
+  const stats = useMemo(() => {
     let totalHours = 0;
     let totalDays = 0;
     let overtimeHours = 0;
@@ -37,10 +42,11 @@ export const YearView = ({ timesheets, year, onYearChange, onMonthSelect }: Year
       averageDaily: totalDays > 0 ? (totalHours / totalDays).toFixed(1) : "0",
       overtimeHours: overtimeHours.toFixed(1)
     };
-  };
+  }, [yearTimesheets]);
 
-  const getMonthlyData = () => {
-    const monthlyData = Array.from({ length: 12 }, (_, i) => ({
+  // Optimization: Memoize monthly data calculation
+  const monthlyData = useMemo(() => {
+    const data = Array.from({ length: 12 }, (_, i) => ({
       month: new Date(2024, i).toLocaleString('default', { month: 'short' }),
       monthNumber: i + 1,
       hours: 0,
@@ -51,18 +57,19 @@ export const YearView = ({ timesheets, year, onYearChange, onMonthSelect }: Year
       const monthIndex = timesheet.month - 1;
       if (monthIndex >= 0 && monthIndex < 12) {
         timesheet.entries.forEach((entry: TimesheetEntry) => {
-          monthlyData[monthIndex].hours += entry.totalHours;
-          if (entry.totalHours > 0) monthlyData[monthIndex].days++;
+          data[monthIndex].hours += entry.totalHours;
+          if (entry.totalHours > 0) data[monthIndex].days++;
         });
       }
     });
 
-    return monthlyData;
-  };
+    return data;
+  }, [yearTimesheets]);
 
-  const stats = calculateYearStats();
-  const monthlyData = getMonthlyData();
-  const availableYears = [...new Set(timesheets.map(ts => ts.year))].sort((a, b) => b - a);
+  // Optimization: Memoize available years
+  const availableYears = useMemo(() => {
+    return [...new Set(timesheets.map(ts => ts.year))].sort((a, b) => b - a);
+  }, [timesheets]);
 
   return (
     <div className="space-y-6">
