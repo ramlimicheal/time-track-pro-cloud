@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, XCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { memo } from "react";
 
 interface TimesheetRowProps {
   entry: TimesheetEntry;
@@ -19,7 +20,7 @@ interface TimesheetRowProps {
   onToggleSelection?: (entryId: string) => void;
 }
 
-export const TimesheetRow = ({ 
+const TimesheetRowComponent = ({
   entry, 
   readOnly, 
   onUpdate,
@@ -179,3 +180,5 @@ export const TimesheetRow = ({
     </tr>
   );
 };
+
+export const TimesheetRow = memo(TimesheetRowComponent);
