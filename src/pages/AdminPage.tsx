@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { CleanAdminDashboard } from "@/components/dashboard/CleanAdminDashboard";
 import { SmartTimesheetManagement } from "@/components/admin/SmartTimesheetManagement";
 import { LeaveManagementDashboard } from "@/components/admin/LeaveManagementDashboard";
+import { employeeService } from "@/services/employeeService";
 
 const AdminPage = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -27,12 +28,19 @@ const AdminPage = () => {
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const navigate = useNavigate();
+
+  const fetchEmployees = async () => {
+    try {
+      const data = await employeeService.getAll();
+      setEmployees(data || []);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      toast.error("Failed to load employees");
+    }
+  };
   
   useEffect(() => {
-    const storedEmployees = localStorage.getItem("employees");
-    if (storedEmployees) {
-      setEmployees(JSON.parse(storedEmployees));
-    }
+    fetchEmployees();
     
     const storedUsers = localStorage.getItem("users");
     if (storedUsers) {
@@ -52,35 +60,90 @@ const AdminPage = () => {
   }, []);
   
   useEffect(() => {
-    localStorage.setItem("employees", JSON.stringify(employees));
-  }, [employees]);
-  
-  useEffect(() => {
     localStorage.setItem("users", JSON.stringify(users));
   }, [users]);
   
-  const handleCreateEmployee = (newEmployee: any) => {
-    setEmployees([...employees, newEmployee]);
-    setIsFormOpen(false);
-    toast.success("Employee created successfully");
+  const handleCreateEmployee = async (newEmployee: any) => {
+    try {
+      // Clean up the object to match database schema if needed
+      // For now, we'll try to insert as is, but we might need to map fields
+      const { id, ...employeeData } = newEmployee;
+
+      // Map frontend fields to database fields if necessary
+      // Ideally, the form should produce the correct structure
+      // or we handle mapping here.
+      // Based on EmployeeForm, it produces camelCase. DB uses snake_case.
+      // We need to map it.
+
+      // Include password/username so the Edge Function can use them
+      const employeePayload = {
+        name: employeeData.name,
+        email: employeeData.email,
+        phone_number: employeeData.phoneNumber,
+        department: employeeData.department,
+        position: employeeData.position,
+        join_date: employeeData.joinDate,
+        status: employeeData.status,
+        dob: employeeData.dob,
+        blood_group: employeeData.bloodGroup,
+        passport_number: employeeData.passportNumber,
+        indian_address: employeeData.indianAddress,
+        oman_address: employeeData.omanAddress,
+        emergency_phone_number: employeeData.emergencyPhoneNumber,
+        password: employeeData.password, // For auth creation
+        username: employeeData.username,
+      };
+
+      await employeeService.createWithAuth(employeePayload);
+      await fetchEmployees();
+      setIsFormOpen(false);
+      toast.success("Employee created successfully");
+    } catch (error) {
+      console.error("Error creating employee:", error);
+      toast.error("Failed to create employee");
+    }
   };
   
-  const handleUpdateEmployee = (updatedEmployee: any) => {
-    const updatedEmployees = employees.map((employee) =>
-      employee.id === updatedEmployee.id ? updatedEmployee : employee
-    );
-    setEmployees(updatedEmployees);
-    setEditingEmployee(null);
-    setIsFormOpen(false);
-    toast.success("Employee updated successfully");
+  const handleUpdateEmployee = async (updatedEmployee: any) => {
+    try {
+      const { id, ...employeeData } = updatedEmployee;
+
+      const dbEmployee = {
+        name: employeeData.name,
+        email: employeeData.email,
+        phone_number: employeeData.phoneNumber,
+        department: employeeData.department,
+        position: employeeData.position,
+        join_date: employeeData.joinDate,
+        status: employeeData.status,
+        dob: employeeData.dob,
+        blood_group: employeeData.bloodGroup,
+        passport_number: employeeData.passportNumber,
+        indian_address: employeeData.indianAddress,
+        oman_address: employeeData.omanAddress,
+        emergency_phone_number: employeeData.emergencyPhoneNumber,
+      };
+
+      await employeeService.update(id, dbEmployee);
+      await fetchEmployees();
+      setEditingEmployee(null);
+      setIsFormOpen(false);
+      toast.success("Employee updated successfully");
+    } catch (error) {
+      console.error("Error updating employee:", error);
+      toast.error("Failed to update employee");
+    }
   };
   
-  const handleDeleteEmployee = (employeeToDelete: any) => {
-    const updatedEmployees = employees.filter(
-      (employee) => employee.id !== employeeToDelete.id
-    );
-    setEmployees(updatedEmployees);
-    toast.success("Employee deleted successfully");
+  const handleDeleteEmployee = async (employeeToDelete: any) => {
+    try {
+      await employeeService.delete(employeeToDelete.id);
+      setEmployees(employees.filter(e => e.id !== employeeToDelete.id));
+      toast.success("Employee deleted successfully");
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      toast.error("Failed to delete employee");
+    }
   };
   
   const handleEditEmployee = (employee: any) => {

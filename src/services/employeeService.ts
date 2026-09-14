@@ -49,6 +49,20 @@ export const employeeService = {
     return data;
   },
 
+  async createWithAuth(employee: any) {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-employee', {
+        body: employee,
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Edge Function invocation failed.", error);
+      throw error;
+    }
+  },
+
   async update(id: string, updates: EmployeeUpdate) {
     const { data, error } = await supabase
       .from('employees')
