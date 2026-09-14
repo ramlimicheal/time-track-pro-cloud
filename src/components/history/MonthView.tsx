@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Timesheet, TimesheetEntry } from "@/types";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
+import { useMemo } from "react";
 
 interface MonthViewProps {
   timesheets: Timesheet[];
@@ -17,19 +18,29 @@ interface MonthViewProps {
 }
 
 export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange, onDateSelect }: MonthViewProps) => {
-  const currentMonth = new Date(year, month - 1);
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const currentMonth = useMemo(() => new Date(year, month - 1), [year, month]);
   
-  const monthTimesheet = timesheets.find(ts => ts.year === year && ts.month === month);
+  const monthDays = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start: monthStart, end: monthEnd });
+  }, [currentMonth]);
   
-  const getEntryForDate = (date: Date): TimesheetEntry | null => {
-    if (!monthTimesheet) return null;
-    
-    const dateStr = format(date, "dd-MMM-yyyy");
-    return monthTimesheet.entries.find(entry => entry.date === dateStr) || null;
-  };
+  const monthTimesheet = useMemo(
+    () => timesheets.find(ts => ts.year === year && ts.month === month),
+    [timesheets, year, month]
+  );
+
+  // Create a map for O(1) entry lookups by date
+  const monthEntriesMap = useMemo(() => {
+    const map = new Map<string, TimesheetEntry>();
+    if (monthTimesheet) {
+      monthTimesheet.entries.forEach(entry => {
+        map.set(entry.date, entry);
+      });
+    }
+    return map;
+  }, [monthTimesheet]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -40,7 +51,7 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
     }
   };
 
-  const calculateMonthStats = () => {
+  const stats = useMemo(() => {
     if (!monthTimesheet) return { totalHours: 0, workingDays: 0, averageDaily: 0, overtime: 0 };
     
     let totalHours = 0;
@@ -63,7 +74,7 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
       averageDaily: workingDays > 0 ? totalHours / workingDays : 0,
       overtime
     };
-  };
+  }, [monthTimesheet]);
 
   const navigateMonth = (direction: "prev" | "next") => {
     if (direction === "prev") {
@@ -83,7 +94,6 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
     }
   };
 
-  const stats = calculateMonthStats();
   const monthName = format(currentMonth, "MMMM yyyy");
 
   return (
@@ -174,7 +184,8 @@ export const MonthView = ({ timesheets, year, month, onMonthChange, onYearChange
           
           <div className="grid grid-cols-7 gap-2">
             {monthDays.map(date => {
-              const entry = getEntryForDate(date);
+              const dateStr = format(date, "dd-MMM-yyyy");
+              const entry = monthEntriesMap.get(dateStr);
               const isToday = isSameDay(date, new Date());
               
               return (
