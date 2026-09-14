@@ -4,7 +4,7 @@ import { FileText, Printer, Check, X, Clock } from "lucide-react";
 import { TimesheetTable } from "@/components/timesheet/TimesheetTable";
 import { TimesheetEntry } from "@/types";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { PrintableTimesheetReport } from "./PrintableTimesheetReport";
 
 interface Employee {
@@ -54,80 +54,84 @@ export const TimesheetReview = ({
   };
 
   // Handle approve with notification feedback for specific entry
-  const handleApprove = (entryId?: string) => {
+  const handleApprove = useCallback((entryId?: string) => {
     if (entryId) {
       // Approve just this specific entry
       setEntryBeingReviewed(entryId);
       
-      // Update the specific entry status
-      const updatedEntries = localEntries.map(entry => 
-        entry.id === entryId ? { ...entry, status: "approved" as const } : entry
-      );
-      
-      setLocalEntries(updatedEntries);
-      
-      // Check if all entries are now approved
-      const allApproved = updatedEntries.every(entry => entry.status === "approved");
-      if (allApproved) {
-        setLocalTimesheetStatus("approved");
-      }
-      
-      toast.success(`Timesheet entry for ${employee?.name} on ${updatedEntries.find(e => e.id === entryId)?.date} approved`);
+      setLocalEntries((currentEntries) => {
+        // Update the specific entry status
+        const updatedEntries = currentEntries.map(entry =>
+          entry.id === entryId ? { ...entry, status: "approved" as const } : entry
+        );
+
+        // Check if all entries are now approved
+        const allApproved = updatedEntries.every(entry => entry.status === "approved");
+        if (allApproved) {
+          setLocalTimesheetStatus("approved");
+        }
+
+        toast.success(`Timesheet entry for ${employee?.name} on ${updatedEntries.find(e => e.id === entryId)?.date} approved`);
+        return updatedEntries;
+      });
     } else {
       // Original behavior for approving the entire timesheet
       setLocalTimesheetStatus("approved");
       
-      // Update all entries to approved
-      const updatedEntries = localEntries.map(entry => ({
-        ...entry,
-        status: "approved" as const
-      }));
-      
-      setLocalEntries(updatedEntries);
+      setLocalEntries((currentEntries) => {
+        // Update all entries to approved
+        const updatedEntries = currentEntries.map(entry => ({
+          ...entry,
+          status: "approved" as const
+        }));
+        return updatedEntries;
+      });
       
       // Then call the parent component's approval handler
       onApprove();
       toast.success(`Timesheet approval notification sent to ${employee?.name}`);
     }
-  };
+  }, [employee?.name, onApprove]);
 
   // Handle reject with notification feedback for specific entry
-  const handleReject = (entryId?: string) => {
+  const handleReject = useCallback((entryId?: string) => {
     if (entryId) {
       // Reject just this specific entry
       setEntryBeingReviewed(entryId);
       
-      // Update the specific entry status
-      const updatedEntries = localEntries.map(entry => 
-        entry.id === entryId ? { ...entry, status: "rejected" as const } : entry
-      );
-      
-      setLocalEntries(updatedEntries);
-      
-      // Check if all entries are now rejected
-      const allRejected = updatedEntries.every(entry => entry.status === "rejected");
-      if (allRejected) {
-        setLocalTimesheetStatus("rejected");
-      }
-      
-      toast.error(`Timesheet entry for ${employee?.name} on ${updatedEntries.find(e => e.id === entryId)?.date} rejected`);
+      setLocalEntries((currentEntries) => {
+        // Update the specific entry status
+        const updatedEntries = currentEntries.map(entry =>
+          entry.id === entryId ? { ...entry, status: "rejected" as const } : entry
+        );
+
+        // Check if all entries are now rejected
+        const allRejected = updatedEntries.every(entry => entry.status === "rejected");
+        if (allRejected) {
+          setLocalTimesheetStatus("rejected");
+        }
+
+        toast.error(`Timesheet entry for ${employee?.name} on ${updatedEntries.find(e => e.id === entryId)?.date} rejected`);
+        return updatedEntries;
+      });
     } else {
       // Original behavior for rejecting the entire timesheet
       setLocalTimesheetStatus("rejected");
       
-      // Update all entries to rejected
-      const updatedEntries = localEntries.map(entry => ({
-        ...entry,
-        status: "rejected" as const
-      }));
-      
-      setLocalEntries(updatedEntries);
+      setLocalEntries((currentEntries) => {
+        // Update all entries to rejected
+        const updatedEntries = currentEntries.map(entry => ({
+          ...entry,
+          status: "rejected" as const
+        }));
+        return updatedEntries;
+      });
       
       // Then call the parent component's rejection handler
       onReject();
       toast.error(`Timesheet rejection notification sent to ${employee?.name}`);
     }
-  };
+  }, [employee?.name, onReject]);
 
   // Use local status for display to ensure immediate UI updates
   const displayStatus = localTimesheetStatus;
