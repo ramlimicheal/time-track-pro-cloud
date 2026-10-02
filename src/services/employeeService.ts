@@ -1,122 +1,36 @@
-import { supabase } from '@/lib/supabase';
-import type { Database } from '@/types/supabase';
-
-type Employee = Database['public']['Tables']['employees']['Row'];
-type EmployeeInsert = Database['public']['Tables']['employees']['Insert'];
-type EmployeeUpdate = Database['public']['Tables']['employees']['Update'];
+import { supabase } from "@/lib/supabase";
+import type { ProfileInput, ProfileRow } from "@/types/cloud";
+import { fetchAll } from "./pagination";
 
 export const employeeService = {
-  async getAll() {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .order('created_at', { ascending: false });
+  roles() {
+    return fetchAll((from, to) => supabase.from("user_roles").select("*").order("id").range(from, to));
+  },
 
+  async setRole(userId: string, role: "employee" | "manager" | "admin"): Promise<void> {
+    const { error } = await supabase.rpc("set_user_role", { _user_id: userId, _role: role });
+    if (error) throw error;
+  },
+
+  list(): Promise<ProfileRow[]> {
+    return fetchAll((from, to) => supabase.from("profiles").select("*")
+      .order("full_name").order("id").range(from, to));
+  },
+
+  async update(id: string, input: ProfileInput, editEmployment = false): Promise<ProfileRow> {
+    if (!input.full_name.trim() || input.full_name.trim().length > 120) {
+      throw new Error("Full name must be 1–120 characters.");
+    }
+    const values = {
+      full_name: input.full_name.trim(),
+      phone: input.phone?.trim() || null,
+      ...(editEmployment ? {
+        department: input.department?.trim() || null,
+        position: input.position?.trim() || null,
+      } : {}),
+    };
+    const { data, error } = await supabase.from("profiles").update(values).eq("id", id).select().single();
     if (error) throw error;
     return data;
-  },
-
-  async getById(id: string) {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getByUserId(userId: string) {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async create(employee: EmployeeInsert) {
-    const { data, error } = await supabase
-      .from('employees')
-      .insert(employee)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async update(id: string, updates: EmployeeUpdate) {
-    const { data, error } = await supabase
-      .from('employees')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async delete(id: string) {
-    const { error } = await supabase
-      .from('employees')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-  },
-
-  async getByDepartment(department: string) {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('department', department)
-      .order('name');
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getActiveEmployees() {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('status', 'active')
-      .order('name');
-
-    if (error) throw error;
-    return data;
-  },
-
-  async searchEmployees(query: string) {
-    const { data, error } = await supabase
-      .from('employees')
-      .select('*')
-      .or(`name.ilike.%${query}%,email.ilike.%${query}%,position.ilike.%${query}%`)
-      .order('name');
-
-    if (error) throw error;
-    return data;
-  },
-
-  subscribeToChanges(callback: (payload: any) => void) {
-    const subscription = supabase
-      .channel('employees-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'employees',
-        },
-        callback
-      )
-      .subscribe();
-
-    return subscription;
   },
 };

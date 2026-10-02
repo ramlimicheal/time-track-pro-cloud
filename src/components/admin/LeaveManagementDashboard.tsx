@@ -31,11 +31,11 @@ export const LeaveManagementDashboard = () => {
   }, []);
 
   const loadData = () => {
-    const storedApplications = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
-    const storedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
+    const storedApplications: LeaveApplication[] = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
+    const storedEmployees: Employee[] = JSON.parse(localStorage.getItem("employees") || "[]");
     
-    const enrichedApplications = storedApplications.map((app: any) => {
-      const employee = storedEmployees.find((e: any) => e.id === app.employeeId);
+    const enrichedApplications = storedApplications.map(app => {
+      const employee = storedEmployees.find(e => e.id === app.employeeId);
       return {
         ...app,
         employeeName: employee?.name || "Unknown Employee",

@@ -2,23 +2,25 @@
 import { Employee, TimesheetEntry, Timesheet, LeaveApplication } from "@/types";
 
 // Event dispatcher for real-time updates
-class DataSyncManager {
-  private listeners: { [key: string]: Function[] } = {};
+type DataListener = (data?: unknown) => void;
 
-  subscribe(event: string, callback: Function) {
+class DataSyncManager {
+  private listeners: { [key: string]: DataListener[] } = {};
+
+  subscribe(event: string, callback: DataListener) {
     if (!this.listeners[event]) {
       this.listeners[event] = [];
     }
     this.listeners[event].push(callback);
   }
 
-  unsubscribe(event: string, callback: Function) {
+  unsubscribe(event: string, callback: DataListener) {
     if (this.listeners[event]) {
       this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
     }
   }
 
-  emit(event: string, data?: any) {
+  emit(event: string, data?: unknown) {
     if (this.listeners[event]) {
       this.listeners[event].forEach(callback => callback(data));
     }

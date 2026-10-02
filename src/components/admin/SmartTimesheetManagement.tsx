@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,16 +13,33 @@ interface SmartTimesheetManagementProps {
   employees: Employee[];
 }
 
+const generateMockEntries = (): TimesheetEntry[] => {
+  const entries: TimesheetEntry[] = [];
+  for (let i = 1; i <= 5; i++) {
+    entries.push({
+      id: `entry-${i}`,
+      date: `2024-01-${i.toString().padStart(2, '0')}`,
+      workStart: "09:00",
+      workEnd: "17:00",
+      breakStart: "12:00",
+      breakEnd: "13:00",
+      otStart: "",
+      otEnd: "",
+      description: `Daily work for day ${i}`,
+      remarks: "",
+      totalHours: 7,
+      status: 'pending'
+    });
+  }
+  return entries;
+};
+
 export const SmartTimesheetManagement = ({ employees }: SmartTimesheetManagementProps) => {
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("all");
 
-  useEffect(() => {
-    loadTimesheets();
-  }, []);
-
-  const loadTimesheets = () => {
+  const loadTimesheets = useCallback(() => {
     // Simulate timesheet data
     const mockTimesheets: Timesheet[] = employees.map(emp => ({
       id: `ts-${emp.id}`,
@@ -34,28 +51,9 @@ export const SmartTimesheetManagement = ({ employees }: SmartTimesheetManagement
       entries: generateMockEntries()
     }));
     setTimesheets(mockTimesheets);
-  };
+  }, [employees]);
 
-  const generateMockEntries = (): TimesheetEntry[] => {
-    const entries: TimesheetEntry[] = [];
-    for (let i = 1; i <= 5; i++) {
-      entries.push({
-        id: `entry-${i}`,
-        date: `2024-01-${i.toString().padStart(2, '0')}`,
-        workStart: "09:00",
-        workEnd: "17:00",
-        breakStart: "12:00",
-        breakEnd: "13:00",
-        otStart: "",
-        otEnd: "",
-        description: `Daily work for day ${i}`,
-        remarks: "",
-        totalHours: 7,
-        status: 'pending'
-      });
-    }
-    return entries;
-  };
+  useEffect(() => { loadTimesheets(); }, [loadTimesheets]);
 
   const approveTimesheet = (timesheetId: string) => {
     const updatedTimesheets = timesheets.map(ts => 

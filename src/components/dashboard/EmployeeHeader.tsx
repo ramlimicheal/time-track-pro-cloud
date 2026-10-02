@@ -39,8 +39,8 @@ export const EmployeeHeader = ({ employee }: EmployeeHeaderProps) => {
       // Also update employees list if exists
       const employees = localStorage.getItem("employees");
       if (employees) {
-        const employeesList = JSON.parse(employees);
-        const updatedEmployees = employeesList.map((emp: any) => 
+        const employeesList: Employee[] = JSON.parse(employees);
+        const updatedEmployees = employeesList.map(emp =>
           emp.id === updatedData.id ? { ...emp, ...updatedData } : emp
         );
         localStorage.setItem("employees", JSON.stringify(updatedEmployees));

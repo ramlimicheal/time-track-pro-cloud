@@ -2,15 +2,16 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { EmployeeForm } from "./EmployeeForm";
+import { EmployeeForm, type EmployeeFormData } from "./EmployeeForm";
+import type { Employee } from "@/types";
 import { toast } from "sonner";
 
 interface EmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (employee: any) => void;
-  onUpdate: (employee: any) => void;
-  editingEmployee: any | null;
+  onCreate: (employee: Employee) => void;
+  onUpdate: (employee: Employee) => void;
+  editingEmployee: Employee | null;
 }
 
 export const EmployeeModal = ({
@@ -20,7 +21,7 @@ export const EmployeeModal = ({
   onUpdate,
   editingEmployee
 }: EmployeeModalProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EmployeeFormData>({
     name: "",
     email: "",
     department: "",
@@ -49,6 +50,7 @@ export const EmployeeModal = ({
     const employeeData = {
       ...formData,
       id: editingEmployee ? editingEmployee.id : new Date().getTime().toString(),
+      pendingTimesheets: editingEmployee?.pendingTimesheets ?? 0,
     };
 
     if (editingEmployee) {

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { EditProfileModal } from "./EditProfileModal";
 import { Employee } from "@/types";
+import type { LucideIcon } from "lucide-react";
 import { format } from "date-fns";
 import { 
   User, 
@@ -46,8 +47,8 @@ export const ProfileManagement = ({ employee, onProfileUpdate }: ProfileManageme
       // Also update employees list if exists
       const employees = localStorage.getItem("employees");
       if (employees) {
-        const employeesList = JSON.parse(employees);
-        const updatedEmployees = employeesList.map((emp: any) => 
+        const employeesList: Employee[] = JSON.parse(employees);
+        const updatedEmployees = employeesList.map(emp =>
           emp.id === updatedData.id ? { ...emp, ...updatedData } : emp
         );
         localStorage.setItem("employees", JSON.stringify(updatedEmployees));
@@ -56,7 +57,7 @@ export const ProfileManagement = ({ employee, onProfileUpdate }: ProfileManageme
   };
 
   const ProfileField = ({ icon: Icon, label, value, className = "" }: {
-    icon: any;
+    icon: LucideIcon;
     label: string;
     value: string | undefined;
     className?: string;

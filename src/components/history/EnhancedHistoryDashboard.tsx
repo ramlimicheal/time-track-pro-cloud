@@ -8,7 +8,7 @@ import { YearView } from "./YearView";
 import { MonthView } from "./MonthView";
 import { DayView } from "./DayView";
 import { TimesheetAnalytics } from "./TimesheetAnalytics";
-import { AdvancedFilters } from "./AdvancedFilters";
+import { AdvancedFilters, type FilterState } from "./AdvancedFilters";
 import { Timesheet } from "@/types";
 
 interface EnhancedHistoryDashboardProps {
@@ -17,7 +17,7 @@ interface EnhancedHistoryDashboardProps {
 }
 
 export const EnhancedHistoryDashboard = ({ timesheets, onExport }: EnhancedHistoryDashboardProps) => {
-  const [selectedView, setSelectedView] = useState<"year" | "month" | "day">("month");
+  const [selectedView, setSelectedView] = useState<"year" | "month" | "day" | "analytics">("month");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -27,14 +27,15 @@ export const EnhancedHistoryDashboard = ({ timesheets, onExport }: EnhancedHisto
     setFilteredTimesheets(timesheets);
   }, [timesheets]);
 
-  const handleFilterChange = (filters: any) => {
+  const handleFilterChange = (filters: FilterState) => {
     // Apply filters to timesheets
     let filtered = timesheets;
     
-    if (filters.dateRange) {
+    if (filters.dateRange.from || filters.dateRange.to) {
       filtered = filtered.filter(ts => {
         const tsDate = new Date(ts.year, ts.month - 1);
-        return tsDate >= filters.dateRange.from && tsDate <= filters.dateRange.to;
+        return (!filters.dateRange.from || tsDate >= filters.dateRange.from) &&
+          (!filters.dateRange.to || tsDate <= filters.dateRange.to);
       });
     }
     
@@ -86,7 +87,9 @@ export const EnhancedHistoryDashboard = ({ timesheets, onExport }: EnhancedHisto
       <AdvancedFilters onFilterChange={handleFilterChange} />
 
       {/* View Selector */}
-      <Tabs value={selectedView} onValueChange={(value) => setSelectedView(value as any)}>
+      <Tabs value={selectedView} onValueChange={value => {
+        if (value === "year" || value === "month" || value === "day" || value === "analytics") setSelectedView(value);
+      }}>
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="year" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />

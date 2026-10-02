@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Search, Filter, X } from "lucide-react";
 import { format } from "date-fns";
 
-interface FilterState {
+export interface FilterState {
   search: string;
   status: string[];
   dateRange: { from: Date | null; to: Date | null };

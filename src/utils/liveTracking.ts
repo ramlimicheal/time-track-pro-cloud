@@ -32,10 +32,12 @@ interface LiveStats {
   workingNow: number;
 }
 
+type ActivityListener = (data: unknown) => void;
+
 class LiveTrackingManager {
   private employees: Map<string, LiveEmployee> = new Map();
   private activities: EmployeeActivity[] = [];
-  private listeners: Map<string, Function[]> = new Map();
+  private listeners: Map<string, ActivityListener[]> = new Map();
 
   constructor() {
     // Initialize with some dummy data
@@ -191,14 +193,14 @@ class LiveTrackingManager {
     }
   }
 
-  subscribe(event: string, callback: Function) {
+  subscribe(event: string, callback: ActivityListener) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
     this.listeners.get(event)!.push(callback);
   }
 
-  unsubscribe(event: string, callback: Function) {
+  unsubscribe(event: string, callback: ActivityListener) {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       const index = callbacks.indexOf(callback);
@@ -208,7 +210,7 @@ class LiveTrackingManager {
     }
   }
 
-  private notifyListeners(event: string, data: any) {
+  private notifyListeners(event: string, data: unknown) {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
       callbacks.forEach(callback => callback(data));

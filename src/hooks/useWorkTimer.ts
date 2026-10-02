@@ -1,176 +1,48 @@
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { workSessionService } from "@/services/workSessionService";
+import { localDate } from "@/utils/cloudTime";
+import { formatSeconds, sessionSeconds, todaySessionHours } from "@/utils/workSessions";
+import { toast } from "sonner";
 
-import { useState, useEffect, useRef } from "react";
-import { liveTrackingManager } from "@/utils/liveTracking";
-
-export interface WorkSession {
-  id: string;
-  startTime: string;
-  endTime?: string;
-  totalMinutes: number;
-  status: 'active' | 'paused' | 'completed';
-}
-
-export const useWorkTimer = (employeeId: string, employeeName: string) => {
-  const [isRunning, setIsRunning] = useState(false);
-  const [currentSession, setCurrentSession] = useState<WorkSession | null>(null);
-  const [todayHours, setTodayHours] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Load saved timer state on mount
+export function useWorkTimer(employeeId: string, _employeeName: string) {
+  const client = useQueryClient();
+  const query = useQuery({
+    queryKey: ["work-sessions", employeeId],
+    queryFn: () => workSessionService.list(employeeId),
+    enabled: Boolean(employeeId),
+    refetchInterval: 15000,
+  });
+  const [now, setNow] = useState(Date.now());
+  const currentSession = query.data?.find(row => row.status === "active" || row.status === "paused") ?? null;
   useEffect(() => {
-    const savedTimer = localStorage.getItem(`workTimer-${employeeId}`);
-    if (savedTimer) {
-      const timerData = JSON.parse(savedTimer);
-      if (timerData.currentSession && timerData.currentSession.status === 'active') {
-        const startTime = new Date(timerData.currentSession.startTime).getTime();
-        const now = new Date().getTime();
-        const elapsed = Math.floor((now - startTime) / 1000);
-        
-        setCurrentSession(timerData.currentSession);
-        setElapsedTime(elapsed);
-        setIsRunning(true);
-      }
-      setTodayHours(timerData.todayHours || 0);
-    }
-  }, [employeeId]);
-
-  // Timer interval
-  useEffect(() => {
-    if (isRunning && currentSession) {
-      intervalRef.current = setInterval(() => {
-        const startTime = new Date(currentSession.startTime).getTime();
-        const now = new Date().getTime();
-        const elapsed = Math.floor((now - startTime) / 1000);
-        setElapsedTime(elapsed);
-        
-        // Update work hours in live tracking every minute
-        if (elapsed % 60 === 0) {
-          const hours = elapsed / 3600;
-          liveTrackingManager.updateWorkHours(employeeId, todayHours + hours);
-        }
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, currentSession, employeeId, todayHours]);
-
-  // Save timer state to localStorage
-  const saveTimerState = (session: WorkSession | null, hours: number) => {
-    const timerData = {
-      currentSession: session,
-      todayHours: hours,
-      lastUpdated: new Date().toISOString()
-    };
-    localStorage.setItem(`workTimer-${employeeId}`, JSON.stringify(timerData));
-  };
-
-  const startWork = () => {
-    const newSession: WorkSession = {
-      id: `session-${Date.now()}`,
-      startTime: new Date().toISOString(),
-      totalMinutes: 0,
-      status: 'active'
-    };
-    
-    setCurrentSession(newSession);
-    setIsRunning(true);
-    setElapsedTime(0);
-    
-    // Update live tracking
-    liveTrackingManager.updateActivity(employeeId, "Working", "Started work session");
-    
-    saveTimerState(newSession, todayHours);
-  };
-
-  const takeBreak = () => {
-    if (currentSession && isRunning) {
-      const updatedSession = {
-        ...currentSession,
-        status: 'paused' as const,
-        totalMinutes: Math.floor(elapsedTime / 60)
-      };
-      
-      setCurrentSession(updatedSession);
-      setIsRunning(false);
-      
-      // Update live tracking
-      liveTrackingManager.updateActivity(employeeId, "Break", "Taking a break");
-      
-      saveTimerState(updatedSession, todayHours);
-    }
-  };
-
-  const resumeWork = () => {
-    if (currentSession && !isRunning) {
-      const updatedSession = {
-        ...currentSession,
-        status: 'active' as const,
-        startTime: new Date(Date.now() - (elapsedTime * 1000)).toISOString()
-      };
-      
-      setCurrentSession(updatedSession);
-      setIsRunning(true);
-      
-      // Update live tracking
-      liveTrackingManager.updateActivity(employeeId, "Working", "Resumed work session");
-      
-      saveTimerState(updatedSession, todayHours);
-    }
-  };
-
-  const endWork = () => {
-    if (currentSession) {
-      const sessionHours = elapsedTime / 3600;
-      const newTodayHours = todayHours + sessionHours;
-      
-      const completedSession = {
-        ...currentSession,
-        endTime: new Date().toISOString(),
-        status: 'completed' as const,
-        totalMinutes: Math.floor(elapsedTime / 60)
-      };
-      
-      setCurrentSession(null);
-      setIsRunning(false);
-      setElapsedTime(0);
-      setTodayHours(newTodayHours);
-      
-      // Update live tracking
-      liveTrackingManager.updateActivity(employeeId, "Work Ended", `Completed ${sessionHours.toFixed(1)} hours`);
-      liveTrackingManager.updateWorkHours(employeeId, newTodayHours);
-      
-      saveTimerState(null, newTodayHours);
-      
-      return completedSession;
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  const mutation = useMutation({
+    mutationFn: (action: "start" | "pause" | "resume" | "complete") => {
+      if (action === "start") return workSessionService.start(localDate());
+      if (!currentSession) throw new Error("No current work session.");
+      return workSessionService.transition(currentSession, action);
+    },
+    onSuccess: async record => {
+      await client.invalidateQueries({ queryKey: ["work-sessions", employeeId] });
+      if (record.status === "completed") toast.success("Session saved. Submit your daily timesheet for approval.");
+    },
+    onError: async () => { await client.invalidateQueries({ queryKey: ["work-sessions", employeeId] }); },
+  });
+  const elapsedTime = currentSession ? sessionSeconds(currentSession, now) : 0;
   return {
-    isRunning,
-    currentSession,
-    todayHours,
-    elapsedTime,
-    formattedTime: formatTime(elapsedTime),
-    startWork,
-    takeBreak,
-    resumeWork,
-    endWork
+    isRunning: currentSession?.status === "active",
+    currentSession, elapsedTime,
+    todayHours: todaySessionHours(query.data ?? [], now),
+    formattedTime: formatSeconds(elapsedTime),
+    loading: query.isPending, busy: mutation.isPending,
+    error: query.error || mutation.error,
+    retry: () => { mutation.reset(); void query.refetch(); },
+    startWork: () => { if (!mutation.isPending) mutation.mutate("start"); },
+    takeBreak: () => { if (!mutation.isPending) mutation.mutate("pause"); },
+    resumeWork: () => { if (!mutation.isPending) mutation.mutate("resume"); },
+    endWork: () => { if (!mutation.isPending) mutation.mutate("complete"); },
   };
-};
+}

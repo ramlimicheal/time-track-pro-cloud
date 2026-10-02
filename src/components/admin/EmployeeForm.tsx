@@ -6,10 +6,12 @@ import { departments, bloodGroups, generateUsername, generatePassword } from "@/
 import { FormField } from "./FormField";
 import { Input } from "@/components/ui/input";
 
+export type EmployeeFormData = Required<Omit<Employee, "id" | "pendingTimesheets" | "avatar">>;
+
 interface EmployeeFormProps {
   initialData?: Employee | null;
-  formData: any;
-  setFormData: (data: any) => void;
+  formData: EmployeeFormData;
+  setFormData: React.Dispatch<React.SetStateAction<EmployeeFormData>>;
   generatedUsername: string;
   setGeneratedUsername: (username: string) => void;
   generatedPassword: string;

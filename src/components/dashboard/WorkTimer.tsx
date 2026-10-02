@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Play, Pause, Square, Clock, Coffee } from "lucide-react";
 import { useWorkTimer } from "@/hooks/useWorkTimer";
+import { QueryState } from "@/components/cloud/QueryState";
 
 interface WorkTimerProps {
   employeeId: string;
@@ -20,7 +21,8 @@ export const WorkTimer = ({ employeeId, employeeName }: WorkTimerProps) => {
     startWork,
     takeBreak,
     resumeWork,
-    endWork
+    endWork,
+    loading, busy, error, retry
   } = useWorkTimer(employeeId, employeeName);
 
   const getStatusColor = () => {
@@ -49,6 +51,7 @@ export const WorkTimer = ({ employeeId, employeeName }: WorkTimerProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <QueryState loading={loading} error={error} retry={retry} />
         {/* Timer Display */}
         <div className="text-center">
           <div className="text-4xl font-mono font-bold text-gray-900 mb-2">
@@ -74,24 +77,24 @@ export const WorkTimer = ({ employeeId, employeeName }: WorkTimerProps) => {
         {/* Timer Controls */}
         <div className="flex gap-2">
           {!currentSession ? (
-            <Button onClick={startWork} className="flex-1 bg-green-600 hover:bg-green-700">
+            <Button onClick={startWork} disabled={loading || busy || Boolean(error)} className="flex-1 bg-green-600 hover:bg-green-700">
               <Play className="h-4 w-4 mr-2" />
               Start Work
             </Button>
           ) : (
             <>
               {isRunning ? (
-                <Button onClick={takeBreak} variant="outline" className="flex-1">
+                <Button onClick={takeBreak} disabled={loading || busy} variant="outline" className="flex-1">
                   <Coffee className="h-4 w-4 mr-2" />
                   Take Break
                 </Button>
               ) : (
-                <Button onClick={resumeWork} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                <Button onClick={resumeWork} disabled={loading || busy} className="flex-1 bg-blue-600 hover:bg-blue-700">
                   <Play className="h-4 w-4 mr-2" />
                   Resume
                 </Button>
               )}
-              <Button onClick={endWork} variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50">
+              <Button onClick={endWork} disabled={loading || busy} variant="outline" className="flex-1 text-red-600 border-red-200 hover:bg-red-50">
                 <Square className="h-4 w-4 mr-2" />
                 End Work
               </Button>
@@ -102,9 +105,11 @@ export const WorkTimer = ({ employeeId, employeeName }: WorkTimerProps) => {
         {/* Session Info */}
         {currentSession && (
           <div className="text-xs text-gray-500 text-center">
-            Started at {new Date(currentSession.startTime).toLocaleTimeString()}
+            Started at {new Date(currentSession.started_at).toLocaleTimeString()}
+            <p>Assigned work date: {currentSession.work_date}</p>
           </div>
         )}
+        <p className="text-xs text-gray-600">Timer sessions are saved separately. Submit a timesheet to request approval.</p>
       </CardContent>
       
       {/* Animated border for active timer */}

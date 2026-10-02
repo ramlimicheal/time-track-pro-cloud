@@ -1,220 +1,62 @@
-import { supabase } from '@/lib/supabase';
-import type { Database } from '@/types/supabase';
-
-type Timesheet = Database['public']['Tables']['timesheets']['Row'];
-type TimesheetInsert = Database['public']['Tables']['timesheets']['Insert'];
-type TimesheetUpdate = Database['public']['Tables']['timesheets']['Update'];
-type TimesheetEntry = Database['public']['Tables']['timesheet_entries']['Row'];
-type TimesheetEntryInsert = Database['public']['Tables']['timesheet_entries']['Insert'];
-type TimesheetEntryUpdate = Database['public']['Tables']['timesheet_entries']['Update'];
+import { supabase } from "@/lib/supabase";
+import type { TimeEntryInput, TimeRecord } from "@/types/cloud";
+import { totalTimeHours, validateTimeInput } from "@/utils/cloudTime";
+import { fetchAll } from "./pagination";
 
 export const timesheetService = {
-  async getTimesheets(employeeId?: string, status?: string) {
-    let query = supabase
-      .from('timesheets')
-      .select(`
-        *,
-        employee:employees(id, name, email, department, position)
-      `)
-      .order('year', { ascending: false })
-      .order('month', { ascending: false });
+  list(userId?: string): Promise<TimeRecord[]> {
+    return fetchAll((from, to) => {
+      let query = supabase.from("timesheets").select("*")
+        .order("work_date", { ascending: false }).order("id").range(from, to);
+      if (userId) query = query.eq("user_id", userId);
+      return query;
+    });
+  },
 
-    if (employeeId) {
-      query = query.eq('employee_id', employeeId);
+  async submit(userId: string, input: TimeEntryInput, existing?: TimeRecord): Promise<TimeRecord> {
+    const errors = validateTimeInput(input);
+    if (errors.length) throw new Error(errors.join(" "));
+    if (existing && (existing.user_id !== userId || !["draft", "rejected"].includes(existing.status))) {
+      throw new Error("Only your draft or rejected entries can be edited.");
     }
-
-    if (status) {
-      query = query.eq('status', status);
+    const values = {
+      user_id: userId, work_date: input.work_date,
+      start_time: input.start_time, end_time: input.end_time,
+      break_minutes: input.break_minutes, ot_start: input.ot_start || null,
+      ot_end: input.ot_end || null, description: input.description.trim() || null,
+      total_hours: totalTimeHours(input), status: "pending" as const,
+      approved_at: null, approved_by: null, rejection_reason: null,
+    };
+    // Updating by version prevents an old tab from overwriting a manager decision.
+    const query = existing
+      ? supabase.from("timesheets").update(values).eq("id", existing.id)
+        .eq("user_id", userId).eq("updated_at", existing.updated_at).in("status", ["draft", "rejected"])
+      : supabase.from("timesheets").insert(values);
+    const { data, error } = await query.select().single();
+    if (error) {
+      if (error.code === "23505") throw new Error("An entry already exists for this date. Open it from history.");
+      if (error.code === "PGRST116") throw new Error("This entry changed. Refresh before editing.");
+      throw error;
     }
-
-    const { data, error } = await query;
-    if (error) throw error;
     return data;
   },
 
-  async getTimesheetById(id: string) {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .select(`
-        *,
-        employee:employees(id, name, email, department, position),
-        entries:timesheet_entries(*)
-      `)
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
+  async review(record: TimeRecord, status: "approved" | "rejected", reason = ""): Promise<TimeRecord> {
+    if (record.status !== "pending") throw new Error("Only pending entries can be reviewed.");
+    if (status === "rejected" && !reason.trim()) throw new Error("A rejection reason is required.");
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) throw authError;
+    if (!user) throw new Error("Please sign in again.");
+    if (user.id === record.user_id) throw new Error("You cannot approve or reject your own entry.");
+    const { data, error } = await supabase.from("timesheets").update({
+      status, approved_by: status === "approved" ? user.id : null,
+      approved_at: status === "approved" ? new Date().toISOString() : null,
+      rejection_reason: status === "rejected" ? reason.trim() : null,
+    }).eq("id", record.id).eq("updated_at", record.updated_at).eq("status", "pending").select().single();
+    if (error) {
+      if (error.code === "PGRST116") throw new Error("This entry changed or was already reviewed. Refresh the list.");
+      throw error;
+    }
     return data;
-  },
-
-  async getTimesheetByMonthYear(employeeId: string, month: number, year: number) {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .select(`
-        *,
-        entries:timesheet_entries(*)
-      `)
-      .eq('employee_id', employeeId)
-      .eq('month', month)
-      .eq('year', year)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async createTimesheet(timesheet: TimesheetInsert) {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .insert(timesheet)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async updateTimesheet(id: string, updates: TimesheetUpdate) {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async submitTimesheet(id: string) {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .update({
-        status: 'pending',
-        submitted_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async approveTimesheet(id: string, approvedBy: string) {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .update({
-        status: 'approved',
-        approved_at: new Date().toISOString(),
-        approved_by: approvedBy,
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    await supabase
-      .from('timesheet_entries')
-      .update({ status: 'approved' })
-      .eq('timesheet_id', id);
-
-    return data;
-  },
-
-  async rejectTimesheet(id: string, reason: string) {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .update({
-        status: 'rejected',
-        rejection_reason: reason,
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    await supabase
-      .from('timesheet_entries')
-      .update({ status: 'rejected' })
-      .eq('timesheet_id', id);
-
-    return data;
-  },
-
-  async getTimesheetEntries(timesheetId: string) {
-    const { data, error } = await supabase
-      .from('timesheet_entries')
-      .select('*')
-      .eq('timesheet_id', timesheetId)
-      .order('date');
-
-    if (error) throw error;
-    return data;
-  },
-
-  async createTimesheetEntry(entry: TimesheetEntryInsert) {
-    const { data, error } = await supabase
-      .from('timesheet_entries')
-      .insert(entry)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async updateTimesheetEntry(id: string, updates: TimesheetEntryUpdate) {
-    const { data, error } = await supabase
-      .from('timesheet_entries')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async deleteTimesheetEntry(id: string) {
-    const { error } = await supabase
-      .from('timesheet_entries')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-  },
-
-  async getPendingTimesheets() {
-    const { data, error } = await supabase
-      .from('timesheets')
-      .select(`
-        *,
-        employee:employees(id, name, email, department, position)
-      `)
-      .eq('status', 'pending')
-      .order('submitted_at', { ascending: true });
-
-    if (error) throw error;
-    return data;
-  },
-
-  subscribeToChanges(callback: (payload: any) => void) {
-    const subscription = supabase
-      .channel('timesheets-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'timesheets',
-        },
-        callback
-      )
-      .subscribe();
-
-    return subscription;
   },
 };

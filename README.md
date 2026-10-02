@@ -2,6 +2,13 @@
 
 A comprehensive employee timesheet and workforce management application built with React, TypeScript, Vite, and Supabase.
 
+## Current cloud foundation
+
+See [FOUNDATION_SETUP.md](FOUNDATION_SETUP.md) for the current active features, regression checks,
+schema, migration prerequisites, preserved legacy records and staging deployment order.
+The forward database migration has **not** been applied to the live Lovable database.
+Historical feature descriptions below also cover legacy components that are no longer active routes.
+
 ## Features
 
 ### For Employees
@@ -29,7 +36,7 @@ A comprehensive employee timesheet and workforce management application built wi
 - **Frontend**: React 18, TypeScript
 - **Build Tool**: Vite
 - **Styling**: Tailwind CSS, shadcn/ui components
-- **Routing**: React Router v6
+- **Routing**: React Router v7
 - **State Management**: TanStack Query (React Query)
 - **Forms**: React Hook Form with Zod validation
 - **Charts**: Recharts
@@ -38,8 +45,8 @@ A comprehensive employee timesheet and workforce management application built wi
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
-- npm or yarn
+- Node.js (v22.12 or higher)
+- npm (use the maintained `package-lock.json`)
 - Supabase account
 
 ## Installation
@@ -52,14 +59,14 @@ cd <repository-name>
 
 2. Install dependencies:
 ```bash
-npm install
+npm ci
 ```
 
 3. Set up environment variables:
 Create a `.env` file in the root directory with your Supabase credentials:
 ```env
 VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_PUBLISHABLE_KEY=your_public_anon_or_publishable_key
 ```
 
 4. Start the development server:
@@ -73,6 +80,10 @@ npm run dev
 - `npm run build` - Build for production
 - `npm run build:dev` - Build in development mode
 - `npm run lint` - Run ESLint
+- `npm run lint:foundation` - Check the migrated active workflows
+- `npm run typecheck` - Check application and configuration TypeScript
+- `npm test` - Run frontend, calculation and isolated PostgreSQL regression tests
+- `npm run test:db` - Replay migrations and test database enforcement locally
 - `npm run preview` - Preview production build
 
 ## Project Structure
@@ -130,15 +141,18 @@ src/
 
 ## Database Setup
 
-This application uses Supabase for data persistence. You'll need to set up the following tables in your Supabase project:
+The active application uses the generated Lovable daily-user schema:
 
-- `employees` - Employee information
-- `timesheets` - Time entry records
+- `profiles` and `user_roles` - Account details and assigned roles
+- `timesheets` - Daily time entries identified by `user_id` and `work_date`
 - `leave_applications` - Leave requests
-- `users` - User authentication data
-- Additional tables for audit trails and analytics
+- `leave_balances` - Per-year total entitlements
+- `work_sessions` - Persisted timer sessions, added by the forward migration
+- `audit_logs` - Server-created change events
+- `auth.users` - Supabase-managed authentication identities
 
-Refer to the Supabase documentation for migration setup.
+Follow [FOUNDATION_SETUP.md](FOUNDATION_SETUP.md) before applying migrations.
+The archived employee/month schema is incompatible with the active application.
 
 ## Contributing
 

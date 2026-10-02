@@ -21,11 +21,15 @@ interface TimesheetAnalyticsProps {
   employees: Employee[];
 }
 
+type DepartmentHours = { department: string; hours: number; employees: number };
+type StatusTotal = { name: string; value: number };
+type DayHours = { day: string; hours: number };
+
 export const TimesheetAnalytics = ({ employees }: TimesheetAnalyticsProps) => {
   const [timePeriod, setTimePeriod] = useState("current");
-  const [departmentHoursData, setDepartmentHoursData] = useState<any[]>([]);
-  const [timesheetStatusData, setTimesheetStatusData] = useState<any[]>([]);
-  const [overtimeByDayData, setOvertimeByDayData] = useState<any[]>([]);
+  const [departmentHoursData, setDepartmentHoursData] = useState<DepartmentHours[]>([]);
+  const [timesheetStatusData, setTimesheetStatusData] = useState<StatusTotal[]>([]);
+  const [overtimeByDayData, setOvertimeByDayData] = useState<DayHours[]>([]);
   const [totalHours, setTotalHours] = useState(0);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [avgHoursPerEmployee, setAvgHoursPerEmployee] = useState(0);
@@ -69,7 +73,7 @@ export const TimesheetAnalytics = ({ employees }: TimesheetAnalyticsProps) => {
     });
     
     // Generate department hours data
-    const deptData: any[] = [];
+    const deptData: DepartmentHours[] = [];
     let totalEmployeeCount = 0;
     
     departmentMap.forEach((deptEmployees, department) => {

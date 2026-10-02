@@ -1,91 +1,33 @@
-import { useNavigate, Link } from "react-router-dom";
-import { LogOut, Clock, History, LayoutDashboard } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { errorMessage } from "@/lib/errors";
+import { toast } from "sonner";
 
-export const Header: React.FC = () => {
+export function Header() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/");
-  };
-
+  async function logout() {
+    try { await signOut(); navigate("/", { replace: true }); }
+    catch (error) { toast.error(errorMessage(error, "Could not sign out.")); }
+  }
   if (!user || !profile) return null;
-  
-  return (
-    <header className="bg-white border-b border-gray-200 py-3 px-4 md:px-6">
-      <div className="container mx-auto flex justify-between items-center">
-        <Logo />
-        
-        <div className="flex items-center gap-3 md:gap-6">
-          <div className="hidden md:flex gap-2">
-            {profile.role === "employee" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <Link to="/dashboard">
-                  <LayoutDashboard className="mr-1 h-4 w-4" />
-                  <span>Dashboard</span>
-                </Link>
-              </Button>
-            )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <Link to={profile.role === "employee" ? "/timesheet" : "/admin"}>
-                <Clock className="mr-1 h-4 w-4" />
-                <span>Timesheet</span>
-              </Link>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <Link to="/history">
-                <History className="mr-1 h-4 w-4" />
-                <span>History</span>
-              </Link>
-            </Button>
-          </div>
-
-          <NotificationCenter />
-
-          <div className="flex items-center gap-2">
-            <div className="hidden md:block text-right">
-              <div className="text-sm font-medium">{profile.full_name}</div>
-              <div className="text-xs text-muted-foreground capitalize">{profile.role}</div>
-            </div>
-
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600">
-              {profile.full_name.charAt(0).toUpperCase()}
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-red-600 hidden md:flex"
-              title="Logout"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
+  return <header className="bg-white border-b px-4 py-3 print:hidden">
+    <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <Logo />
+      <div className="flex items-center gap-2">
+        <span className="hidden sm:block text-sm">{profile.full_name}</span>
+        <NotificationCenter />
+        <Button variant="ghost" size="icon" onClick={() => void logout()} aria-label="Sign out"><LogOut className="h-5 w-5" /></Button>
       </div>
-    </header>
-  );
-};
+      <nav aria-label="Main navigation" className="flex flex-wrap gap-1 w-full">
+        <Button variant="ghost" size="sm" asChild><Link to={profile.role === "employee" ? "/dashboard" : "/admin"}>Dashboard</Link></Button>
+        <Button variant="ghost" size="sm" asChild><Link to="/timesheet">Timesheet</Link></Button>
+        <Button variant="ghost" size="sm" asChild><Link to="/history">History</Link></Button>
+      </nav>
+    </div>
+  </header>;
+}

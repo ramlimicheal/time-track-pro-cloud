@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { AccountAccessNotice } from "./AccountAccessNotice";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -14,7 +15,7 @@ export const ProtectedRoute = ({
   requiredRole,
   allowedRoles,
 }: ProtectedRouteProps) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, passwordRecovery } = useAuth();
 
   if (loading) {
     return (
@@ -24,10 +25,12 @@ export const ProtectedRoute = ({
     );
   }
 
-  if (!user || !profile) {
+  if (!user) {
     return <Navigate to="/" replace />;
   }
 
+  if (passwordRecovery) return <Navigate to="/reset-password" replace />;
+  if (!profile) return <AccountAccessNotice />;
   if (requiredRole && profile.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }

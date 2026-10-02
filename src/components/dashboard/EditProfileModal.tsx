@@ -14,12 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { User, Lock, Image } from "lucide-react";
+import type { Employee } from "@/types";
 
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  employee: any;
-  onUpdateProfile: (updatedData: any) => void;
+  employee: Employee;
+  onUpdateProfile: (updatedData: Employee) => void;
 }
 
 export const EditProfileModal = ({ isOpen, onClose, employee, onUpdateProfile }: EditProfileModalProps) => {

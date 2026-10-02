@@ -1,5 +1,6 @@
 
-import { TimesheetEntry, Timesheet } from "@/types";
+import { TimesheetEntry, Timesheet, Employee } from "@/types";
+import { escapeHtml } from "./escapeHtml";
 
 export const generateTimesheetPDF = (timesheet: Timesheet, employeeName?: string) => {
   const totalHours = timesheet.entries.reduce((sum, entry) => sum + entry.totalHours, 0);
@@ -9,7 +10,7 @@ export const generateTimesheetPDF = (timesheet: Timesheet, employeeName?: string
   ];
   
   const monthName = monthNames[timesheet.month - 1] || "Unknown";
-  const displayName = employeeName || timesheet.employeeName || "Employee";
+  const displayName = escapeHtml(employeeName || timesheet.employeeName || "Employee");
   
   const printContent = `
     <!DOCTYPE html>
@@ -129,11 +130,11 @@ export const generateTimesheetPDF = (timesheet: Timesheet, employeeName?: string
         <div class="info">
           <div class="info-section">
             <p><strong>Employee:</strong> ${displayName}</p>
-            <p><strong>Employee ID:</strong> ${timesheet.employeeId}</p>
-            <p><strong>Period:</strong> ${monthName} ${timesheet.year}</p>
+            <p><strong>Employee ID:</strong> ${escapeHtml(timesheet.employeeId)}</p>
+            <p><strong>Period:</strong> ${monthName} ${escapeHtml(timesheet.year)}</p>
           </div>
           <div class="info-section">
-            <p><strong>Status:</strong> <span class="status-${timesheet.status}">${timesheet.status.charAt(0).toUpperCase() + timesheet.status.slice(1)}</span></p>
+            <p><strong>Status:</strong> <span class="status-${escapeHtml(timesheet.status)}">${escapeHtml(timesheet.status.charAt(0).toUpperCase() + timesheet.status.slice(1))}</span></p>
             <p><strong>Total Hours:</strong> ${totalHours.toFixed(2)}</p>
             <p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>
           </div>
@@ -164,16 +165,16 @@ export const generateTimesheetPDF = (timesheet: Timesheet, employeeName?: string
           <tbody>
             ${timesheet.entries.map(entry => `
               <tr>
-                <td><strong>${entry.date}</strong></td>
-                <td>${entry.workStart || '-'}</td>
-                <td>${entry.workEnd || '-'}</td>
-                <td>${entry.breakStart || '-'}</td>
-                <td>${entry.breakEnd || '-'}</td>
-                <td>${entry.otStart || '-'}</td>
-                <td>${entry.otEnd || '-'}</td>
+                <td><strong>${escapeHtml(entry.date)}</strong></td>
+                <td>${escapeHtml(entry.workStart || '-')}</td>
+                <td>${escapeHtml(entry.workEnd || '-')}</td>
+                <td>${escapeHtml(entry.breakStart || '-')}</td>
+                <td>${escapeHtml(entry.breakEnd || '-')}</td>
+                <td>${escapeHtml(entry.otStart || '-')}</td>
+                <td>${escapeHtml(entry.otEnd || '-')}</td>
                 <td><strong>${entry.totalHours.toFixed(2)}</strong></td>
-                <td>${entry.description || '-'}</td>
-                <td><span class="status-${entry.status}">${entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}</span></td>
+                <td>${escapeHtml(entry.description || '-')}</td>
+                <td><span class="status-${escapeHtml(entry.status)}">${escapeHtml(entry.status.charAt(0).toUpperCase() + entry.status.slice(1))}</span></td>
               </tr>
             `).join('')}
           </tbody>
@@ -216,7 +217,7 @@ export const generateTimesheetPDF = (timesheet: Timesheet, employeeName?: string
   return false;
 };
 
-export const generateEmployeeReportPDF = (employees: any[], timesheets: any[]) => {
+export const generateEmployeeReportPDF = (employees: Employee[], timesheets: Timesheet[]) => {
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter(emp => emp.status === 'active').length;
   const totalTimesheets = timesheets.length;
@@ -264,12 +265,12 @@ export const generateEmployeeReportPDF = (employees: any[], timesheets: any[]) =
           <tbody>
             ${employees.map(emp => `
               <tr>
-                <td>${emp.name}</td>
-                <td>${emp.email}</td>
-                <td>${emp.department}</td>
-                <td>${emp.position}</td>
-                <td>${emp.joinDate}</td>
-                <td>${emp.status}</td>
+                <td>${escapeHtml(emp.name)}</td>
+                <td>${escapeHtml(emp.email)}</td>
+                <td>${escapeHtml(emp.department)}</td>
+                <td>${escapeHtml(emp.position)}</td>
+                <td>${escapeHtml(emp.joinDate)}</td>
+                <td>${escapeHtml(emp.status)}</td>
               </tr>
             `).join('')}
           </tbody>

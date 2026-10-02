@@ -13,7 +13,7 @@ import {
   TableRow,
   TableCell
 } from "@/components/ui/table";
-import { LeaveApplication } from "@/types";
+import { LeaveApplication, Employee } from "@/types";
 
 export const LeaveApplicationsReview = () => {
   const [applications, setApplications] = useState<LeaveApplication[]>([]);
@@ -24,13 +24,13 @@ export const LeaveApplicationsReview = () => {
   
   const loadLeaveApplications = () => {
     // In a real app, this would be fetched from an API
-    const storedApplications = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
+    const storedApplications: LeaveApplication[] = JSON.parse(localStorage.getItem("leaveApplications") || "[]");
     
     // Enrich with employee names from the employees data
-    const employees = JSON.parse(localStorage.getItem("employees") || "[]");
+    const employees: Employee[] = JSON.parse(localStorage.getItem("employees") || "[]");
     
-    const enrichedApplications = storedApplications.map((app: any) => {
-      const employee = employees.find((e: any) => e.id === app.employeeId);
+    const enrichedApplications = storedApplications.map(app => {
+      const employee = employees.find(e => e.id === app.employeeId);
       return {
         ...app,
         employeeName: employee?.name || "Unknown Employee",

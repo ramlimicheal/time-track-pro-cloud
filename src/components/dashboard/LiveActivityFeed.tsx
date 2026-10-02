@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Activity, Clock, User } from "lucide-react";
 import { liveTrackingManager, EmployeeActivity } from "@/utils/liveTracking";
+import type { Employee } from "@/types";
 
 export const LiveActivityFeed = () => {
   const [activities, setActivities] = useState<EmployeeActivity[]>([]);
@@ -76,8 +77,8 @@ export const LiveActivityFeed = () => {
   };
 
   const getEmployeeName = (employeeId: string) => {
-    const employees = JSON.parse(localStorage.getItem("employees") || "[]");
-    const employee = employees.find((e: any) => e.id === employeeId);
+    const employees: Employee[] = JSON.parse(localStorage.getItem("employees") || "[]");
+    const employee = employees.find(e => e.id === employeeId);
     return employee?.name || 'Unknown Employee';
   };
 

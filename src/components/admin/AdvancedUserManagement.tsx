@@ -13,6 +13,8 @@ import { AuthUser, Role } from "@/types/auth";
 import { ROLES } from "@/utils/rolePermissions";
 import { toast } from "sonner";
 
+type StoredUser = Omit<AuthUser, "role"> & { roleId?: string; username?: string };
+
 export const AdvancedUserManagement = () => {
   const [users, setUsers] = useState<AuthUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,12 +32,13 @@ export const AdvancedUserManagement = () => {
   }, []);
 
   const loadUsers = () => {
-    const storedUsers = JSON.parse(localStorage.getItem("users") || "[]");
-    const enhancedUsers = storedUsers.map((user: any) => ({
+    const storedUsers: StoredUser[] = JSON.parse(localStorage.getItem("users") || "[]");
+    const enhancedUsers = storedUsers.map(user => ({
       ...user,
+      name: user.name || user.username || "",
       role: ROLES.find(r => r.id === user.roleId) || ROLES[4], // default to employee
       mfaEnabled: user.mfaEnabled || false,
-      lastLogin: user.lastLogin || null,
+      lastLogin: user.lastLogin || undefined,
       createdAt: user.createdAt || new Date().toISOString(),
       isActive: user.isActive !== false
     }));

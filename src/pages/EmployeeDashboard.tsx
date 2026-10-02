@@ -1,172 +1,48 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useTimesheets } from "@/hooks/useCloudData";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Employee } from "@/types";
-import { EmployeeHeader } from "@/components/dashboard/EmployeeHeader";
-import { DashboardStats } from "@/components/dashboard/DashboardStats";
-import { LeaveBalanceTracker } from "@/components/dashboard/LeaveBalanceTracker";
-import { RecentLeaveApplications } from "@/components/dashboard/RecentLeaveApplications";
-import { QuickActions } from "@/components/dashboard/QuickActions";
-import { useNavigate } from "react-router-dom";
-import { EnhancedDashboard } from "@/components/dashboard/EnhancedDashboard";
-import { dataSyncManager } from "@/utils/dataSync";
-import { useEmployeeTracking } from "@/hooks/useEmployeeTracking";
 import { WorkTimer } from "@/components/dashboard/WorkTimer";
+import { LeavePanel } from "@/components/cloud/LeavePanel";
+import { ProfileEditor } from "@/components/cloud/ProfileEditor";
+import { QueryState } from "@/components/cloud/QueryState";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { localDate } from "@/utils/cloudTime";
 
-const EmployeeDashboard = () => {
-  const [employee, setEmployee] = useState<Employee | null>(null);
-  const navigate = useNavigate();
-  
-  // Add live tracking for this employee
-  const { trackActivity } = useEmployeeTracking(
-    employee?.id || "", 
-    employee?.name || ""
-  );
-  
-  useEffect(() => {
-    // Check if user is logged in
-    const userData = localStorage.getItem("user");
-    if (!userData) {
-      navigate("/");
-      return;
-    }
-    
-    const user = JSON.parse(userData);
-    if (user.role !== "employee") {
-      navigate("/");
-      return;
-    }
-    
-    // Get employee data from localStorage
-    const storedEmployees = JSON.parse(localStorage.getItem("employees") || "[]");
-    const matchingEmployee = storedEmployees.find((emp: any) => emp.id === user.id);
-    
-    if (matchingEmployee) {
-      setEmployee({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        department: matchingEmployee.department,
-        position: matchingEmployee.position,
-        joinDate: matchingEmployee.joinDate,
-        status: matchingEmployee.status || "active",
-        pendingTimesheets: matchingEmployee.pendingTimesheets || 0,
-        phoneNumber: matchingEmployee.phoneNumber,
-        bloodGroup: matchingEmployee.bloodGroup,
-        emergencyPhoneNumber: matchingEmployee.emergencyPhoneNumber,
-        passportNumber: matchingEmployee.passportNumber,
-        dob: matchingEmployee.dob,
-        avatar: matchingEmployee.avatar,
-        indianAddress: matchingEmployee.indianAddress,
-        omanAddress: matchingEmployee.omanAddress
-      });
-    } else {
-      // If employee not found in the system, use basic user data
-      setEmployee({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        department: user.department || "",
-        position: user.position || "",
-        joinDate: user.joinDate || "",
-        status: "active",
-        pendingTimesheets: 0
-      });
-    }
-  }, [navigate]);
-
-  // Listen for data changes
-  useEffect(() => {
-    const handleDataUpdate = () => {
-      // Refresh employee data when updates occur
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        const user = JSON.parse(userData);
-        setEmployee(prevEmployee => {
-          if (!prevEmployee) return null;
-          return {
-            ...prevEmployee,
-            ...user
-          };
-        });
-      }
-    };
-
-    dataSyncManager.subscribe("employee-updated", handleDataUpdate);
-    dataSyncManager.subscribe("timesheet-submitted", handleDataUpdate);
-    dataSyncManager.subscribe("leave-submitted", handleDataUpdate);
-    
-    return () => {
-      dataSyncManager.unsubscribe("employee-updated", handleDataUpdate);
-      dataSyncManager.unsubscribe("timesheet-submitted", handleDataUpdate);
-      dataSyncManager.unsubscribe("leave-submitted", handleDataUpdate);
-    };
-  }, []);
-
-  // Listen for changes in localStorage
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        const user = JSON.parse(userData);
-        setEmployee(prevEmployee => {
-          if (!prevEmployee) return null;
-          return {
-            ...prevEmployee,
-            ...user
-          };
-        });
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  const handleProfileUpdate = (updatedEmployee: Employee) => {
-    setEmployee(updatedEmployee);
-    dataSyncManager.updateEmployeeProfile(updatedEmployee.id, updatedEmployee);
-    trackActivity("Profile Updated", "Employee profile information updated");
-  };
-
-  if (!employee) {
-    return (
-      <MainLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900">Loading...</h2>
-            <p className="text-gray-600">Setting up your dashboard</p>
-          </div>
-        </div>
-      </MainLayout>
-    );
-  }
-
-  return (
-    <MainLayout>
-      <div className="space-y-6">
-        <EmployeeHeader employee={employee} />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <DashboardStats employee={employee} />
-            
-            {/* Add Work Timer prominently */}
-            <WorkTimer employeeId={employee.id} employeeName={employee.name} />
-            
-            <EnhancedDashboard userRole="employee" />
-          </div>
-          
-          <div className="space-y-6">
-            <QuickActions employeeId={employee.id} />
-            <LeaveBalanceTracker employeeId={employee.id} />
-            <RecentLeaveApplications employeeId={employee.id} />
-          </div>
-        </div>
-      </div>
-    </MainLayout>
-  );
-};
-
-export default EmployeeDashboard;
+export default function EmployeeDashboard() {
+  const { user, profile } = useAuth();
+  const timesheets = useTimesheets();
+  const [editProfile, setEditProfile] = useState(false);
+  if (!user || !profile) return null;
+  const month = localDate().slice(0, 7);
+  const records = timesheets.data ?? [];
+  const hours = records.filter(row => row.work_date.startsWith(month)).reduce((sum, row) => sum + Number(row.total_hours ?? 0), 0);
+  return <MainLayout><div className="space-y-6 py-4">
+    <div className="flex flex-wrap justify-between items-center gap-3">
+      <div><h1 className="text-2xl font-bold">{profile.full_name || "Employee dashboard"}</h1>
+        <p className="text-gray-600">{[profile.position, profile.department].filter(Boolean).join(" · ") || "Your work and leave records"}</p></div>
+      <Button variant="outline" onClick={() => setEditProfile(true)}>Edit profile</Button>
+    </div>
+    <QueryState loading={timesheets.isPending} error={timesheets.error} retry={() => void timesheets.refetch()} />
+    {!timesheets.isPending && !timesheets.error && <div className="grid gap-4 sm:grid-cols-3">
+      {[["Hours this month", hours.toFixed(2)], ["Pending entries", records.filter(row => row.status === "pending").length],
+        ["Entries needing revision", records.filter(row => row.status === "rejected").length]].map(([label, value]) =>
+        <Card key={label}><CardContent className="pt-6"><p className="text-sm text-gray-600">{label}</p><p className="text-2xl font-bold">{value}</p></CardContent></Card>)}
+    </div>}
+    <div className="flex flex-wrap gap-3"><Button asChild><Link to="/timesheet">Enter work hours</Link></Button>
+      <Button asChild variant="outline"><Link to="/history">View timesheet history</Link></Button></div>
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div><WorkTimer employeeId={user.id} employeeName={profile.full_name} /></div>
+      <div className="lg:col-span-2"><LeavePanel /></div>
+    </div>
+    <Dialog open={editProfile} onOpenChange={setEditProfile}>
+      <DialogContent><DialogHeader><DialogTitle>Edit profile</DialogTitle>
+        <DialogDescription>Update your contact details. Employment details are managed by your administrator.</DialogDescription></DialogHeader>
+        <ProfileEditor key={profile.updated_at} record={profile} onSaved={() => setEditProfile(false)} />
+      </DialogContent>
+    </Dialog>
+  </div></MainLayout>;
+}

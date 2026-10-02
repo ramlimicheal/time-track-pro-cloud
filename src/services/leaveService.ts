@@ -1,227 +1,62 @@
-import { supabase } from '@/lib/supabase';
-import type { Database } from '@/types/supabase';
-
-type LeaveApplication = Database['public']['Tables']['leave_applications']['Row'];
-type LeaveApplicationInsert = Database['public']['Tables']['leave_applications']['Insert'];
-type LeaveApplicationUpdate = Database['public']['Tables']['leave_applications']['Update'];
-type LeaveBalance = Database['public']['Tables']['leave_balances']['Row'];
-type LeaveBalanceInsert = Database['public']['Tables']['leave_balances']['Insert'];
-type LeaveBalanceUpdate = Database['public']['Tables']['leave_balances']['Update'];
+import { supabase } from "@/lib/supabase";
+import type { LeaveInput, LeaveRecord, LeaveBalance } from "@/types/cloud";
+import { leaveDays } from "@/utils/cloudTime";
+import { fetchAll } from "./pagination";
 
 export const leaveService = {
-  async getLeaveApplications(employeeId?: string, status?: string) {
-    let query = supabase
-      .from('leave_applications')
-      .select(`
-        *,
-        employee:employees(id, name, email, department, position)
-      `)
-      .order('created_at', { ascending: false });
+  list(userId?: string): Promise<LeaveRecord[]> {
+    return fetchAll((from, to) => {
+      let query = supabase.from("leave_applications").select("*")
+        .order("created_at", { ascending: false }).order("id").range(from, to);
+      if (userId) query = query.eq("user_id", userId);
+      return query;
+    });
+  },
 
-    if (employeeId) {
-      query = query.eq('employee_id', employeeId);
+  async balances(userId: string, year: number): Promise<LeaveBalance | null> {
+    const { data, error } = await supabase.from("leave_balances").select("*")
+      .eq("user_id", userId).eq("year", year).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async setEntitlement(userId: string, year: number, days: Pick<LeaveBalance, "annual" | "sick" | "casual">): Promise<void> {
+    if (!Number.isInteger(year) || year < 2020 || year > 2100 ||
+        Object.values(days).some(value => !Number.isInteger(value) || value < 0 || value > 366)) {
+      throw new Error("Use a valid year and whole-day entitlements between 0 and 366.");
     }
+    const { error } = await supabase.from("leave_balances").upsert({ user_id: userId, year, ...days }, { onConflict: "user_id,year" });
+    if (error) throw error;
+  },
 
-    if (status) {
-      query = query.eq('status', status);
+  async submit(userId: string, input: LeaveInput): Promise<LeaveRecord> {
+    const days = leaveDays(input.start_date, input.end_date);
+    if (!days) throw new Error("Choose valid leave dates, with the end on or after the start.");
+    if (days > 366) throw new Error("A leave request cannot exceed 366 days.");
+    if (!input.reason.trim() || input.reason.length > 2000) throw new Error("Provide a reason of 1–2,000 characters.");
+    const { data, error } = await supabase.from("leave_applications").insert({
+      user_id: userId, ...input, reason: input.reason.trim(), days, status: "pending",
+    }).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async review(record: LeaveRecord, status: "approved" | "rejected", reason = ""): Promise<LeaveRecord> {
+    if (record.status !== "pending") throw new Error("Only pending leave can be reviewed.");
+    if (status === "rejected" && !reason.trim()) throw new Error("A rejection reason is required.");
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError) throw authError;
+    if (!user) throw new Error("Please sign in again.");
+    if (user.id === record.user_id) throw new Error("You cannot approve or reject your own leave.");
+    const { data, error } = await supabase.from("leave_applications").update({
+      status, approved_by: status === "approved" ? user.id : null,
+      approved_at: status === "approved" ? new Date().toISOString() : null,
+      rejection_reason: status === "rejected" ? reason.trim() : null,
+    }).eq("id", record.id).eq("updated_at", record.updated_at).eq("status", "pending").select().single();
+    if (error) {
+      if (error.code === "PGRST116") throw new Error("This request changed or was already reviewed. Refresh the list.");
+      throw error;
     }
-
-    const { data, error } = await query;
-    if (error) throw error;
     return data;
-  },
-
-  async getLeaveApplicationById(id: string) {
-    const { data, error } = await supabase
-      .from('leave_applications')
-      .select(`
-        *,
-        employee:employees(id, name, email, department, position)
-      `)
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async createLeaveApplication(application: LeaveApplicationInsert) {
-    const { data, error } = await supabase
-      .from('leave_applications')
-      .insert(application)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async updateLeaveApplication(id: string, updates: LeaveApplicationUpdate) {
-    const { data, error } = await supabase
-      .from('leave_applications')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async approveLeaveApplication(id: string, approvedBy: string) {
-    const application = await this.getLeaveApplicationById(id);
-    if (!application) throw new Error('Leave application not found');
-
-    const { data, error } = await supabase
-      .from('leave_applications')
-      .update({
-        status: 'approved',
-        approved_by: approvedBy,
-        approved_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    const year = new Date().getFullYear();
-    const balance = await this.getLeaveBalance(
-      application.employee_id,
-      application.leave_type,
-      year
-    );
-
-    if (balance) {
-      await this.updateLeaveBalance(balance.id, {
-        used_days: balance.used_days + application.days_count,
-        remaining_days: balance.remaining_days - application.days_count,
-      });
-    }
-
-    return data;
-  },
-
-  async rejectLeaveApplication(id: string, reason: string) {
-    const { data, error } = await supabase
-      .from('leave_applications')
-      .update({
-        status: 'rejected',
-        rejection_reason: reason,
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getPendingLeaveApplications() {
-    const { data, error } = await supabase
-      .from('leave_applications')
-      .select(`
-        *,
-        employee:employees(id, name, email, department, position)
-      `)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true });
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getLeaveBalance(employeeId: string, leaveType: string, year: number) {
-    const { data, error } = await supabase
-      .from('leave_balances')
-      .select('*')
-      .eq('employee_id', employeeId)
-      .eq('leave_type', leaveType)
-      .eq('year', year)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async getLeaveBalances(employeeId: string, year?: number) {
-    let query = supabase
-      .from('leave_balances')
-      .select('*')
-      .eq('employee_id', employeeId);
-
-    if (year) {
-      query = query.eq('year', year);
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
-  },
-
-  async createLeaveBalance(balance: LeaveBalanceInsert) {
-    const { data, error } = await supabase
-      .from('leave_balances')
-      .insert(balance)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async updateLeaveBalance(id: string, updates: LeaveBalanceUpdate) {
-    const { data, error } = await supabase
-      .from('leave_balances')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  },
-
-  async initializeLeaveBalances(employeeId: string, year: number) {
-    const leaveTypes: Array<'annual' | 'sick' | 'emergency'> = ['annual', 'sick', 'emergency'];
-    const defaultDays: Record<string, number> = {
-      annual: 30,
-      sick: 15,
-      emergency: 5,
-    };
-
-    const balances = leaveTypes.map((type) => ({
-      employee_id: employeeId,
-      leave_type: type,
-      total_days: defaultDays[type],
-      used_days: 0,
-      remaining_days: defaultDays[type],
-      year,
-    }));
-
-    const { data, error } = await supabase
-      .from('leave_balances')
-      .insert(balances)
-      .select();
-
-    if (error) throw error;
-    return data;
-  },
-
-  subscribeToChanges(callback: (payload: any) => void) {
-    const subscription = supabase
-      .channel('leave-applications-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'leave_applications',
-        },
-        callback
-      )
-      .subscribe();
-
-    return subscription;
   },
 };

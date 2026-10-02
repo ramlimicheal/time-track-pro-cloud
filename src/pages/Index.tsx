@@ -1,34 +1,38 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
+import { AccountAccessNotice } from "@/components/auth/AccountAccessNotice";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, passwordRecovery } = useAuth();
 
   useEffect(() => {
     if (!loading && user && profile) {
-      if (profile.role === 'admin' || profile.role === 'manager') {
-        navigate("/admin");
+      if (passwordRecovery) {
+        navigate("/reset-password", { replace: true });
+      } else if (profile.role === 'admin' || profile.role === 'manager') {
+        navigate("/admin", { replace: true });
       } else {
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       }
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, loading, passwordRecovery, navigate]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-      </div>
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center" aria-busy="true">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" role="status" aria-label="Loading account" />
+      </main>
     );
   }
 
+  if (user && !profile) return <AccountAccessNotice />;
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="flex justify-center">
@@ -43,7 +47,7 @@ const Index = () => {
         </div>
         <AuthForm />
       </div>
-    </div>
+    </main>
   );
 };
 
