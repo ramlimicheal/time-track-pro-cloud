@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790906128786,
+      "tag": "0000_harden_cloud_workflows",
+      "breakpoints": true
+    }
+  ]
+}

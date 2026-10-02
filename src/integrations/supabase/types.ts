@@ -245,6 +245,42 @@ export type Database = {
         }
         Relationships: []
       }
+      work_sessions: {
+        Row: {
+          elapsed_seconds: number
+          finished_at: string | null
+          id: string
+          last_started_at: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          work_date: string
+        }
+        Insert: {
+          elapsed_seconds?: number
+          finished_at?: string | null
+          id?: string
+          last_started_at?: string | null
+          started_at?: string
+          status: string
+          updated_at?: string
+          user_id: string
+          work_date: string
+        }
+        Update: {
+          elapsed_seconds?: number
+          finished_at?: string | null
+          id?: string
+          last_started_at?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          work_date?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -257,7 +293,55 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_admin_or_manager: { Args: { _user_id: string }; Returns: boolean }
+      set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      start_work_session: {
+        Args: { _work_date: string }
+        Returns: {
+          elapsed_seconds: number
+          finished_at: string | null
+          id: string
+          last_started_at: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          work_date: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "work_sessions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      transition_work_session: {
+        Args: { _action: string; _expected_updated_at: string; _id: string }
+        Returns: {
+          elapsed_seconds: number
+          finished_at: string | null
+          id: string
+          last_started_at: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          work_date: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "work_sessions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "employee"
