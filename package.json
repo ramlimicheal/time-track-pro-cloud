@@ -71,6 +71,11 @@
     "vaul": "^0.9.3",
     "zod": "^3.23.8"
   },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.12"
+    }
+  },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",
     "@eslint/js": "^9.9.0",
